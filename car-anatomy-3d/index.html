@@ -222,6 +222,10 @@ button { cursor: pointer; }
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
           <span>شغّل المحرك</span>
         </button>
+        <button class="btn" id="colorBtn" aria-pressed="false" title="بدّل بين ألوان المواد الحقيقية وألوان الأنظمة">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg>
+          <span>ألوان حقيقية</span>
+        </button>
         <div class="seg" role="group" aria-label="زاوية الكاميرا">
           <button data-view="iso">٣/٤</button>
           <button data-view="side">جنب</button>
@@ -561,6 +565,17 @@ const DEMOS = {
   chassis: { cap: 'الشاسيه بيجمع كل شي: بالضربة القوة (أبيض) بتمرق بالعوارض والعتبات وبتتوزّع حوالين المقصورة.', fx: { flows: ['crashFL', 'crashFR', 'crashRL', 'crashRR'] }, keys: [[C.white, 'قوة الضربة']], focus: 'car' },
   subframe: { cap: 'الصبفريم شايل المحرك والتعليق، وكاوتشوكاته بتمتص الرجّة والمطبات.', fx: { bounce: 1, engine: 'fast', shake: 1 }, cast: ['engineMounts', 'controlArms'] },
   grille: { cap: 'الهوا (أزرق) بيفوت من الشبك، بيمرق بالكوندنسر والرديتر، وبيطلع سخن (برتقالي) لورا.', fx: { fan: 1, flows: ['coolAir0', 'coolAir1', 'coolAir2'] }, keys: [[C.cold, 'هوا بارد'], [C.hot, 'هوا سخن']], cast: ['radiator', 'condenser'] },
+  bolts: { cap: 'البراغي عم تنشد واحد ورا التاني بترتيب نجمة، لحتى ينشد الجنط على الطارة بالتساوي وما يعوج.', fx: { bolts: 1 }, cast: ['rims', 'hubs'] },
+  inflate: { cap: 'الهوا (أزرق) بيفوت من البلف لجوّا الإطار، والبلف بيسكّر لحاله لحتى ما يرجع يطلع.', fx: { flows: ['inflate'] }, keys: [[C.cold, 'هوا']], cast: ['tires', 'rims', 'tpms'] },
+  wss: { cap: 'الحلقة المسنّنة بتلف مع العجلة، والحسّاس بيعدّ الأسنان وبيبعت إشارة (أخضر) لوحدة ABS. كل ما تلف العجلة أسرع، الإشارات بتصير أسرع.', fx: { wheels: 1, flows: ['wssFL', 'wssFR', 'wssRL', 'wssRR'] }, keys: [[C.sig, 'إشارة السرعة']], cast: ['abs', 'hubs'] },
+  knuckle: { cap: 'حامل العجلة عم يلف مع الدركسيون ويطلع وينزل مع التعليق، وهو شايل البيل والفرامل والعجلة كلها.', fx: { steer: 1, bump: 1 }, cast: ['hubs', 'ballJoints', 'tieRods', 'calipers'] },
+  ballJoint: { cap: 'الكرة عم تلف متل المفصل: العجلة بتلف مع الدركسيون وبتطلع وتنزل مع المطب، والكرة ماسكتها بالمقص.', fx: { steer: 1, bump: 1 }, cast: ['knuckle', 'controlArms'] },
+  strutMount: { cap: 'القاعدة فوق المساعد بتمتص الرجّة وقت المطب، وبالعجلات القدّامية فيها بيلية بتخلّي المساعد يلف مع الدركسيون.', fx: { steer: 1, bounce: 1 }, cast: ['shocks', 'springs'] },
+  dustShield: { cap: 'الصاج قاعد ورا الديسك وهو عم يلف ويسخن، وبيحميه من الماي والوسخ اللي جايين من جوّا.', fx: { brake: 1, wheels: 1 }, cast: ['brakeDiscs', 'calipers'] },
+  hose: { cap: 'زيت الفرامل (أحمر) بينزل بالخرطوم المرن للكاليبر، والخرطوم بينطوي مع العجلة وهي عم تلف يمين ويسار.', fx: { brake: 1, steer: 1, flows: ['hoseFL', 'hoseFR', 'hoseRL', 'hoseRR'] }, keys: [[C.brake, 'زيت فرامل']], cast: ['calipers', 'brakeLines'] },
+  pistonsCal: { cap: 'زيت الفرامل بيدفع البساتم الصغيرة، والبساتم بتدفع الفحمات لتعصر الديسك. شوفهم من الشبّاك فوق الكاليبر.', fx: { brake: 1, wheels: 1, flows: ['hoseFL', 'hoseFR', 'hoseRL', 'hoseRR'] }, keys: [[C.brake, 'زيت فرامل']], cast: ['calipers', 'brakePads', 'brakeDiscs'] },
+  wear: { cap: 'الفحمة عم تنصرف شوي شوي. لما توصل للحسّاس بيضوّي (أحمر)، وبتطلع لمبة عالعدّادات إنو لازم تغيّرها.', fx: { wear: 1 }, cast: ['brakePads', 'calipers'] },
+  spray: { cap: 'الدولاب عم يلف ويطيّر ماي ووسخ (بني)، والبطانة بتحمي الهيكل والأسلاك منهم.', fx: { wheels: 1, flows: ['sprayFL', 'sprayFR', 'sprayRL', 'sprayRR'] }, keys: [[C.dust, 'ماي ووسخ']], cast: ['tires', 'rims'] },
   fenders: { cap: 'الرفرف بيغطّي العجلة وهي عم تلف وتتوجّه، وبيمنع الحجار والطين يطيروا.', fx: { wheels: 1, steer: 1 }, cast: ['tires'] },
   quarter: { cap: 'الرفرف الخلفي بيغطّي العجلة الخلفية وهي عم تلف، وهو ملحوم بالهيكل.', fx: { wheels: 1 }, cast: ['tires'] },
 };
@@ -571,16 +586,20 @@ const DEMOS = {
 const CORNERS = [{ k: 'FL', x: FA, s: -1 }, { k: 'FR', x: FA, s: 1 }, { k: 'RL', x: RA, s: -1 }, { k: 'RR', x: RA, s: 1 }];
 const CAL_A = 2.3;
 const calPos = c => [c.x + 0.135 * Math.cos(CAL_A), WY + 0.135 * Math.sin(CAL_A), c.s * 0.74];
-const calIn = c => { const p = calPos(c); return [p[0], p[1], c.s * 0.70]; };
+const hoseTop = c => [c.x - 0.12, WY + 0.30, c.s * 0.60];   // where the rigid brake line meets the flexible hose
+const ZD = s => -s * 0.06;                                    // brake disc centre, corner-local z
+const VALVE_A = 54 * DEG;
+const HOSE = c => { const s = c.s, zd = ZD(s), a = CAL_A + 0.1; return [[0.176 * Math.cos(a), 0.176 * Math.sin(a), zd - s * 0.06], [-0.11, 0.235, -s * 0.15], [-0.12, 0.30, -s * 0.20]]; };
+const WSS = s => [[0, -0.11, -s * 0.165], [-0.06, -0.07, -s * 0.19], [-0.095, 0.12, -s * 0.19], [-0.11, 0.29, -s * 0.20]];
 const CABLE = [[-1.85, 0.70, 0.55], [-1.62, 0.55, 0.48], [-1.30, 0.50, 0.40], [-0.66, 0.49, 0.40], [-0.55, 0.33, 0.50], [0.50, 0.31, 0.58], [0.93, 0.36, 0.48], [1.02, 0.55, 0.40], [1.08, 0.66, 0.36]];
 const FUEL_LINE = [[-0.86, 0.46, 0.35], [-0.70, 0.475, 0.20], [-0.58, 0.40, 0.0], [-0.55, 0.26, -0.30], [-0.40, 0.245, -0.32], [0.40, 0.245, -0.32], [0.92, 0.26, -0.32], [1.04, 0.45, -0.20], [1.05, 0.72, -0.15], [1.03, 0.745, -0.125]];
 const BL = {
   m2a: [[1.12, 0.70, -0.47], [1.16, 0.64, -0.55], [1.20, 0.60, -0.62]],
-  fl: [[1.22, 0.56, -0.66], [1.32, 0.52, -0.70], calIn(CORNERS[0])],
+  fl: [[1.22, 0.56, -0.66], [1.32, 0.52, -0.70], hoseTop(CORNERS[0])],
   frA: [[1.18, 0.56, -0.60], [1.10, 0.40, -0.45], [0.985, 0.31, -0.30], [0.985, 0.31, 0.30]],
-  frB: [[1.20, 0.38, 0.60], calIn(CORNERS[1])],
-  rl: [[1.16, 0.56, -0.66], [1.05, 0.35, -0.66], [0.90, 0.25, -0.64], [-0.90, 0.24, -0.64], [-1.25, 0.30, -0.62], calIn(CORNERS[2])],
-  rr: [[0.985, 0.31, 0.30], [0.90, 0.25, 0.64], [-0.90, 0.24, 0.64], [-1.25, 0.30, 0.62], calIn(CORNERS[3])],
+  frB: [[1.20, 0.38, 0.60], hoseTop(CORNERS[1])],
+  rl: [[1.16, 0.56, -0.66], [1.05, 0.35, -0.66], [0.90, 0.25, -0.64], [-0.90, 0.24, -0.64], [-1.25, 0.30, -0.62], hoseTop(CORNERS[2])],
+  rr: [[0.985, 0.31, 0.30], [0.90, 0.25, 0.64], [-0.90, 0.24, 0.64], [-1.25, 0.30, 0.62], hoseTop(CORNERS[3])],
 };
 const EXH1 = [[1.10, 0.46, 0.38], [1.03, 0.32, 0.30], [0.96, 0.23, 0.25], [0.93, 0.22, 0.24]];
 const EXH2 = [[0.66, 0.22, 0.24], [0.2, 0.205, 0.25], [-0.5, 0.205, 0.27], [-1.0, 0.205, 0.29], [-1.45, 0.205, 0.30], [-1.66, 0.215, 0.30], [-1.73, 0.25, 0.30]];
@@ -598,7 +617,40 @@ const CHAIN_X = 0.972, CHAIN = [[0, 0.318], [0.038, 0.355], [0.068, 0.52], [0.09
  *  Part catalogue
  *  w = where it sits, fn = what it does, br = what happens when it breaks, demo = which animation
  * ------------------------------------------------------------------ */
-const RIG = { pistons: [], rods: [], crank: null, cams: [], valves: [], coilMats: [], pulleys: [], fan: null, turboWheels: [], throttle: null, flywheel: null, clutch: null, shifter: null, dshaft: null, axles: [], pads: [], discMat: null, pedals: {}, epbSwitch: null, springs: [], shocks: [], swInner: null, rack: null, wipers: [], mirrors: [], flap: null, airbags: [], beltMat: null, seats: [], o2Mat: null, ecuMat: null, fuseMat: null, knob: null, cluster: null, info: null, keepStatic: new Set() };
+const RIG = { bolts: {}, discEdge: null, padSensorMat: null, pistons: [], rods: [], crank: null, cams: [], valves: [], coilMats: [], pulleys: [], fan: null, turboWheels: [], throttle: null, flywheel: null, clutch: null, shifter: null, dshaft: null, axles: [], pads: [], discMat: null, pedals: {}, epbSwitch: null, springs: [], shocks: [], swInner: null, rack: null, wipers: [], mirrors: [], flap: null, airbags: [], beltMat: null, seats: [], o2Mat: null, ecuMat: null, fuseMat: null, knob: null, cluster: null, info: null, keepStatic: new Set() };
+/* realistic material per part: [colour, metalness, roughness] */
+const RM = {
+  alu: ['#A9AFB6', 0.75, 0.38], steel: ['#8D949C', 0.8, 0.35], dark: ['#3E434A', 0.6, 0.45], iron: ['#5E6268', 0.55, 0.6],
+  plastic: ['#26292D', 0.05, 0.55], rubber: ['#1C1E21', 0, 0.85], stainless: ['#B9BEC4', 0.85, 0.3], black: ['#1B1D20', 0.35, 0.38],
+  red: ['#B8202A', 0.3, 0.3], cognac: ['#8E5B34', 0.05, 0.55], paint: ['#2A5BA6', 0.5, 0.32], webbing: ['#2A2C30', 0, 0.8],
+};
+const REAL = {
+  engineBlock: 'alu', cylinderHead: 'alu', pistons: 'steel', crankshaft: 'steel', camshaft: 'steel', timingChain: 'steel', ignitionCoils: 'plastic',
+  oilPan: 'alu', oilPump: 'iron', oilFilter: 'plastic', engineMounts: 'steel', serpentineBelt: 'steel', airFilter: 'plastic', throttleBody: 'alu',
+  intakeManifold: 'plastic', turbo: 'alu', intercooler: 'alu', fuelTank: 'plastic', fuelPump: 'plastic', fuelLines: 'plastic', fuelFilter: 'steel',
+  injectors: 'steel', fuelDoor: 'paint', exhaustManifold: 'iron', catalytic: 'stainless', o2Sensor: 'steel', muffler: 'stainless', exhaustPipe: 'stainless',
+  radiator: 'alu', coolingFan: 'plastic', waterPump: 'alu', thermostat: 'plastic', coolantTank: 'plastic', radiatorHoses: 'rubber', flywheel: 'steel',
+  clutch: 'steel', transmission: 'alu', gearShifter: 'plastic', driveshaft: 'steel', differential: 'iron', axleShafts: 'steel', masterCylinder: 'alu',
+  abs: 'alu', brakeLines: 'steel', pedals: 'dark', parkingBrake: 'plastic', shocks: 'black', springs: 'black', controlArms: 'alu', antiRollBar: 'black',
+  hubs: 'steel', steeringWheel: 'plastic', steeringColumn: 'steel', steeringRack: 'alu', tieRods: 'steel', eps: 'alu', battery: 'plastic', alternator: 'alu',
+  starter: 'dark', ecu: 'alu', fuseBox: 'plastic', horn: 'black', parkingSensors: 'paint', acCompressor: 'alu', condenser: 'alu', hvac: 'plastic',
+  cabinFilter: 'plastic', seatbelts: 'webbing', adas: 'plastic', dashboard: 'plastic', centerConsole: 'plastic', seats: 'cognac', chassis: 'steel',
+  subframes: 'black', knuckle: 'alu', ballJoints: 'dark', strutMounts: 'rubber', sbLinks: 'dark', dustShield: 'dark', brakeHose: 'rubber',
+  caliperPistons: 'stainless', padSensor: 'plastic', wheelSpeedSensor: 'plastic', valveStem: 'rubber', wheelBolts: 'stainless', archLiners: 'plastic',
+  tpms: 'plastic', calipers: 'red', brakeDiscs: 'steel', brakePads: 'dark', tires: 'rubber', rims: 'alu', grille: 'black', mirrors: 'paint', doors: 'steel',
+};
+let colorMode = 'real';
+try { if (localStorage.getItem('carColors') === 'sys') colorMode = 'sys'; } catch (e) { /* storage blocked */ }
+function realFor(part) {
+  const r = RM[REAL[part.id]]; if (r) return r;
+  const c = part.color.clone(), hsl = {}; c.getHSL(hsl); c.setHSL(hsl.h, hsl.s * 0.2, hsl.l * 0.8); return ['#' + c.getHexString(), 0.5, 0.45];
+}
+function applyReal(m, real) {
+  const u = m.userData;
+  if (real && u.real) { m.color.set(u.real[0]); m.metalness = u.real[1]; m.roughness = u.real[2]; }
+  else { m.color.copy(u.sys.c); m.metalness = u.sys.m; m.roughness = u.sys.r; }
+}
+
 const DEF = [];
 const def = o => DEF.push(o);
 
@@ -1053,7 +1105,7 @@ def({ id: 'driveshaft', sys: 'drivetrain', demo: 'drive', ar: 'عمود الكر
   br: 'رجّة بتزيد مع السرعة أو طقّة عند الانطلاق. السبب غالباً الكاوتشوكة (Flex Disc) أو البيلية الوسطانية.',
   build(h) {
     const g = h.group({ p: [0, 0.35, 0] }); RIG.dshaft = g;
-    const m = h.mat({ color: '#A88FE0', metal: 0.6, rough: 0.4 }), d = h.mat({ color: '#2F333A', rough: 0.8 }), y = h.mat({ color: '#D2D6DC', metal: 0.8, rough: 0.3 });
+    const m = h.mat({ metal: 0.6, rough: 0.4 }), d = h.mat({ color: '#2F333A', rough: 0.8 }), y = h.mat({ color: '#D2D6DC', metal: 0.8, rough: 0.3 });
     h.mesh(cylX(0.034, 0.034, 0.66, 20), { mat: m, p: [-0.22, 0, 0], parent: g });
     h.mesh(cylX(0.034, 0.034, 0.72, 20), { mat: m, p: [-0.91, 0, 0], parent: g });
     [0.10, -0.53, -1.25].forEach(x => h.mesh(box(0.03, 0.095, 0.022), { mat: y, p: [x, 0, 0], parent: g }));
@@ -1089,34 +1141,127 @@ def({ id: 'axleShafts', sys: 'drivetrain', demo: 'drive', ar: 'العكوس (أ�
   } });
 
 /* ---------- BRAKES ---------- */
-def({ id: 'brakeDiscs', sys: 'brakes', demo: 'brakes', ar: 'ديسكات الفرامل', en: 'Brake Discs (Rotors)', sev: 2,
+def({ id: 'brakeDiscs', sys: 'brakes', demo: 'brakes', fw: true, ar: 'ديسكات الفرامل', en: 'Brake Discs (Rotors)', sev: 2,
   w: 'جوّا كل عجلة',
-  fn: 'قرص حديد بيلف مع العجلة. الفحمات بتعصره فبتوقف السيارة بالاحتكاك.',
+  fn: 'قرص حديد بيلف مع العجلة. الفحمات بتعصره فبتوقف السيارة بالاحتكاك. هالديسك مهوّى (فيه ريش من جوّا) ومتقّب ليبرد أسرع.',
   br: 'رجّة بالمقود أو بالدعسة وقت الفرملة (ديسك مش مستوي)، أو حزوز عميقة عالوجه.',
   build(h) {
-    const m = h.mat({ color: '#8E9298', metal: 0.85, rough: 0.4 }), hat = h.mat({ color: '#6E7379', metal: 0.7, rough: 0.5 });
-    RIG.discMat = m;
+    const t = discTex();
+    const m = h.mat({ color: '#FFFFFF', map: t.face, metal: 0.85, rough: 0.42, side: THREE.DoubleSide });
+    const edge = h.mat({ color: '#FFFFFF', map: t.edge, metal: 0.8, rough: 0.5, side: THREE.DoubleSide });
+    const hatSide = h.mat({ color: '#8A8F95', metal: 0.8, rough: 0.45 }), hatCap = h.mat({ color: '#FFFFFF', map: t.hat, metal: 0.8, rough: 0.45 });
+    RIG.discMat = m; RIG.discEdge = edge;
+    const ring = new THREE.RingGeometry(0.098, 0.165, 96, 1);
     CORNERS.forEach(c => {
-      h.mesh(cylZ(0.165, 0.165, 0.026, 44), { mat: m, p: [0, 0, -c.s * 0.06], parent: SPIN[c.k] });
-      h.mesh(cylZ(0.085, 0.085, 0.045, 30), { mat: hat, p: [0, 0, -c.s * 0.035], parent: SPIN[c.k] });
-      for (let i = 0; i < 5; i++) { const a = i / 5 * Math.PI * 2; h.mesh(cylZ(0.009, 0.009, 0.05, 8), { mat: hat, p: [0.05 * Math.cos(a), 0.05 * Math.sin(a), -c.s * 0.01], parent: SPIN[c.k] }); }
+      const s = c.s, z = ZD(s), p = SPIN[c.k];
+      h.mesh(ring, { mat: m, p: [0, 0, z + s * 0.014], r: [0, s < 0 ? Math.PI : 0, 0], parent: p });
+      h.mesh(ring, { mat: m, p: [0, 0, z - s * 0.014], r: [0, s > 0 ? Math.PI : 0, 0], parent: p });
+      h.mesh(cylZ(0.165, 0.165, 0.028, 96, true), { mat: edge, p: [0, 0, z], parent: p });
+      h.mesh(cylZ(0.098, 0.098, 0.028, 48, true), { mat: hatSide, p: [0, 0, z], parent: p });
+      h.mesh(cylZ(0.086, 0.086, 0.044, 48), { mat: [hatSide, hatCap, hatCap], p: [0, 0, z + s * 0.022], parent: p });
     });
   } });
 
-def({ id: 'calipers', sys: 'brakes', demo: 'brakes', ar: 'كاليبرات الفرامل (فكّ الفرامل)', en: 'Brake Calipers', sev: 3, ghost: 0.62, kids: ['brakePads'], corner: true,
-  w: 'على الديسك جوّا كل عجلة',
-  fn: 'فكّ فيه بستم بيندفع بزيت الفرامل، فبيعصر الفحمات عالديسك.',
-  br: 'إذا علق: السيارة بتسحب لجهة، ريحة حريق، والجنط بيسخن كتير. إذا رشح: الدعسة بتصير طرية، وهاد خطير.',
-  build(h) { CORNERS.forEach(c => h.mesh(rbox(0.07, 0.15, 0.075, 0.018), { p: calPos(c), r: [0, 0, CAL_A - Math.PI / 2] })); } });
+def({ id: 'dustShield', sys: 'brakes', demo: 'dustShield', fw: true, ar: 'صاج حماية الديسك', en: 'Brake Dust Shield', sev: 1,
+  w: 'ورا الديسك من جوّا',
+  fn: 'صاج رقيق ورا الديسك بيحميه من الماي والحجار والطين، وبيوجّه الهوا ليبرّد الفرامل.',
+  br: 'إذا انعوج بيحك بالديسك: صوت حك أو صفير معدني متواصل.',
+  build(h) {
+    const m = h.mat({ color: '#3F444A', metal: 0.7, rough: 0.5, side: THREE.DoubleSide });
+    CORNERS.forEach(c => {
+      const s = c.s, g = new THREE.LatheGeometry([[0.09, 0], [0.168, 0], [0.172, 0.006 * s], [0.174, 0.016 * s]].map(([r, y]) => new THREE.Vector2(r, y)), 72, CAL_A + 0.55 + Math.PI / 2, Math.PI * 2 - 1.1);
+      g.rotateX(Math.PI / 2);
+      h.mesh(g, { mat: m, p: [0, 0, -s * 0.082], parent: STEER[c.k] });
+    });
+  } });
 
-def({ id: 'brakePads', sys: 'brakes', demo: 'brakes', ar: 'فحمات الفرامل', en: 'Brake Pads', sev: 3, corner: true,
+def({ id: 'calipers', sys: 'brakes', demo: 'brakes', fw: true, ar: 'كاليبرات الفرامل (فكّ الفرامل)', en: 'Brake Calipers', sev: 3,
+  w: 'على الديسك جوّا كل عجلة',
+  fn: 'فكّ بيمسك الديسك من الجهتين. جوّاه بساتم بتندفع بزيت الفرامل فبتعصر الفحمات عالديسك. من الشبّاك اللي فوق بتشوف الفحمات.',
+  br: 'إذا علق: السيارة بتسحب لجهة، ريحة حريق، والجنط بيسخن كتير. إذا رشح: الدعسة بتصير طرية، وهاد خطير.',
+  build(h) {
+    const m = h.mat({ color: '#C21F2B', metal: 0.35, rough: 0.28, physical: true }), dark = h.mat({ color: '#2B2E33', metal: 0.7, rough: 0.4 });
+    const a0 = CAL_A - 0.36, a1 = CAL_A + 0.36;
+    const outer = ext(sector(0.122, 0.186, a0, a1), 0.012, 0.004), inner = ext(sector(0.118, 0.19, a0 - 0.03, a1 + 0.03), 0.022, 0.005);
+    const bridges = [[a0, a0 + 0.1], [a1 - 0.1, a1]].map(([b0, b1]) => ext(sector(0.15, 0.188, b0, b1), 0.11, 0.004));
+    CORNERS.forEach(c => {
+      const s = c.s, zd = ZD(s), P = STEER[c.k];
+      h.mesh(outer, { mat: m, p: [0, 0, zd + s * 0.035], parent: P });
+      h.mesh(inner, { mat: m, p: [0, 0, zd - s * 0.052], parent: P });
+      bridges.forEach(g => h.mesh(g, { mat: m, p: [0, 0, zd - s * 0.0135], parent: P }));
+      [-0.15, 0.15].forEach(da => { const a = CAL_A + da; h.mesh(cylZ(0.024, 0.024, 0.018, 28), { mat: m, p: [0.152 * Math.cos(a), 0.152 * Math.sin(a), zd - s * 0.07], parent: P }); });
+      const ab = CAL_A + 0.3; h.mesh(cylZ(0.006, 0.006, 0.02, 10), { mat: dark, p: [0.188 * Math.cos(ab), 0.188 * Math.sin(ab), zd - s * 0.065], parent: P });
+      [a0 + 0.06, a1 - 0.06].forEach(a => h.mesh(cylZ(0.009, 0.009, 0.03, 6), { mat: dark, p: [0.128 * Math.cos(a), 0.128 * Math.sin(a), zd - s * 0.075], parent: P }));
+    });
+  } });
+
+def({ id: 'caliperPistons', sys: 'brakes', demo: 'pistonsCal', fw: true, ar: 'بساتم الكاليبر', en: 'Caliper Pistons', sev: 3,
+  w: 'جوّا الكاليبر، ورا الفحمة الجوّانية',
+  fn: 'بساتم صغيرة جوّا الكاليبر: زيت الفرامل بيدفعها، وهي بتدفع الفحمات عالديسك.',
+  br: 'إذا صدّت أو علقت: الفرامل بتضل ماسكة، الجنط بيسخن، والسيارة بتسحب لجهة.',
+  build(h) {
+    const m = h.mat({ color: '#D9DDE2', metal: 0.95, rough: 0.18 }), g = cylZ(0.02, 0.02, 0.01, 28);
+    CORNERS.forEach(c => { const s = c.s, zd = ZD(s); [-0.15, 0.15].forEach(da => { const a = CAL_A + da, me = h.mesh(g, { mat: m, p: [0.152 * Math.cos(a), 0.152 * Math.sin(a), zd - s * 0.032], parent: STEER[c.k] }); RIG.pads.push({ m: me, dir: s, rear: c.x < 0 }); }); });
+  } });
+
+def({ id: 'brakePads', sys: 'brakes', demo: 'brakes', fw: true, ar: 'فحمات الفرامل', en: 'Brake Pads', sev: 3,
   w: 'جوّا الكاليبر، على جنبين الديسك',
   fn: 'قطع من مادة احتكاك بتنعصر عالديسك. هي القطعة اللي بتنصرف وبتتغيّر كل فترة.',
   br: 'صفير يعني قرّبت تخلص. صوت حديد على حديد يعني خلصت وعم تاكل الديسك.',
   note: 'سيارات BMW فيها حسّاس تآكل بيضوّي لمبة لما تقرّب الفحمات تخلص.',
   build(h) {
-    const m = h.mat({ color: '#6B5546', metal: 0.2, rough: 0.9 });
-    CORNERS.forEach(c => { const p = calPos(c); [-0.022, 0.022].forEach(dz => { const me = h.mesh(box(0.05, 0.11, 0.012), { mat: m, p: [p[0], p[1], p[2] + dz], r: [0, 0, CAL_A - Math.PI / 2] }); RIG.pads.push({ m: me, dir: -Math.sign(dz), rear: c.x < 0 }); }); });
+    const fm = h.mat({ color: '#4E4038', metal: 0.15, rough: 0.92 }), bm = h.mat({ color: '#7E848B', metal: 0.8, rough: 0.4 });
+    const fric = ext(sector(0.122, 0.163, CAL_A - 0.30, CAL_A + 0.30), 0.010, 0.0008), back = ext(sector(0.12, 0.166, CAL_A - 0.32, CAL_A + 0.32), 0.003, 0);
+    CORNERS.forEach(c => {
+      const s = c.s, zd = ZD(s), P = STEER[c.k];
+      [-1, 1].forEach(side => {
+        const dir = -side * s;
+        const f = h.mesh(fric, { mat: fm, p: [0, 0, zd + side * s * 0.0195], parent: P }), b = h.mesh(back, { mat: bm, p: [0, 0, zd + side * s * 0.0265], parent: P });
+        RIG.pads.push({ m: f, dir, rear: c.x < 0, fric: true }, { m: b, dir, rear: c.x < 0 });
+      });
+    });
+  } });
+
+def({ id: 'padSensor', sys: 'brakes', demo: 'wear', fw: true, ar: 'حسّاس تآكل الفحمات', en: 'Brake Pad Wear Sensor', sev: 1,
+  w: 'على الفحمة: بـ BMW غالباً عالعجلة القدّامية الشمال والخلفية اليمين',
+  fn: 'سلك صغير مدفون بالفحمة. لما تنصرف الفحمة لحدّه، السلك بينقطع وبتضوي لمبة عالعدّادات.',
+  br: 'لما تغيّر الفحمات لازم يتغيّر معها، لأنه بينصرف وبينقطع مع الفحمة القديمة.',
+  build(h) {
+    const m = h.mat({ color: '#2A2D31' }), w = h.mat({ color: '#2A2D31', rough: 0.7 }); RIG.padSensorMat = m;
+    CORNERS.filter(c => c.k === 'FL' || c.k === 'RR').forEach(c => {
+      const s = c.s, zd = ZD(s), a = CAL_A + 0.31, p = [0.142 * Math.cos(a), 0.142 * Math.sin(a), zd - s * 0.022];
+      h.mesh(rbox(0.014, 0.022, 0.012, 0.003), { mat: m, p, parent: STEER[c.k] });
+      h.mesh(tube([p, [0.165 * Math.cos(a + 0.12), 0.165 * Math.sin(a + 0.12), zd - s * 0.06], [-0.02, 0.2, -s * 0.13], [-0.09, 0.27, -s * 0.17]], 0.0028, 40), { mat: w, parent: STEER[c.k] });
+    });
+  } });
+
+def({ id: 'brakeHose', sys: 'brakes', demo: 'hose', fw: true, ar: 'خرطوم الفرامل المرن', en: 'Flexible Brake Hose', sev: 3,
+  w: 'بين آخر خط الفرامل والكاليبر، عند كل عجلة',
+  fn: 'خرطوم كاوتشوك مقوّى بيوصل زيت الفرامل للكاليبر، ومرن عشان العجلة بتطلع وتنزل وتلف.',
+  br: 'مع العمر بيتشقق أو بينفخ من جوّا: الدعسة بتصير طرية، والسيارة ممكن تسحب لجهة وقت الفرملة.',
+  build(h) {
+    const rub = h.mat({ color: '#18191B', rough: 0.75 }), fer = h.mat({ color: '#B9BEC4', metal: 0.9, rough: 0.3 });
+    CORNERS.forEach(c => {
+      const s = c.s, pts = HOSE(c);
+      h.mesh(tube(pts, 0.0058, 40), { mat: rub, parent: STEER[c.k] });
+      [pts[0], pts[pts.length - 1]].forEach(p => h.mesh(new THREE.SphereGeometry(0.009, 12, 8), { mat: fer, p, parent: STEER[c.k] }));
+      h.mesh(box(0.03, 0.01, 0.02), { mat: fer, p: [pts[pts.length - 1][0], pts[pts.length - 1][1] + 0.008, pts[pts.length - 1][2]], parent: STEER[c.k] });
+    });
+  } });
+
+def({ id: 'wheelSpeedSensor', sys: 'brakes', demo: 'wss', fw: true, ar: 'حسّاس سرعة العجلة (حسّاس ABS)', en: 'Wheel Speed Sensor & Tone Ring', sev: 2,
+  w: 'ورا كل عجلة، جنب الحلقة المسنّنة',
+  fn: 'حسّاس مغناطيسي بيقرأ أسنان حلقة بتلف مع العجلة، وبيبعت سرعة كل عجلة لوحدة ABS ونظام الثبات.',
+  br: 'بتضوي لمبة ABS ولمبة الثبات (DSC). ببعض السيارات كمان تحذير ضغط الإطارات بيعتمد عليه.',
+  build(h) {
+    const t = discTex(), ring = h.mat({ color: '#FFFFFF', map: t.tooth, metal: 0.8, rough: 0.4, side: THREE.DoubleSide }), body = h.mat({ color: '#25282C' }), w = h.mat({ color: '#25282C', rough: 0.7 });
+    CORNERS.forEach(c => {
+      const s = c.s;
+      h.mesh(cylZ(0.06, 0.06, 0.012, 64, true), { mat: ring, p: [0, 0, -s * 0.165], parent: SPIN[c.k] });
+      h.mesh(new THREE.CylinderGeometry(0.009, 0.009, 0.035, 14), { mat: body, p: [0, -0.083, -s * 0.165], parent: STEER[c.k] });
+      h.mesh(rbox(0.018, 0.016, 0.022, 0.004), { mat: body, p: [0, -0.106, -s * 0.165], parent: STEER[c.k] });
+      h.mesh(tube(WSS(s), 0.0028, 40), { mat: w, parent: STEER[c.k] });
+    });
   } });
 
 def({ id: 'masterCylinder', sys: 'brakes', demo: 'brakes', ar: 'الماستر والبوستر', en: 'Brake Master Cylinder & Booster', sev: 3,
@@ -1169,7 +1314,7 @@ def({ id: 'parkingBrake', sys: 'brakes', demo: 'epb', ar: 'فرامل اليد (
   br: 'ما بتمسك عالطلعة، أو ما بتفك، أو بتطلع رسالة عطل. لا توقّف عطلعة بدونها.',
   build(h) {
     RIG.epbSwitch = h.mesh(rbox(0.04, 0.015, 0.05, 0.006), { mat: { color: '#30343B' }, p: [0.02, 0.627, 0.07] });
-    CORNERS.slice(2).forEach(c => { const p = calPos(c); h.mesh(cylZ(0.024, 0.024, 0.07, 14), { p: [p[0] + 0.03, p[1] - 0.03, c.s * 0.69] }).userData.toCorner = true; });
+    CORNERS.slice(2).forEach(c => { const a = CAL_A + 0.02; h.mesh(cylZ(0.024, 0.024, 0.05, 18), { p: [0.15 * Math.cos(a), 0.15 * Math.sin(a), ZD(c.s) - c.s * 0.1], parent: STEER[c.k] }); h.mesh(rbox(0.02, 0.02, 0.02, 0.004), { mat: { color: '#1C1E21' }, p: [0.15 * Math.cos(a) + 0.02, 0.15 * Math.sin(a) + 0.02, ZD(c.s) - c.s * 0.11], parent: STEER[c.k] }); });
   } });
 
 /* ---------- SUSPENSION ---------- */
@@ -1178,16 +1323,31 @@ def({ id: 'shocks', sys: 'suspension', demo: 'bounce', ar: 'المساعدات (
   fn: 'بتهدّي حركة النطّ: بعد المطب السبرينغ بيضل ينطّ، والمساعد بيوقّفه.',
   br: 'السيارة بتنطّ كتير بعد المطبات، بتميل باللفّات، مسافة الفرملة بتطول، وممكن تشوف زيت عالمساعد.',
   build(h) {
-    const b = h.mat({}), r = h.mat({ color: '#D2D6DC', metal: 0.85, rough: 0.25 });
+    const b = h.mat({}), r = h.mat({ color: '#D2D6DC', metal: 0.9, rough: 0.2 }), boot = h.mat({ color: '#17181A', rough: 0.8 });
+    const bellows = len => { const pts = []; for (let i = 0; i <= 16; i++) pts.push(new THREE.Vector2(i % 2 ? 0.024 : 0.018, i / 16 * len)); return new THREE.LatheGeometry(pts, 24); };
     [-1, 1].forEach(s => {
-      [[FA, 0.36, 0.66, 0.62, 0.62, 0.80, 0.60, s < 0 ? 'FL' : 'FR', 0.028], [RA - 0.22, 0.24, 0.66, 0.50, 0.64, 0.63, 0.63, s < 0 ? 'RL' : 'RR', 0.026]].forEach(([x, y0, z0, y1, z1, y2, z2, k, rad]) => {
+      [[FA, 0.36, 0.66, 0.62, 0.62, 0.80, 0.60, s < 0 ? 'FL' : 'FR', 0.028, true], [RA - 0.22, 0.24, 0.66, 0.50, 0.64, 0.63, 0.63, s < 0 ? 'RL' : 'RR', 0.026, false]].forEach(([x, y0, z0, y1, z1, y2, z2, k, rad, front]) => {
         const g = h.group({ p: [x, y0, s * z0] }); RIG.keepStatic.add(g);
-        h.mesh(rod([0, 0, 0], [0, y1 - y0, s * (z1 - z0)], rad, 18), { mat: b, parent: g });
+        h.mesh(rod([0, 0, 0], [0, y1 - y0, s * (z1 - z0)], rad, 24), { mat: b, parent: g });
+        h.mesh(new THREE.TorusGeometry(rad + 0.004, 0.004, 8, 24), { mat: b, p: [0, y1 - y0 - 0.005, s * (z1 - z0)], r: [Math.PI / 2, 0, 0], parent: g });
         RIG.shocks.push({ g, k, y: y0 });
-        h.mesh(rod([x, y1, s * z1], [x, y2, s * z2], 0.011, 10), { mat: r });
-        h.mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.02, 20), { mat: b, p: [x, y2, s * z2] });
+        h.mesh(rod([x, y1, s * z1], [x, y2, s * z2], 0.011, 14), { mat: r });
+        if (front) { const bl = h.mesh(bellows(0.11), { mat: boot, p: [x, y1 + 0.015, s * (z1 - 0.004)] }); bl.rotation.x = -s * 0.15; }
       });
     });
+  } });
+
+def({ id: 'strutMounts', sys: 'suspension', demo: 'strutMount', ar: 'قاعدة المساعد (الكرسي العلوي)', en: 'Strut Top Mounts', sev: 1,
+  w: 'فوق المساعدات: قدّام تحت الكبوت، وورا تحت الشنطة',
+  fn: 'كاوتشوكة وبيلية فوق المساعد: بتربطه بجسم السيارة، بتمتص الرجّة، وبتسمح للمساعد القدّامي يلف مع الدركسيون.',
+  br: 'طقطقة أو صرير وقت تلف المقود بمكانك، وخبطة بالمطبات.',
+  build(h) {
+    const rub = h.mat({}), st = h.mat({ color: '#8D949C', metal: 0.8, rough: 0.35 });
+    [-1, 1].forEach(s => [[FA, 0.80, 0.60], [RA - 0.22, 0.635, 0.63]].forEach(([x, y, z]) => {
+      h.mesh(new THREE.CylinderGeometry(0.055, 0.06, 0.03, 32), { mat: rub, p: [x, y, s * z] });
+      h.mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.008, 32), { mat: st, p: [x, y + 0.019, s * z] });
+      for (let i = 0; i < 3; i++) { const a = i / 3 * Math.PI * 2; h.mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.03, 8), { mat: st, p: [x + 0.035 * Math.cos(a), y + 0.03, s * z + 0.035 * Math.sin(a)] }); }
+    }));
   } });
 
 def({ id: 'springs', sys: 'suspension', demo: 'bounce', ar: 'السبرنغات (اليايات)', en: 'Coil Springs', sev: 2,
@@ -1195,54 +1355,101 @@ def({ id: 'springs', sys: 'suspension', demo: 'bounce', ar: 'السبرنغات 
   fn: 'بتشيل وزن السيارة وبتمتص المطبات.',
   br: 'إذا انكسر واحد: السيارة بتنزل من جهة، صوت طقّة، والإطار ممكن يحك. خطير إذا انكسر عالسرعة.',
   build(h) {
+    const seat = h.mat({ color: '#2E3135', metal: 0.6, rough: 0.45 });
     [-1, 1].forEach(s => {
       [[[FA, 0.50, s * 0.64], [FA, 0.77, s * 0.61], 0.075, 6, s < 0 ? 'FL' : 'FR'], [[RA + 0.18, 0.25, s * 0.56], [RA + 0.18, 0.465, s * 0.56], 0.07, 5, s < 0 ? 'RL' : 'RR']].forEach(([a, b, rad, turns, k]) => {
         const g = h.group({ p: a }); RIG.keepStatic.add(g);
-        const geo = helix(a, b, rad, turns, 0.011); geo.translate(-a[0], -a[1], -a[2]);
+        const geo = coil(a, b, rad, turns, 0.0115); geo.translate(-a[0], -a[1], -a[2]);
         h.mesh(geo, { parent: g });
+        [[0, 0], [b[0] - a[0], b[1] - a[1], b[2] - a[2]]].forEach(o => h.mesh(new THREE.CylinderGeometry(rad + 0.016, rad + 0.016, 0.008, 32), { mat: seat, p: [o[0], o[1] || 0, o[2] || 0], parent: g }));
         RIG.springs.push({ g, k, bottom: new THREE.Vector3(...a), top: new THREE.Vector3(...b), len: b[1] - a[1] });
       });
     });
   } });
 
-def({ id: 'controlArms', sys: 'suspension', demo: 'bump', ar: 'المقصّات (الأذرع)', en: 'Control Arms & Ball Joints', sev: 2,
+def({ id: 'controlArms', sys: 'suspension', demo: 'bump', ar: 'المقصّات (الأذرع)', en: 'Control Arms & Bushings', sev: 2,
   w: 'تحت، بين العجلة والهيكل',
-  fn: 'أذرع بتربط العجلة بجسم السيارة، بتخلّيها تطلع وتنزل وتضل ماسكة اتجاهها. فيها كاوتشوكات (بوشات) وكرات (Ball Joints).',
-  br: 'طقطقة بالمطبات، رجفة بالمقود، السيارة بتسحب لجهة، وأكل غريب بالإطارات. إذا فلتت الكرة العجلة بتنطوي، وهاد خطير.',
+  fn: 'أذرع بتربط العجلة بجسم السيارة، بتخلّيها تطلع وتنزل وتضل ماسكة اتجاهها. بأطرافها كاوتشوكات (بوشات) بتمتص الرجّة.',
+  br: 'طقطقة بالمطبات، رجفة بالمقود، السيارة بتسحب لجهة، وأكل غريب بالإطارات.',
   build(h) {
-    const m = h.mat({}), j = h.mat({ color: '#30343B', rough: 0.7 });
+    const m = h.mat({}), bush = h.mat({ color: '#1C1E21', rough: 0.85 }), sleeve = h.mat({ color: '#8D949C', metal: 0.8, rough: 0.35 });
+    const B = (p, r, len) => { RIG.keepStatic.add(h.mesh(cylX(r, r, len, 20), { mat: bush, p })); RIG.keepStatic.add(h.mesh(cylX(r * 0.45, r * 0.45, len + 0.01, 12), { mat: sleeve, p })); };
     [-1, 1].forEach(s => {
-      [h.mesh(rod([FA + 0.02, 0.24, s * 0.69], [FA + 0.10, 0.22, s * 0.30], 0.016), { mat: m }),
-       h.mesh(rod([FA, 0.24, s * 0.69], [FA - 0.32, 0.23, s * 0.36], 0.016), { mat: m }),
-       h.mesh(new THREE.SphereGeometry(0.025, 14, 10), { mat: j, p: [FA, 0.24, s * 0.69] }),
-       h.mesh(rod([RA, 0.24, s * 0.68], [RA - 0.06, 0.26, s * 0.32], 0.016), { mat: m }),
-       h.mesh(rod([RA + 0.02, 0.24, s * 0.68], [RA + 0.24, 0.26, s * 0.40], 0.016), { mat: m }),
-       h.mesh(rod([RA, 0.44, s * 0.66], [RA + 0.04, 0.44, s * 0.32], 0.014), { mat: m })].forEach(o => RIG.keepStatic.add(o));
+      [[[FA + 0.012, 0.217, s * 0.685], [FA + 0.10, 0.21, s * 0.34], 0.015], [[FA, 0.217, s * 0.685], [FA - 0.32, 0.22, s * 0.38], 0.017],
+       [[RA + 0.012, 0.197, s * 0.685], [RA - 0.06, 0.26, s * 0.40], 0.016], [[RA + 0.012, 0.197, s * 0.685], [RA + 0.24, 0.26, s * 0.42], 0.016],
+       [[RA, 0.44, s * 0.66], [RA + 0.04, 0.44, s * 0.42], 0.014], [[RA - 0.172, 0.25, s * 0.685], [RA - 0.15, 0.27, s * 0.42], 0.011]].forEach(([a, b, r]) => RIG.keepStatic.add(h.mesh(capsule(a, b, r), { mat: m })));
+      B([FA + 0.10, 0.21, s * 0.34], 0.026, 0.05); B([FA - 0.32, 0.22, s * 0.38], 0.04, 0.07);
+      B([RA - 0.06, 0.26, s * 0.40], 0.025, 0.05); B([RA + 0.24, 0.26, s * 0.42], 0.025, 0.05); B([RA + 0.04, 0.44, s * 0.42], 0.022, 0.045); B([RA - 0.15, 0.27, s * 0.42], 0.02, 0.04);
     });
   } });
 
 def({ id: 'antiRollBar', sys: 'suspension', demo: 'roll', ar: 'عمود التوازن', en: 'Anti-Roll (Sway) Bar', sev: 1,
   w: 'قدّام وورا، بالعرض',
   fn: 'عمود بيربط العجلة اليمين بالشمال، بيخفّف ميلان السيارة باللفّات.',
-  br: 'طقطقة من قدّام بالمطبات (غالباً من الروابط أو الكاوتشوكات)، وميلان زيادة باللفّات.',
+  br: 'ميلان زيادة باللفّات، وطقطقة إذا خربت الكاوتشوكات اللي ماسكته.',
   build(h) {
-    h.mesh(tube([[1.56, 0.30, -0.62], [1.74, 0.27, -0.50], [1.78, 0.27, 0], [1.74, 0.27, 0.50], [1.56, 0.30, 0.62]], 0.012, 60), {});
-    h.mesh(tube([[-1.48, 0.36, -0.58], [-1.62, 0.40, -0.45], [-1.64, 0.40, 0], [-1.62, 0.40, 0.45], [-1.48, 0.36, 0.58]], 0.011, 60), {});
-    [-1, 1].forEach(s => {
-      h.mesh(rod([1.56, 0.30, s * 0.62], [1.47, 0.45, s * 0.645], 0.007), {});
-      h.mesh(rod([-1.48, 0.36, s * 0.58], [-1.44, 0.25, s * 0.60], 0.007), {});
-    });
+    h.mesh(tube([[1.56, 0.30, -0.62], [1.74, 0.27, -0.50], [1.78, 0.27, 0], [1.74, 0.27, 0.50], [1.56, 0.30, 0.62]], 0.012, 80), {});
+    h.mesh(tube([[-1.48, 0.36, -0.58], [-1.62, 0.40, -0.45], [-1.64, 0.40, 0], [-1.62, 0.40, 0.45], [-1.48, 0.36, 0.58]], 0.011, 80), {});
+    const bush = h.mat({ color: '#1C1E21', rough: 0.85 });
+    [-1, 1].forEach(s => { h.mesh(rbox(0.04, 0.035, 0.05, 0.008), { mat: bush, p: [1.775, 0.27, s * 0.30] }); h.mesh(rbox(0.04, 0.035, 0.05, 0.008), { mat: bush, p: [-1.64, 0.40, s * 0.30] }); });
   } });
 
-def({ id: 'hubs', sys: 'suspension', demo: 'spin', ar: 'بيل العجل والطارة', en: 'Wheel Hub & Bearing', sev: 2, corner: true,
-  w: 'بنص كل عجلة، ورا الديسك',
+def({ id: 'sbLinks', sys: 'suspension', demo: 'roll', ar: 'روابط عمود التوازن', en: 'Sway Bar Links', sev: 1,
+  w: 'بين آخر عمود التوازن والمساعد',
+  fn: 'أذرع صغيرة بمفاصل بتوصّل عمود التوازن بالمساعد أو المقص.',
+  br: 'أشهر سبب لطقطقة خفيفة من تحت بالمطبات الصغيرة. رخيصة وسهلة التغيير.',
+  build(h) {
+    const ball = h.mat({ color: '#B9BEC4', metal: 0.9, rough: 0.25 });
+    [-1, 1].forEach(s => [[[1.56, 0.30, s * 0.62], [1.47, 0.45, s * 0.645]], [[-1.48, 0.36, s * 0.58], [-1.44, 0.25, s * 0.60]]].forEach(([a, b]) => {
+      h.mesh(capsule(a, b, 0.0075), {});
+      [a, b].forEach(p => h.mesh(new THREE.SphereGeometry(0.013, 14, 10), { mat: ball, p }));
+    }));
+  } });
+
+def({ id: 'hubs', sys: 'suspension', demo: 'spin', fw: true, ar: 'بيل العجل والطارة', en: 'Wheel Hub & Bearing', sev: 2,
+  w: 'بنص كل عجلة، جوّا حامل العجلة',
   fn: 'بيل (رولمان) جوّا الطارة بيخلّي العجلة تلف بنعومة وهي شايلة وزن السيارة.',
   br: 'صوت هدير أو طنين بيعلى مع السرعة وبيتغيّر باللفّات. إذا خرب كتير العجلة ممكن ترجف أو تعلّق.',
   build(h) {
-    const k = h.mat({ color: '#7A8794', metal: 0.6, rough: 0.5 });
+    const st = h.mat({ color: '#7F858C', metal: 0.8, rough: 0.4 });
     CORNERS.forEach(c => {
-      h.mesh(cylZ(0.065, 0.065, 0.06, 24), { p: [c.x, WY, c.s * 0.69] });
-      h.mesh(rbox(0.06, 0.28, 0.05, 0.015), { mat: k, p: [c.x, WY - 0.01, c.s * 0.665] });
+      const s = c.s;
+      h.mesh(cylZ(0.052, 0.052, 0.05, 36), { p: [0, 0, -s * 0.115], parent: STEER[c.k] });
+      h.mesh(cylZ(0.068, 0.068, 0.012, 40), { mat: st, p: [0, 0, -s * 0.087], parent: SPIN[c.k] });
+      h.mesh(cylZ(0.034, 0.034, 0.03, 32), { mat: st, p: [0, 0, -s * 0.07], parent: SPIN[c.k] });
+    });
+  } });
+
+def({ id: 'knuckle', sys: 'suspension', demo: 'knuckle', fw: true, ar: 'حامل العجلة (Knuckle)', en: 'Steering Knuckle (Upright)', sev: 2,
+  w: 'ورا كل عجلة، بين العجلة والتعليق',
+  fn: 'القطعة اللي بينركب فيها البيل والطارة، وبيتربط فيها المساعد والمقصّات والفرامل. بالعجلات القدّامية بيلف مع الدركسيون.',
+  br: 'نادر يخرب، بس بعد ضربة قوية (متل رصيف) ممكن ينعوج: السيارة بتسحب والترصيص ما بيضبط.',
+  build(h) {
+    const ring = new THREE.Shape(); ring.absarc(0, 0, 0.082, 0, Math.PI * 2, false); const hole = new THREE.Path(); hole.absarc(0, 0, 0.05, 0, Math.PI * 2, true); ring.holes.push(hole);
+    const parts = front => [ring,
+      poly([[-0.032, 0.06], [-0.036, front ? 0.27 : 0.2], [0.03, front ? 0.27 : 0.2], [0.036, 0.06]]),
+      poly([[-0.032, -0.06], [-0.012, -0.128], [0.036, -0.128], [0.04, -0.06]]),
+      front ? poly([[0.06, -0.035], [0.178, -0.07], [0.178, -0.1], [0.05, -0.075]]) : poly([[-0.06, -0.035], [-0.178, -0.07], [-0.178, -0.1], [-0.05, -0.075]]),
+      poly([[0.10 * Math.cos(CAL_A - 0.5), 0.10 * Math.sin(CAL_A - 0.5)], [0.135 * Math.cos(CAL_A - 0.42), 0.135 * Math.sin(CAL_A - 0.42)], [0.135 * Math.cos(CAL_A + 0.42), 0.135 * Math.sin(CAL_A + 0.42)], [0.10 * Math.cos(CAL_A + 0.5), 0.10 * Math.sin(CAL_A + 0.5)]])];
+    const geo = { true: parts(true).map(sh => ext(sh, 0.03, 0.006)), false: parts(false).map(sh => ext(sh, 0.03, 0.006)) };
+    const eye = cylZ(0.014, 0.014, 0.04, 18);
+    CORNERS.forEach(c => {
+      const s = c.s, front = c.x > 0;
+      geo[front].forEach(g => h.mesh(g, { p: [0, 0, -s * 0.118], parent: STEER[c.k] }));
+      h.mesh(eye, { p: [front ? 0.172 : -0.172, -0.085, -s * 0.118], parent: STEER[c.k] });
+    });
+  } });
+
+def({ id: 'ballJoints', sys: 'suspension', demo: 'ballJoint', fw: true, ar: 'الكرات (Ball Joints)', en: 'Ball Joints', sev: 3,
+  w: 'تحت حامل العجلة، عند آخر المقص',
+  fn: 'مفصل كروي متل مفصل الكتف: بيربط المقص بحامل العجلة، وبيسمح للعجلة تطلع وتنزل وتلف بنفس الوقت.',
+  br: 'طقطقة بالمطبات وباللف، ورجفة. إذا انفصل بتنطوي العجلة: خطر كبير.',
+  build(h) {
+    const ball = h.mat({ color: '#B9BEC4', metal: 0.9, rough: 0.25 }), boot = h.mat({ color: '#17181A', rough: 0.8 });
+    CORNERS.forEach(c => {
+      const s = c.s;
+      h.mesh(new THREE.SphereGeometry(0.017, 20, 14), { mat: ball, p: [0.012, -0.138, -s * 0.118], parent: STEER[c.k] });
+      h.mesh(new THREE.CylinderGeometry(0.013, 0.024, 0.022, 20), { mat: boot, p: [0.012, -0.122, -s * 0.118], parent: STEER[c.k] });
     });
   } });
 
@@ -1288,7 +1495,7 @@ def({ id: 'tieRods', sys: 'steering', demo: 'steer', ar: 'أذرع التوجي�
   w: 'أطراف علبة الدركسيون',
   fn: 'أذرع بتوصّل علبة الدركسيون بالعجلة وبتدفعها يمين ويسار. منها بيتظبط الترصيص.',
   br: 'رجّة بالمقود، أكل الإطار من طرف، والسيارة بتسحب. إذا انفصلت بتفقد التحكم.',
-  build(h) { [-1, 1].forEach(s => { h.mesh(rod([1.60, 0.22, s * 0.42], [1.62, 0.25, s * 0.655], 0.011), { parent: RIG.rack }); h.mesh(new THREE.SphereGeometry(0.02, 12, 10), { p: [1.62, 0.25, s * 0.655], parent: RIG.rack }); }); } });
+  build(h) { [-1, 1].forEach(s => { h.mesh(capsule([1.60, 0.22, s * 0.42], [1.62, 0.25, s * 0.665], 0.011), { parent: RIG.rack }); h.mesh(new THREE.SphereGeometry(0.019, 16, 12), { p: [1.62, 0.25, s * 0.668], parent: RIG.rack }); }); } });
 
 def({ id: 'eps', sys: 'steering', demo: 'steer', ar: 'موتور الدركسيون الكهربائي', en: 'Electric Power Steering (EPS)', sev: 2,
   w: 'على علبة الدركسيون',
@@ -1298,46 +1505,93 @@ def({ id: 'eps', sys: 'steering', demo: 'steer', ar: 'موتور الدركسي�
 
 /* ---------- WHEELS ---------- */
 const SPIN = {}, STEER = {}, CORNER = {};
-def({ id: 'tires', sys: 'wheels', demo: 'tires', ar: 'الإطارات (الدواليب)', en: 'Tires', sev: 3,
+def({ id: 'tires', sys: 'wheels', demo: 'tires', fw: true, ar: 'الإطارات (الدواليب)', en: 'Tires', sev: 3,
   w: 'العجلات الأربعة',
   fn: 'الشي الوحيد اللي لامس الأرض: بتمسك الطريق، بتفرمل، وبتمتص الصدمات الصغيرة.',
   br: 'ضغط هوا قليل يعني صرف زيادة وخطر انفجار. بألمانيا عمق النقشة لازم يكون 1.6 ملم عالأقل.',
-  note: 'كتير من سيارات BMW عليها إطارات Run-Flat، بتقدر تكمّل فيها مسافة قصيرة بعد البنشر.',
+  note: 'الرقم عالجنب متل 225/45 R18 بيعني: عرض الإطار 225 ملم، علو الجنب 45% من العرض، وقياس الجنط 18 إنش. وكتير من سيارات BMW عليها إطارات Run-Flat بتقدر تكمّل فيها مسافة قصيرة بعد البنشر.',
   build(h) {
-    const P = [[0.238, -0.105], [0.27, -0.116], [0.305, -0.117], [0.326, -0.108], [0.335, -0.088], [0.338, -0.05], [0.338, 0.05], [0.335, 0.088], [0.326, 0.108], [0.305, 0.117], [0.27, 0.116], [0.238, 0.105]].map(([r, y]) => new THREE.Vector2(r, y));
-    const g = new THREE.LatheGeometry(P, 96); g.rotateX(Math.PI / 2);
-    const m = h.mat({ color: '#23272C', metal: 0, rough: 0.9, side: THREE.DoubleSide, map: treadTex() });
+    const g = new THREE.LatheGeometry(TIRE_PROFILE.map(([r, y]) => new THREE.Vector2(r, y)), 160); g.rotateX(Math.PI / 2);
+    const t = tireTex();
+    const m = h.mat({ color: '#FFFFFF', metal: 0, rough: 0.86, side: THREE.DoubleSide, map: t.map, bumpMap: t.bump, bumpScale: 1.4 });
     CORNERS.forEach(c => h.mesh(g, { mat: m, parent: SPIN[c.k] }));
   } });
 
-def({ id: 'rims', sys: 'wheels', demo: 'spin', ar: 'الجنوط', en: 'Wheels (Rims)', sev: 1,
+def({ id: 'rims', sys: 'wheels', demo: 'spin', fw: true, ar: 'الجنوط', en: 'Wheels (Rims)', sev: 1,
   w: 'جوّا الإطارات',
-  fn: 'الجنط المعدني اللي بينركب عليه الإطار، وبيتربط بالسيارة ببراغي العجل.',
+  fn: 'الجنط المعدني اللي بينركب عليه الإطار، وبيتربط بالسيارة ببراغي العجل. هالجنط 18 إنش.',
   br: 'إذا انعوج من حفرة: رجّة بالمقود ونفّسة بطيئة بالإطار.',
   build(h) {
-    const m = h.mat({ color: '#C3C9D1', metal: 0.9, rough: 0.22, side: THREE.DoubleSide }), d = h.mat({ color: '#2B3036', metal: 0.6, rough: 0.4 });
+    const face = h.mat({ color: '#CED3D9', metal: 0.95, rough: 0.2 }), barrel = h.mat({ color: '#737A82', metal: 0.85, rough: 0.42, side: THREE.DoubleSide }), dark = h.mat({ color: '#1C1F23', metal: 0.4, rough: 0.5 });
+    const lip = {}, spoke = {};
+    [-1, 1].forEach(s => {
+      lip[s] = new THREE.LatheGeometry([[0.231, 0.084], [0.238, 0.092], [0.246, 0.099], [0.250, 0.105], [0.247, 0.111], [0.238, 0.111]].map(([r, y]) => new THREE.Vector2(r, y * s)), 96); lip[s].rotateX(Math.PI / 2);
+      const g = new THREE.ExtrudeGeometry(poly([[0.05, -0.021], [0.226, -0.011], [0.226, 0.011], [0.05, 0.021]]), { depth: 0.016, bevelEnabled: true, bevelThickness: 0.004, bevelSize: 0.004, bevelSegments: 2 });
+      g.translate(0, 0, -0.008); g.applyMatrix4(new THREE.Matrix4().makeShear(0, 0.17 * s, 0, 0, 0, 0)); spoke[s] = g;
+    });
     CORNERS.forEach(c => {
       const p = SPIN[c.k], s = c.s;
-      h.mesh(cylZ(0.232, 0.232, 0.205, 48, true), { mat: m, parent: p });
-      const lip = new THREE.TorusGeometry(0.232, 0.008, 8, 48); h.mesh(lip, { mat: m, p: [0, 0, s * 0.098], parent: p });
-      h.mesh(cylZ(0.055, 0.055, 0.03, 24), { mat: m, p: [0, 0, s * 0.08], parent: p });
-      h.mesh(cylZ(0.03, 0.03, 0.034, 20), { mat: d, p: [0, 0, s * 0.082], parent: p });
+      h.mesh(cylZ(0.232, 0.232, 0.20, 96, true), { mat: barrel, parent: p });
+      h.mesh(lip[s], { mat: face, parent: p });
+      h.mesh(new THREE.TorusGeometry(0.234, 0.006, 8, 72), { mat: barrel, p: [0, 0, -s * 0.10], parent: p });
+      h.mesh(cylZ(0.064, 0.058, 0.024, 48), { mat: face, p: [0, 0, s * 0.07], parent: p });
+      h.mesh(cylZ(0.03, 0.03, 0.008, 36), { mat: dark, p: [0, 0, s * 0.085], parent: p });
+      h.mesh(new THREE.TorusGeometry(0.03, 0.002, 6, 36), { mat: face, p: [0, 0, s * 0.089], parent: p });
+      for (let k = 0; k < 5; k++) [-0.12, 0.12].forEach(dd => h.mesh(spoke[s], { mat: face, p: [0, 0, s * 0.062], r: [0, 0, k / 5 * Math.PI * 2 + dd + Math.PI / 10], parent: p }));
+    });
+  } });
+
+def({ id: 'wheelBolts', sys: 'wheels', demo: 'bolts', fw: true, ar: 'براغي العجل', en: 'Wheel Bolts (Lug Bolts)', sev: 3,
+  w: 'بنص الجنط، 5 براغي بكل عجلة',
+  fn: 'بتشد الجنط على طارة العجل. BMW بتستعمل براغي بدل الصواميل.',
+  br: 'إذا رخيوا: طقطقة ورجّة، وممكن العجلة تفلت. بعد تغيير الدولاب بتنشد بالعزم المظبوط (Torque) وبترتيب نجمة، وبيرجعوا يتفحّصوا بعد مسافة قصيرة.',
+  build(h) {
+    const m = h.mat({ color: '#B8BDC3', metal: 0.9, rough: 0.3 });
+    const head = cylZ(0.0095, 0.0095, 0.012, 6), seat = cylZ(0.0125, 0.0095, 0.005, 18);
+    CORNERS.forEach(c => {
+      RIG.bolts[c.k] = [];
       for (let k = 0; k < 5; k++) {
-        const a = k / 5 * Math.PI * 2;
-        h.mesh(cylZ(0.008, 0.008, 0.035, 8), { mat: d, p: [0.042 * Math.cos(a + 0.6), 0.042 * Math.sin(a + 0.6), s * 0.084], parent: p });
-        [-0.13, 0.13].forEach(dd => {
-          const sp = new THREE.Group(); sp.rotation.z = a + dd; sp.position.z = s * 0.078; p.add(sp);
-          h.mesh(box(0.02, 0.18, 0.016), { mat: m, p: [0, 0.14, 0], parent: sp });
-        });
+        const a = (54 + k * 72) * DEG, g = h.group({ p: [0.056 * Math.cos(a), 0.056 * Math.sin(a), c.s * 0.086], parent: SPIN[c.k] });
+        h.mesh(head, { mat: m, p: [0, 0, c.s * 0.007], parent: g }); h.mesh(seat, { mat: m, parent: g });
+        RIG.bolts[c.k].push({ g, base: g.position.z, s: c.s });
       }
     });
   } });
 
-def({ id: 'tpms', sys: 'wheels', demo: 'tpms', ar: 'حسّاس ضغط الهوا', en: 'Tire Pressure Sensor (TPMS)', sev: 2,
-  w: 'جوّا الإطار على الجنط، جنب البلف',
+def({ id: 'valveStem', sys: 'wheels', demo: 'inflate', fw: true, ar: 'بلف الهوا', en: 'Tire Valve Stem', sev: 2,
+  w: 'على وجه الجنط، بين السبوكات',
+  fn: 'منه بتنفخ الإطار. جوّاه بلف صغير بيسكّر لحاله لحتى ما يطلع الهوا، وعليه غطا بيحميه من الوسخ.',
+  br: 'إذا شرخ أو رشح البلف: الإطار بينفّس شوي شوي. تغييره رخيص وقت تركيب الإطار.',
+  build(h) {
+    const rub = h.mat({ color: '#18191B', rough: 0.7 }), cap = h.mat({ color: '#D7DBE0', metal: 0.95, rough: 0.2 });
+    CORNERS.forEach(c => {
+      const a = VALVE_A, g = h.group({ p: [0.205 * Math.cos(a), 0.205 * Math.sin(a), c.s * 0.078], parent: SPIN[c.k] }); g.rotation.z = a;
+      const st = new THREE.Group(); st.rotation.y = c.s * 0.4; g.add(st);
+      h.mesh(cylZ(0.0058, 0.0046, 0.03, 14), { mat: rub, p: [0, 0, c.s * 0.012], parent: st });
+      h.mesh(cylZ(0.0062, 0.0062, 0.011, 14), { mat: cap, p: [0, 0, c.s * 0.032], parent: st });
+    });
+  } });
+
+def({ id: 'tpms', sys: 'wheels', demo: 'tpms', fw: true, ar: 'حسّاس ضغط الهوا', en: 'Tire Pressure Sensor (TPMS)', sev: 2,
+  w: 'جوّا الإطار على الجنط، ورا البلف',
   fn: 'حسّاس بيقيس ضغط الهوا بكل إطار وبيخبّرك إذا نقص.',
   br: 'لمبة إطار صفرا عالعدّادات: افحص الضغط بأقرب محطة. إذا ضلّت ضاوية والضغط مظبوط، ممكن بطارية الحسّاس خلصت.',
-  build(h) { CORNERS.forEach(c => { h.mesh(box(0.04, 0.02, 0.03), { p: [0, 0.215, 0], parent: SPIN[c.k] }); h.mesh(new THREE.CylinderGeometry(0.005, 0.005, 0.04, 8), { p: [0, 0.215, c.s * 0.06], r: [Math.PI / 2, 0, 0], parent: SPIN[c.k] }); }); } });
+  build(h) {
+    CORNERS.forEach(c => { const a = VALVE_A; h.mesh(rbox(0.045, 0.02, 0.03, 0.006), { p: [0.222 * Math.cos(a), 0.222 * Math.sin(a), c.s * 0.04], r: [0, 0, a + Math.PI / 2], parent: SPIN[c.k] }); });
+  } });
+
+def({ id: 'archLiners', sys: 'body', demo: 'spray', fw: true, ghost: 0.55, pass: true, ar: 'بطانة الرفرف', en: 'Wheel Arch Liners', sev: 1,
+  w: 'جوّا قوس كل عجلة',
+  fn: 'غطا بلاستيك جوّا قوس العجلة، بيحمي الهيكل والأسلاك من الماي والملح والحجار اللي بيطيّرهم الدولاب.',
+  br: 'إذا فلت أو انكسر: بيحك بالدولاب (صوت خشخشة)، والوسخ بيوصل لقطع حسّاسة.',
+  build(h) {
+    const m = h.mat({ color: '#17191C', rough: 0.9, side: THREE.DoubleSide, bumpMap: grainTex(), bumpScale: 0.6 });
+    CORNERS.forEach(c => {
+      const g = new THREE.CylinderGeometry(0.405, 0.405, 0.27, 48, 1, true, Math.PI / 2 - 0.15, Math.PI + 0.3); g.rotateX(Math.PI / 2);
+      h.mesh(g, { mat: m, p: [c.x, WY, c.s * 0.785] });
+      h.mesh(ext(sector(0.30, 0.405, -0.15, Math.PI + 0.15), 0.006, 0), { mat: m, p: [c.x, WY, c.s * 0.655] });
+    });
+  } });
 
 /* ---------- ELECTRICAL ---------- */
 def({ id: 'battery', sys: 'electrical', demo: 'battery', ar: 'البطارية', en: 'Battery (12V)', sev: 2,
@@ -1651,11 +1905,6 @@ def({ id: 'chassis', sys: 'chassis', demo: 'chassis', ar: 'الشاسيه (ال�
     h.mesh(box(0.70, 0.012, 1.16), { p: [-1.90, 0.47, 0] });
     h.mesh(box(0.06, 0.10, 1.30), { p: [2.27, 0.46, 0] });
     h.mesh(box(0.06, 0.10, 1.30), { p: [-2.27, 0.48, 0] });
-    const liner = h.mat({ color: '#15181C', opacity: 1, rough: 0.9, side: THREE.DoubleSide });
-    CORNERS.forEach(c => {
-      const g = new THREE.CylinderGeometry(0.40, 0.40, 0.26, 32, 1, true, Math.PI / 2, Math.PI); g.rotateX(Math.PI / 2);
-      h.mesh(g, { mat: liner, p: [c.x, WY, c.s * 0.78] }).userData.solidOnly = true;
-    });
   } });
 
 def({ id: 'subframes', sys: 'chassis', demo: 'subframe', ar: 'الصبفريم (الشاسيه الفرعي)', en: 'Subframes', sev: 2,
@@ -1694,6 +1943,13 @@ function helix(a, b, rad, turns, r) {
   }
   return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), turns * 40, r, 8, false);
 }
+function coil(a, b, rad, turns, r) {
+  const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b), ax = B.clone().sub(A), len = ax.length(); ax.normalize();
+  const u = new THREE.Vector3(1, 0, 0).cross(ax).normalize(), v = ax.clone().cross(u).normalize(), pts = [], n = turns * 32, close = 0.85, pc = r * 2.3;
+  const hAt = t => { const k = t * turns; if (k < close) return k * pc; if (k > turns - close) return len - (turns - k) * pc; return close * pc + (k - close) / (turns - 2 * close) * (len - 2 * close * pc); };
+  for (let i = 0; i <= n; i++) { const t = i / n, ang = t * turns * Math.PI * 2; pts.push(A.clone().addScaledVector(ax, hAt(t)).addScaledVector(u, Math.cos(ang) * rad).addScaledVector(v, Math.sin(ang) * rad)); }
+  return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), turns * 48, r, 10, false);
+}
 function roundRect(w, hgt, r) {
   const s = new THREE.Shape(), x = -w / 2, y = -hgt / 2;
   s.moveTo(x + r, y); s.lineTo(x + w - r, y); s.quadraticCurveTo(x + w, y, x + w, y + r); s.lineTo(x + w, y + hgt - r);
@@ -1714,6 +1970,82 @@ function bladeWheel(h, mat, p, r, n) {
   for (let i = 0; i < n; i++) { const bg = new THREE.Group(); bg.rotation.x = i / n * Math.PI * 2; g.add(bg); h.mesh(box(0.03, r, 0.004), { mat, p: [0, r / 2, 0], r: [0, 0.6, 0], parent: bg }); }
   return g;
 }
+function sector(r0, r1, a0, a1) { const sh = new THREE.Shape(); sh.absarc(0, 0, r1, a0, a1, false); sh.absarc(0, 0, r0, a1, a0, true); sh.closePath(); return sh; }
+function ext(shape, depth, bevel = 0.004) {
+  const g = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: bevel > 0, bevelThickness: bevel, bevelSize: bevel, bevelSegments: 2, curveSegments: 28 });
+  g.translate(0, 0, -depth / 2); return g;
+}
+function poly(pts) { const sh = new THREE.Shape(); sh.moveTo(...pts[0]); pts.slice(1).forEach(p => sh.lineTo(...p)); sh.closePath(); return sh; }
+function capsule(a, b, r) {
+  const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b), len = A.distanceTo(B);
+  const g = new THREE.CapsuleGeometry(r, Math.max(0.001, len - 2 * r), 6, 14);
+  g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), B.clone().sub(A).normalize()));
+  const m = A.add(B).multiplyScalar(0.5); g.translate(m.x, m.y, m.z); return g;
+}
+const cnv = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return [c, c.getContext('2d')]; };
+const tex = (c, srgb = true) => { const t = new THREE.CanvasTexture(c); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t; };
+// tyre: tread blocks, grooves and sidewall lettering (colour map + bump map share one layout)
+const TIRE_PROFILE = [[0.238, -0.103], [0.25, -0.111], [0.265, -0.116], [0.282, -0.118], [0.298, -0.117], [0.312, -0.113], [0.324, -0.106], [0.332, -0.096], [0.3365, -0.083], [0.338, -0.06], [0.3385, -0.03], [0.3385, 0.0], [0.3385, 0.03], [0.338, 0.06], [0.3365, 0.083], [0.332, 0.096], [0.324, 0.106], [0.312, 0.113], [0.298, 0.117], [0.282, 0.118], [0.265, 0.116], [0.25, 0.111], [0.238, 0.103]];
+let _tire = null;
+function tireTex() {
+  if (_tire) return _tire;
+  const W = 2048, H = 512, [cm, m] = cnv(W, H), [cb, b] = cnv(W, H), vy = v => (1 - v) * H;
+  m.fillStyle = '#1b1c1f'; m.fillRect(0, 0, W, H); b.fillStyle = '#808080'; b.fillRect(0, 0, W, H);
+  for (let i = 0; i < 2600; i++) { const x = Math.random() * W, y = Math.random() * H; m.fillStyle = `rgba(255,255,255,${Math.random() * 0.025})`; m.fillRect(x, y, 2, 2); }
+  const t0 = vy(0.655), t1 = vy(0.345);
+  m.fillStyle = '#232427'; m.fillRect(0, t0, W, t1 - t0); b.fillStyle = '#d6d6d6'; b.fillRect(0, t0, W, t1 - t0);
+  const both = f => [[m, '#0c0c0d'], [b, '#151515']].forEach(([c, col]) => { c.fillStyle = col; c.strokeStyle = col; f(c); });
+  both(c => [0.418, 0.472, 0.528, 0.582].forEach(v => c.fillRect(0, vy(v) - 4, W, 8)));
+  for (let x = 0; x < W; x += 26) both(c => {
+    c.lineWidth = 6; [[0.345, 0.418, 0], [0.582, 0.655, 13]].forEach(([a, z, o]) => { c.beginPath(); c.moveTo(x + o, vy(a)); c.lineTo(x + o + 8, vy(z)); c.stroke(); });
+    c.lineWidth = 2; [[0.425, 0.465], [0.48, 0.52], [0.535, 0.575]].forEach(([a, z], i) => { c.beginPath(); c.moveTo(x + 5 + i * 6, vy(a)); c.lineTo(x + 11 + i * 6, vy(z)); c.stroke(); });
+  });
+  const words = ['225/45 R18 91W', 'RUNFLAT', 'TUBELESS  RADIAL', '225/45 R18 91W', 'RUNFLAT', 'DOT  2524'];
+  const band = (v, rot) => [[m, '#3a3c40'], [b, '#d0d0d0']].forEach(([c, col]) => {
+    c.font = 'bold 38px Arial, Helvetica, sans-serif'; c.textBaseline = 'middle'; c.fillStyle = col;
+    words.forEach((w, i) => {
+      const x = 60 + i * W / words.length, tw = c.measureText(w).width;
+      c.save(); if (rot) { c.translate(x + tw, vy(v)); c.rotate(Math.PI); c.fillText(w, 0, 0); } else c.fillText(w, x, vy(v)); c.restore();
+    });
+  });
+  band(0.165, false); band(0.835, true);
+  both(c => [0.09, 0.91].forEach(v => c.fillRect(0, vy(v) - 1, W, 2)));
+  _tire = { map: tex(cm), bump: tex(cb, false) };
+  return _tire;
+}
+let _disc = null;
+function discTex() {
+  if (_disc) return _disc;
+  const [cf, f] = cnv(512, 512), C0 = 256;
+  f.fillStyle = '#A3A7AC'; f.fillRect(0, 0, 512, 512);
+  for (let r = 150; r < 256; r += 1.3) { f.strokeStyle = `rgba(${Math.random() < 0.5 ? '255,255,255' : '40,40,40'},${0.05 + Math.random() * 0.08})`; f.lineWidth = 1; f.beginPath(); f.arc(C0, C0, r, 0, Math.PI * 2); f.stroke(); }
+  for (let ring = 0; ring < 3; ring++) for (let k = 0; k < 18; k++) {
+    const a = k / 18 * Math.PI * 2 + ring * 0.11, r = 176 + ring * 25, x = C0 + r * Math.cos(a), y = C0 + r * Math.sin(a);
+    f.fillStyle = '#1f2124'; f.beginPath(); f.arc(x, y, 6, 0, Math.PI * 2); f.fill();
+    f.strokeStyle = 'rgba(255,255,255,0.35)'; f.lineWidth = 1.5; f.beginPath(); f.arc(x, y, 7.2, 0, Math.PI * 2); f.stroke();
+  }
+  f.strokeStyle = 'rgba(120,72,40,0.6)'; f.lineWidth = 7; f.beginPath(); f.arc(C0, C0, 252, 0, Math.PI * 2); f.stroke();
+  f.strokeStyle = 'rgba(120,72,40,0.45)'; f.lineWidth = 5; f.beginPath(); f.arc(C0, C0, 155, 0, Math.PI * 2); f.stroke();
+  const [ce, e] = cnv(512, 64);
+  e.fillStyle = '#8F9398'; e.fillRect(0, 0, 512, 64);
+  e.fillStyle = '#16181B'; e.fillRect(0, 22, 512, 20);
+  e.fillStyle = '#7A7E83'; for (let x = 0; x < 512; x += 12) e.fillRect(x, 22, 4, 20);
+  e.fillStyle = 'rgba(120,72,40,0.5)'; e.fillRect(0, 0, 512, 4); e.fillRect(0, 60, 512, 4);
+  const [ch, hc] = cnv(256, 256);
+  hc.fillStyle = '#8C9095'; hc.fillRect(0, 0, 256, 256);
+  hc.fillStyle = '#23262A'; hc.beginPath(); hc.arc(128, 128, 52, 0, Math.PI * 2); hc.fill();
+  for (let k = 0; k < 5; k++) { const a = k / 5 * Math.PI * 2; hc.beginPath(); hc.arc(128 + 84 * Math.cos(a), 128 + 84 * Math.sin(a), 11, 0, Math.PI * 2); hc.fill(); }
+  const [ct, t] = cnv(512, 16);
+  t.fillStyle = '#9A9EA3'; t.fillRect(0, 0, 512, 16); t.fillStyle = '#2A2D31'; for (let x = 0; x < 512; x += 11) t.fillRect(x, 0, 5, 16);
+  _disc = { face: tex(cf), edge: tex(ce), hat: tex(ch), tooth: tex(ct) };
+  return _disc;
+}
+function grainTex() {
+  const [c, x] = cnv(256, 256); x.fillStyle = '#808080'; x.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 9000; i++) { const g = 100 + Math.random() * 80; x.fillStyle = `rgb(${g},${g},${g})`; x.fillRect(Math.random() * 256, Math.random() * 256, 2, 2); }
+  const t = tex(c, false); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(6, 3); return t;
+}
+
 let _fin = null;
 function finTex() {
   if (_fin) return _fin;
@@ -1942,17 +2274,22 @@ for (const part of PARTS) {
     get base() { return part._base || (part._base = h.mat({})); },
     mat(o = {}) {
       const op = o.opacity ?? part.ghost ?? 1;
-      const m = new THREE.MeshStandardMaterial({ color: o.color ?? part.color, metalness: o.metal ?? 0.3, roughness: o.rough ?? 0.55, side: o.side ?? THREE.FrontSide, map: o.map ?? null });
+      const M = o.physical ? THREE.MeshPhysicalMaterial : THREE.MeshStandardMaterial;
+      const m = new M({ color: o.color ?? part.color, metalness: o.metal ?? 0.3, roughness: o.rough ?? 0.55, side: o.side ?? THREE.FrontSide, map: o.map ?? null });
+      if (o.physical) { m.clearcoat = 1; m.clearcoatRoughness = 0.12; }
+      if (o.bumpMap) { m.bumpMap = o.bumpMap; m.bumpScale = o.bumpScale ?? 1; }
+      if (o.color === undefined) { m.userData.sys = { c: part.color.clone(), m: m.metalness, r: m.roughness }; m.userData.real = realFor(part); if (colorMode === 'real') applyReal(m, true); }
       if (o.emissive) { m.emissive.set(o.emissive); m.emissiveIntensity = o.ei ?? 1; if (o.emissiveMap) m.emissiveMap = o.emissiveMap; }
       if (op < 1) { m.transparent = true; m.opacity = op; m.depthWrite = false; }
       m.userData.b = { op: m.opacity, tr: m.transparent, dw: m.depthWrite, em: m.emissive.clone(), ei: m.emissiveIntensity };
       part.mats.push(m); return m;
     },
     mesh(geo, o = {}) {
-      const mat = o.mat instanceof THREE.Material ? o.mat : (o.mat ? h.mat(o.mat) : h.base);
+      const mat = (o.mat instanceof THREE.Material || Array.isArray(o.mat)) ? o.mat : (o.mat ? h.mat(o.mat) : h.base);
       const m = new THREE.Mesh(geo, mat);
       if (o.p) m.position.set(...o.p); if (o.r) m.rotation.set(...o.r); if (o.s) m.scale.set(...o.s);
       if (mat.transparent) m.renderOrder = 2; else m.castShadow = true;
+      if (Array.isArray(mat)) m.castShadow = true;
       (o.parent || carRoot).add(m); m.userData.part = part; part.meshes.push(m); pickables.push(m); return m;
     },
     group(o = {}) { const g = new THREE.Group(); if (o.p) g.position.set(...o.p); if (o.r) g.rotation.set(...o.r); (o.parent || carRoot).add(g); return g; },
@@ -1978,6 +2315,7 @@ for (const o of [...carRoot.children]) {
   if (p && ENGINE_SET.has(p.id)) engineG.attach(o); else sprung.attach(o);
 }
 RIG.pads.forEach(p => { p.base = p.m.position.z; });
+PARTS.forEach(p => { if (p.fw) p.meshes.forEach(m => { m.userData.ck = cornerAt(m.getWorldPosition(new THREE.Vector3())); }); });
 RIG.seats.forEach(g => { g.userData.x = g.position.x; });
 RIG.valves.forEach(v => { v.base = v.g.position.clone(); });
 const FXROOT = new THREE.Group(); sprung.add(FXROOT);
@@ -1999,7 +2337,7 @@ class Flow {
     this.off = 0; this.amt = 0;
     const m = new THREE.InstancedMesh(PARTICLE_GEO, new THREE.MeshBasicMaterial({ transparent: true, depthTest: false, depthWrite: false, fog: false }), this.count);
     m.renderOrder = 60; m.frustumCulled = false; m.visible = false; m.setColorAt(0, _col.set('#fff'));
-    this.mesh = m; FXROOT.add(m);
+    this.mesh = m; (d.parent || FXROOT).add(m);
   }
   colorAt(t, out) {
     const mk = this.marks, n = this.cols.length; let i = 0;
@@ -2063,6 +2401,18 @@ const FLOWDEF = {
   bPilR: { segs: [{ c: C.white, pts: [[-0.02, 1.55, 0.66], [-0.02, 1.36, 0.66], [-0.02, 1.0, 0.80], [-0.02, 0.35, 0.84]] }], speed: 0.8, gap: 0.06 },
 };
 [-0.25, 0, 0.25].forEach((z, i) => { FLOWDEF['coolAir' + i] = { segs: [{ c: C.cold, pts: [[2.70, 0.50 + i * 0.03, z], [2.30, 0.50, z], [2.11, 0.50, z]] }, { c: C.hot, pts: [[2.02, 0.50, z], [1.95, 0.50, z * 0.8], [1.78, 0.45, z * 1.3], [1.55, 0.38, z * 1.7]] }], speed: 0.9, gap: 0.07 }; });
+CORNERS.forEach(c => {
+  const s = c.s, hp = HOSE(c);
+  FLOWDEF['hose' + c.k] = { parent: STEER[c.k], segs: [{ c: C.brake, pts: [...hp].reverse() }], speed: 0.35, gap: 0.022, size: 0.009 };
+  FLOWDEF['wss' + c.k] = { parent: STEER[c.k], segs: [{ c: C.sig, pts: [[0, -0.083, -s * 0.165], ...WSS(s)] }], speed: 0.35, gap: 0.03, size: 0.008 };
+  const sp = []; for (let k = 0; k <= 14; k++) { const th = (-150 - k * 13) * DEG; sp.push([0.37 * Math.cos(th), 0.37 * Math.sin(th), s * 0.02 * Math.sin(k)]); }
+  FLOWDEF['spray' + c.k] = { parent: CORNER[c.k], segs: [{ c: C.dust, pts: sp }], speed: 1.4, gap: 0.05, size: 0.012 };
+});
+{
+  const a = VALVE_A, cs = Math.cos(a), sn = Math.sin(a), ring = [];
+  for (let k = 0; k <= 8; k++) { const b = a + 0.2 + k * 0.55; ring.push([0.29 * Math.cos(b), 0.29 * Math.sin(b), 0.0]); }
+  FLOWDEF.inflate = { parent: SPIN.FR, segs: [{ c: C.cold, pts: [[0.215 * cs, 0.215 * sn, 0.20], [0.212 * cs, 0.212 * sn, 0.13], [0.205 * cs, 0.205 * sn, 0.09], [0.22 * cs, 0.22 * sn, 0.03], ...ring] }], speed: 0.45, gap: 0.04, size: 0.011 };
+}
 const FLOWS = {};
 const flow = k => FLOWS[k] || (FLOWS[k] = new Flow(FLOWDEF[k]));
 
@@ -2191,7 +2541,7 @@ applyTheme();
 /* ------------------------------------------------------------------ *
  *  Selection look, camera, picking
  * ------------------------------------------------------------------ */
-const state = { sel: null, hover: null, mode: 'xray', isolate: false, running: false, demo: null, playing: true, t0: 0 };
+const state = { corner: 'FR', sel: null, hover: null, mode: 'xray', isolate: false, running: false, demo: null, playing: true, t0: 0 };
 const WHITE = new THREE.Color('#ffffff');
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -2200,9 +2550,10 @@ function outlineObjs(part) {
   if (part.panel) SHELL.meshes.forEach(m => { const px = m.userData.proxies[part.panel]; if (px) o.push(px); });
   return o;
 }
-function partBox(part) {
+function partBox(part, ck) {
   scene.updateMatrixWorld(true);
   const b = new THREE.Box3();
+  if (ck && part.fw) { part.meshes.forEach(m => { if (m.userData.ck === ck) b.union(new THREE.Box3().setFromObject(m)); }); if (!b.isEmpty()) return b; }
   if (part.panel) SHELL.meshes.forEach(m => { const pb = m.userData.shell.pidBox[part.panel]; if (pb) b.union(pb.clone().applyMatrix4(m.matrixWorld)); });
   part.meshes.forEach(m => b.union(new THREE.Box3().setFromObject(m)));
   return b;
@@ -2232,7 +2583,8 @@ function setMode(mode) {
   SHELL.meshes.forEach(m => { m.visible = mode !== 'hidden'; m.castShadow = mode === 'solid'; });
   SHELL.mats.forEach(m => { m.depthWrite = mode === 'solid'; });
   bodyU.uXray.value = mode === 'xray' ? 1 : 0;
-  BY.chassis.meshes.forEach(m => { if (m.userData.solidOnly) m.visible = mode === 'solid'; });
+  BY.archLiners.mats.forEach(m => Object.assign(m.userData.b, mode === 'solid' ? { op: 1, tr: false, dw: true } : { op: 0.55, tr: true, dw: false }));
+  if (lookReady) refreshLook();
   document.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
 }
 
@@ -2255,6 +2607,13 @@ function fitScale() {
 }
 function viewPos(name) { const [t, d, k] = VIEWS[name]; return [t, t.clone().add(d.clone().normalize().multiplyScalar(k * fitScale()))]; }
 function focusOn(part) {
+  if (part.fw) {
+    const have = new Set(part.meshes.map(m => m.userData.ck));
+    if (!have.has(state.corner)) state.corner = ['FR', 'FL', 'RR', 'RL'].find(k => have.has(k)) || 'FR';
+    const c = CORNERS.find(o => o.k === state.corner), t = CORNER[c.k].getWorldPosition(new THREE.Vector3());
+    const dir = new THREE.Vector3(0.62, 0.36, c.s).normalize();
+    return flyTo(t, t.clone().add(dir.multiplyScalar(1.85 * Math.min(1.5, fitScale()))));
+  }
   if (state.demo?.focus === 'car') {
     const dir = camera.position.clone().sub(controls.target).normalize(), t = new THREE.Vector3(0, 0.5, 0);
     return flyTo(t, t.clone().add(dir.multiplyScalar(8.1 * fitScale())));
@@ -2284,13 +2643,18 @@ function pickAt(cx, cy) {
   const items = [];
   for (const hit of ray.intersectObjects(targets, false)) {
     if (!hit.object.visible) continue;
-    if (hit.object.userData.shell) { const p = shellHit(hit); if (!p) continue; if (state.isolate && state.sel && p !== state.sel) continue; items.push({ part: p, body: true }); }
-    else { const p = hit.object.userData.part; if (state.isolate && state.sel && p !== state.sel) continue; if (hit.object.material.opacity < 0.05) continue; items.push({ part: p }); }
+    if (hit.object.userData.shell) { const p = shellHit(hit); if (!p) continue; if (state.isolate && state.sel && p !== state.sel) continue; items.push({ part: p, body: true, point: hit.point.clone() }); }
+    else { const p = hit.object.userData.part; if (state.isolate && state.sel && p !== state.sel) continue; if (hit.object.material.opacity < 0.05) continue; items.push({ part: p, point: hit.point.clone() }); }
   }
   let list = items;
   if (state.mode === 'xray') { const inner = items.filter(i => !i.body); if (inner.length) list = inner; }
-  return list.length ? resolve(list, 0) : null;
+  if (!list.length) return null;
+  const p = resolve(list, 0), it = list.find(i => i.part === p);
+  pickPoint = it ? it.point : null;
+  return p;
 }
+let pickPoint = null;
+function cornerAt(v) { let best = 'FR', bd = 9; CORNERS.forEach(c => { const d = Math.hypot(v.x - c.x, v.z - c.s * TZ); if (d < bd) { bd = d; best = c.k; } }); return best; }
 function resolve(list, i) {
   const p = list[i].part;
   if (p.kids) for (let j = i + 1; j < list.length; j++) if (p.kids.includes(list[j].part.id)) return resolve(list, j);
@@ -2373,6 +2737,7 @@ function select(part, { focus = true } = {}) {
     if (part.panel && state.mode === 'hidden') setMode('solid');
   }
   refreshLook(); renderCard();
+  if (part) calloutEl.textContent = part.ar;
   listEl.querySelectorAll('.item').forEach(b => b.setAttribute('aria-current', String(b.dataset.id === part?.id)));
   const cur = listEl.querySelector(`[data-id="${part?.id}"]`); if (cur) cur.scrollIntoView({ block: 'nearest' });
   if (part && focus) focusOn(part);
@@ -2380,6 +2745,7 @@ function select(part, { focus = true } = {}) {
 listEl.addEventListener('click', e => {
   const b = e.target.closest('.item'); if (!b) return;
   cardEl.classList.remove('collapsed');
+  state.corner = 'FR';
   select(BY[b.dataset.id]);
   if (matchMedia('(max-width: 860px)').matches) toggleIndex(false);
 });
@@ -2392,6 +2758,15 @@ runBtn.addEventListener('click', () => {
   runBtn.querySelector('span').textContent = state.running ? 'وقّف المحرك' : 'شغّل المحرك';
   runBtn.querySelector('svg').innerHTML = state.running ? '<path d="M7 5h4v14H7zM13 5h4v14h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
 });
+const colorBtn = $('#colorBtn');
+function setColorMode(mode) {
+  colorMode = mode;
+  PARTS.forEach(p => p.mats.forEach(m => { if (m.userData.sys) applyReal(m, mode === 'real'); }));
+  colorBtn.querySelector('span').textContent = mode === 'real' ? 'ألوان حقيقية' : 'ألوان الأنظمة';
+  colorBtn.setAttribute('aria-pressed', String(mode === 'sys'));
+  try { localStorage.setItem('carColors', mode); } catch (e) { /* storage blocked */ }
+}
+colorBtn.addEventListener('click', () => setColorMode(colorMode === 'real' ? 'sys' : 'real'));
 function toggleIndex(open) { indexEl.classList.toggle('open', open); $('#listToggle').setAttribute('aria-expanded', String(open)); }
 $('#listToggle').addEventListener('click', () => toggleIndex(!indexEl.classList.contains('open')));
 document.addEventListener('keydown', e => {
@@ -2412,7 +2787,7 @@ canvas.addEventListener('pointerup', e => {
   const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y), dt = performance.now() - down.t; down = null;
   if (moved > 8 || dt > 700) return;
   const p = pickAt(e.clientX, e.clientY);
-  if (p) { cardEl.classList.remove('collapsed'); select(p); } else select(null, { focus: false });
+  if (p) { cardEl.classList.remove('collapsed'); state.corner = p.fw && pickPoint ? cornerAt(pickPoint) : 'FR'; select(p); } else select(null, { focus: false });
 });
 canvas.addEventListener('pointermove', e => { if (e.pointerType === 'mouse' && !down) hoverXY = [e.clientX, e.clientY]; });
 canvas.addEventListener('pointerleave', () => { hoverXY = null; setHover(null); });
@@ -2425,7 +2800,7 @@ function setHover(p, x, y) {
 /* ------------------------------------------------------------------ *
  *  Animation: drives every moving part from the active "how it works" demo
  * ------------------------------------------------------------------ */
-const L = { theta: 0, eng: 0, trans: 0, fan: 0, wv: 0, wa: { FL: 0, FR: 0, RL: 0, RR: 0 }, steer: 0, brake: 0, heat: 0, clutch: 0, gas: 0, doors: 0, hood: 0, trunk: 0, flap: 0, win: 0, mirror: 0, wiper: 0, seat: 0, light: 0, brakeL: 0, defrost: 0, bounce: 0, roll: 0, bump: 0, gear: 0, epb: 0, knob: 0, airbag: 1, menu: 0 };
+const L = { wear: 0, theta: 0, eng: 0, trans: 0, fan: 0, wv: 0, wa: { FL: 0, FR: 0, RL: 0, RR: 0 }, steer: 0, brake: 0, heat: 0, clutch: 0, gas: 0, doors: 0, hood: 0, trunk: 0, flap: 0, win: 0, mirror: 0, wiper: 0, seat: 0, light: 0, brakeL: 0, defrost: 0, bounce: 0, roll: 0, bump: 0, gear: 0, epb: 0, knob: 0, airbag: 1, menu: 0 };
 const ease = (k, target, dt, rate = 4) => { L[k] += (target - L[k]) * Math.min(1, dt * rate); return L[k]; };
 const openCycle = (t, P) => { const p = mod(t, P) / P; return p < 0.22 ? smooth(0, 0.22, p) : p < 0.62 ? 1 : p < 0.84 ? 1 - smooth(0.62, 0.84, p) : 0; };
 const pressCycle = (t, P) => { const p = mod(t, P) / P; return p < 0.12 ? smooth(0, 0.12, p) : p < 0.6 ? 1 : p < 0.72 ? 1 - smooth(0.6, 0.72, p) : 0; };
@@ -2516,7 +2891,18 @@ function animate(dt, now) {
   RIG.pads.forEach(p => { p.m.position.z = p.base + p.dir * 0.006 * Math.max(L.brake, p.rear ? L.epb : 0); });
   if (RIG.epbSwitch) RIG.epbSwitch.position.y = 0.627 - 0.004 * L.epb;
   ease('heat', (fx.brake || fx.pedals) ? L.brake * 1.6 : 0, dt, 1.2);
-  if (L.heat > 0.02) glow(RIG.discMat, REDHOT, L.heat);
+  if (L.heat > 0.02) { glow(RIG.discMat, REDHOT, L.heat); glow(RIG.discEdge, REDHOT, L.heat * 0.8); }
+  // wheel bolts tightened one by one in a star pattern
+  const STAR = [0, 2, 4, 1, 3];
+  for (const k in RIG.bolts) RIG.bolts[k].forEach((b, i) => {
+    if (!fx.bolts) { b.g.position.z = b.base; return; }
+    const ph = mod(td, 5) / 0.9, j = STAR.indexOf(i), f = clamp(ph - j, 0, 1);
+    b.g.position.z = b.base + b.s * 0.008 * (1 - f); b.g.rotation.z = -f * Math.PI * 4;
+  });
+  // brake pads wear down until the sensor trips
+  ease('wear', fx.wear ? smooth(0, 4, mod(td, 5.5)) : 0, dt, 6);
+  RIG.pads.forEach(p => { if (p.fric) p.m.scale.z = 1 - 0.65 * L.wear; });
+  if (fx.wear && L.wear > 0.78) glow(RIG.padSensorMat, REDHOT, 2.5);
 
   // body: doors, hood, trunk, flap, windows, mirrors, wipers
   ease('doors', fx.doors ? openCycle(td, 5) : 0, dt, 6); DOORS.forEach(o => o.pivot.rotation.y = o.s * 1.05 * L.doors);
@@ -2615,7 +3001,7 @@ function loop() {
   if (hoverXY && frame % 2 === 0) { const [x, y] = hoverXY; hoverXY = null; setHover(pickAt(x, y), x, y); }
   // name tag above the selected part
   if (state.sel && frame % 2 === 0) {
-    const b = partBox(state.sel), r = canvas.getBoundingClientRect();
+    const b = partBox(state.sel, state.corner), r = canvas.getBoundingClientRect();
     _v.set((b.min.x + b.max.x) / 2, b.max.y, (b.min.z + b.max.z) / 2).project(camera);
     const x = (_v.x + 1) / 2 * r.width, y = (1 - _v.y) / 2 * r.height;
     const show = _v.z < 1 && x > 0 && x < r.width && y > 40 && y < r.height;
@@ -2629,6 +3015,7 @@ function loop() {
 
 /* boot */
 lookReady = true;
+setColorMode(colorMode);
 resize();
 renderList();
 setMode('xray');
@@ -2639,7 +3026,7 @@ if (!fromHash) { const [t, p] = viewPos('iso'); controls.target.copy(t); camera.
 loop();
 window.__carReady = true;
 const ld = $('#loader'); ld.style.opacity = '0'; setTimeout(() => ld.hidden = true, 450);
-window.__car = { PARTS, BY, select, setMode, camera, controls, pickAt, state, SHELL, L, RIG, FLOWS };
+window.__car = { scene, renderer, setColorMode, PARTS, BY, select, setMode, camera, controls, pickAt, state, SHELL, L, RIG, FLOWS };
 window.__car.sim = sec => { let t = performance.now(); for (let i = 0; i < sec * 20; i++) { t += 50; animate(0.05, t); } if (tween) { controls.target.copy(tween.t1); camera.position.copy(tween.p1); tween = null; controls.update(); } };
 </script>
 
