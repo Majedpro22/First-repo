@@ -1,0 +1,1973 @@
+<!doctype html>
+<html lang="ar">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>تشريح السيارة 3D</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Readex+Pro:wght@500;600;700&display=swap">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+<style>
+/* Layout: full-bleed 3D stage; parts index docked at the start (right, RTL), spec card floating at the end; both become sheets on phones. */
+:root {
+  --bg: #E4E9EE;
+  --scene-1: #EEF2F5;
+  --scene-2: #D3DBE3;
+  --panel: rgba(248, 250, 252, 0.9);
+  --panel-solid: #F6F8FA;
+  --ink: #0F1A24;
+  --ink-2: #4A5A6A;
+  --line: #C6D0DA;
+  --chip: #E2E8EE;
+  --accent: #C9450F;
+  --accent-ink: #FFFFFF;
+  --grid: #A9B6C3;
+  --xray: #2F6CC9;
+  --sev1: #2C8653;
+  --sev2: #A86F12;
+  --sev3: #C2302F;
+  --shadow: 0 10px 30px rgba(15, 26, 36, 0.12);
+  --font-display: "Readex Pro", "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  --font-body: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #091017; --scene-1: #111C26; --scene-2: #070C11; --panel: rgba(15, 23, 31, 0.9); --panel-solid: #0F171F;
+    --ink: #E4ECF2; --ink-2: #93A5B6; --line: #233343; --chip: #182533;
+    --accent: #FF7B3F; --accent-ink: #1C0C03; --grid: #22323F; --xray: #7DB0FF;
+    --sev1: #4CC27E; --sev2: #E9B33C; --sev3: #FF6666; --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #091017; --scene-1: #111C26; --scene-2: #070C11; --panel: rgba(15, 23, 31, 0.9); --panel-solid: #0F171F;
+  --ink: #E4ECF2; --ink-2: #93A5B6; --line: #233343; --chip: #182533;
+  --accent: #FF7B3F; --accent-ink: #1C0C03; --grid: #22323F; --xray: #7DB0FF;
+  --sev1: #4CC27E; --sev2: #E9B33C; --sev3: #FF6666; --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  color-scheme: dark;
+}
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.6; overflow: hidden; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+#app { position: relative; height: 100%; overflow: hidden; }
+#stage { position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, var(--scene-1), var(--scene-2)); }
+#c { display: block; width: 100%; height: 100%; touch-action: none; }
+
+#ui {
+  position: absolute; inset: 0; pointer-events: none;
+  display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 12px;
+  padding-block: 12px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+#ui > * , .main > * { pointer-events: auto; }
+.main { pointer-events: none; display: grid; grid-template-columns: 290px minmax(0, 1fr) 360px; gap: 12px; min-height: 0; }
+
+.surface { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+
+/* top bar */
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 8px 12px; }
+.brand { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-inline-end: auto; min-width: 0; }
+.brand h1 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 20px; letter-spacing: 0; line-height: 1.2; }
+.brand h1 span { color: var(--accent); }
+.brand p { margin: 0; color: var(--ink-2); font-size: 13px; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.seg { display: inline-flex; background: var(--chip); border-radius: 10px; padding: 3px; gap: 2px; }
+.seg button { border: 0; background: transparent; padding: 5px 10px; border-radius: 8px; font-size: 13px; color: var(--ink-2); white-space: nowrap; }
+.seg button[aria-pressed="true"] { background: var(--panel); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.12); font-weight: 600; }
+.btn { border: 1px solid var(--line); background: var(--panel); padding: 5px 11px; border-radius: 10px; font-size: 13px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.btn:hover { border-color: var(--ink-2); }
+.btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn svg { width: 15px; height: 15px; flex: none; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+#listToggle { display: none; }
+
+/* parts index */
+#index { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+.index-head { padding: 12px 12px 8px; border-bottom: 1px solid var(--line); display: grid; gap: 8px; }
+.index-head h2 { margin: 0; font-family: var(--font-display); font-size: 15px; font-weight: 600; display: flex; justify-content: space-between; align-items: baseline; }
+.index-head h2 small { font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); font-weight: 400; }
+#q { width: 100%; box-sizing: border-box; border: 1px solid var(--line); background: var(--bg); border-radius: 10px; padding: 7px 10px; font-size: 14px; }
+#q::placeholder { color: var(--ink-2); }
+#list { overflow-y: auto; padding: 0 6px 12px; min-height: 0; overscroll-behavior: contain; }
+.grp { margin-top: 6px; }
+.grp-h { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; gap: 8px; padding: 6px 8px; font-size: 12px; font-weight: 600; color: var(--ink-2); background: var(--panel-solid); text-transform: uppercase; letter-spacing: .04em; }
+.grp-h .dot { width: 9px; height: 9px; border-radius: 3px; flex: none; }
+.grp-h .en { font-family: var(--font-mono); font-weight: 400; margin-inline-start: auto; font-size: 11px; }
+.item { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 2px 8px; width: 100%; text-align: start; border: 0; background: transparent; padding: 6px 8px; border-radius: 8px; }
+.item:hover { background: var(--chip); }
+.item[aria-current="true"] { background: var(--accent); color: var(--accent-ink); }
+.item[aria-current="true"] .en { color: inherit; opacity: .85; }
+.item .ar { font-size: 14px; overflow-wrap: anywhere; }
+.item .en { font-family: var(--font-mono); font-size: 11px; color: var(--ink-2); direction: ltr; text-align: end; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
+.empty { padding: 16px 10px; color: var(--ink-2); font-size: 13px; }
+.more { margin: 14px 8px 4px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-2); display: grid; gap: 6px; }
+.more b { color: var(--ink); font-weight: 600; }
+.more a { color: var(--accent); text-decoration: none; }
+.more a:hover { text-decoration: underline; }
+
+/* spec card */
+#card { grid-column: 3; align-self: start; max-height: 100%; overflow-y: auto; padding: 16px; display: grid; gap: 12px; overscroll-behavior: contain; }
+.card-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sys-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 3px 9px; border-radius: 99px; background: var(--chip); color: var(--ink); }
+.sys-chip i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+.code { font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); direction: ltr; }
+#cardClose { margin-inline-start: auto; border: 0; background: transparent; padding: 2px 6px; font-size: 18px; line-height: 1; color: var(--ink-2); display: none; }
+.name h2 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 25px; line-height: 1.25; text-wrap: balance; }
+.en-row { display: flex; align-items: center; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
+.en-name { font-family: var(--font-mono); font-size: 14px; direction: ltr; color: var(--ink); background: var(--chip); padding: 2px 8px; border-radius: 6px; }
+.say { border: 1px solid var(--line); background: transparent; border-radius: 8px; padding: 3px 7px; display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--ink-2); }
+.say svg { width: 14px; height: 14px; }
+.where { font-size: 13px; color: var(--ink-2); display: flex; gap: 6px; align-items: flex-start; }
+.where svg { width: 14px; height: 14px; flex: none; margin-top: 4px; }
+.blk { display: grid; gap: 4px; }
+.blk h3 { margin: 0; font-size: 12px; font-weight: 600; color: var(--ink-2); letter-spacing: .04em; }
+.blk p { margin: 0; font-size: 15px; }
+.sev { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 10px; align-items: center; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); border-inline-start: 4px solid var(--sev-c, var(--line)); }
+.sev b { font-size: 14px; color: var(--sev-c); }
+.sev span { font-size: 13px; color: var(--ink-2); }
+.meter { display: inline-flex; gap: 3px; }
+.meter i { width: 14px; height: 6px; border-radius: 2px; background: var(--line); }
+.meter i.on { background: var(--sev-c); }
+.note { font-size: 13.5px; background: var(--chip); border-radius: 10px; padding: 9px 12px; }
+.note b { font-weight: 600; }
+.card-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.card-actions .grow { margin-inline-start: auto; display: inline-flex; gap: 6px; }
+
+/* footer hint + tooltip + loader */
+.foot { justify-self: center; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center; }
+.hint { font-size: 12.5px; color: var(--ink-2); padding: 6px 12px; border-radius: 99px; background: var(--panel); border: 1px solid var(--line); }
+.legend { display: inline-flex; gap: 10px; font-size: 12px; color: var(--ink-2); padding: 6px 12px; border-radius: 99px; background: var(--panel); border: 1px solid var(--line); flex-wrap: wrap; justify-content: center; }
+.legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-inline-end: 4px; }
+#tip { position: fixed; z-index: 30; pointer-events: none; padding: 5px 10px; border-radius: 8px; background: var(--ink); color: var(--bg); font-size: 13px; white-space: nowrap; transform: translate(-50%, calc(-100% - 14px)); opacity: 0; transition: opacity .12s; }
+#tip .en { font-family: var(--font-mono); font-size: 11px; opacity: .75; margin-inline-start: 6px; }
+#loader { position: absolute; inset: 0; display: grid; place-items: center; background: var(--bg); z-index: 40; transition: opacity .4s; text-align: center; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+#loader p { margin: 8px 0 0; color: var(--ink-2); font-size: 14px; }
+#loader .spin { width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--accent); margin: 0 auto; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 1100px) {
+  .main { grid-template-columns: 260px minmax(0, 1fr) 320px; }
+}
+@media (max-width: 860px) {
+  #ui { gap: 8px; padding-block: 8px; }
+  .main { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
+  #listToggle { display: inline-flex; }
+  #index { position: absolute; z-index: 25; top: 8px; bottom: 8px; right: max(16px, env(safe-area-inset-right, 0px)); width: min(340px, calc(100% - 32px)); transform: translateX(calc(100% + 40px)); transition: transform .25s ease; }
+  #index.open { transform: none; }
+  #card { grid-column: 1; grid-row: 2; align-self: end; max-height: 48vh; padding: 12px 14px; gap: 10px; }
+  #card.collapsed > :not(.card-top):not(.name) { display: none; }
+  #card.collapsed .en-row { display: none; }
+  #card.collapsed .name h2 { font-size: 18px; }
+  #cardClose { display: inline-block; }
+  .name h2 { font-size: 21px; }
+  .brand h1 { font-size: 17px; }
+  .brand p { display: none; }
+  .legend { display: none; }
+  .hint { font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #index, #tip, #loader { transition: none; }
+  #loader .spin { animation: none; }
+}
+</style>
+
+<div id="app" dir="rtl" lang="ar">
+  <div id="stage"><canvas id="c" aria-label="مجسم سيارة ثلاثي الأبعاد. اسحب لتلف السيارة واكبس على أي قطعة لتشوف شرحها."></canvas></div>
+
+  <div id="ui">
+    <header class="bar surface">
+      <div class="brand">
+        <h1>تشريح <span>السيارة</span></h1>
+        <p>سيدان على طراز BMW · اكبس على أي قطعة</p>
+      </div>
+      <div class="controls">
+        <button class="btn" id="listToggle" aria-expanded="false" aria-controls="index">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+          القطع
+        </button>
+        <div class="seg" role="group" aria-label="شكل الهيكل">
+          <button data-mode="xray" aria-pressed="true">شفّاف</button>
+          <button data-mode="solid" aria-pressed="false">كامل</button>
+          <button data-mode="hidden" aria-pressed="false">بدون هيكل</button>
+        </div>
+        <button class="btn" id="runBtn" aria-pressed="false">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+          <span>شغّل المحرك</span>
+        </button>
+        <div class="seg" role="group" aria-label="زاوية الكاميرا">
+          <button data-view="iso" aria-pressed="false">٣/٤</button>
+          <button data-view="side" aria-pressed="false">جنب</button>
+          <button data-view="top" aria-pressed="false">فوق</button>
+          <button data-view="under" aria-pressed="false">تحت</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="main">
+      <aside id="index" class="surface" aria-label="قائمة قطع السيارة">
+        <div class="index-head">
+          <h2>كل القطع <small id="count"></small></h2>
+          <input id="q" type="search" placeholder="دوّر: تيربو، brake، رديتر…" autocomplete="off" aria-label="دوّر على قطعة">
+        </div>
+        <div id="list"></div>
+      </aside>
+      <div></div>
+      <section id="card" class="surface" aria-live="polite"></section>
+    </div>
+
+    <div class="foot">
+      <div class="hint" id="hint">اسحب لتلف · قرّب بالعجلة أو بإصبعين · اكبس على أي قطعة</div>
+      <div class="legend" id="legend"></div>
+    </div>
+  </div>
+
+  <div id="tip" role="tooltip"></div>
+  <div id="loader"><div><div class="spin"></div><p id="loaderMsg">عم يجهّز المجسّم…</p></div></div>
+</div>
+
+<script>
+  // If the 3D library cannot load, say so instead of spinning forever.
+  setTimeout(function () {
+    if (!window.__carReady) {
+      var m = document.getElementById('loaderMsg');
+      if (m) m.textContent = 'ما قدرت حمّل مكتبة الـ3D. جرّب تحدّث الصفحة أو افتحها بمتصفح تاني.';
+    }
+  }, 12000);
+</script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+
+/* ------------------------------------------------------------------ *
+ *  Systems
+ * ------------------------------------------------------------------ */
+const SYS = {
+  engine:     { ar: 'المحرك',            en: 'Engine',           code: 'ENG', color: '#E8743B' },
+  intake:     { ar: 'الهوا والتيربو',     en: 'Air & Turbo',      code: 'AIR', color: '#F0A43A' },
+  fuel:       { ar: 'الوقود',            en: 'Fuel',             code: 'FUE', color: '#D9C03A' },
+  exhaust:    { ar: 'العادم',            en: 'Exhaust',          code: 'EXH', color: '#A0705A' },
+  cooling:    { ar: 'التبريد',           en: 'Cooling',          code: 'COL', color: '#25B0BE' },
+  drivetrain: { ar: 'نقل الحركة',         en: 'Drivetrain',       code: 'DRV', color: '#8C66D6' },
+  brakes:     { ar: 'الفرامل',           en: 'Brakes',           code: 'BRK', color: '#D9483F' },
+  suspension: { ar: 'التعليق',           en: 'Suspension',       code: 'SUS', color: '#47A96A' },
+  steering:   { ar: 'التوجيه',           en: 'Steering',         code: 'STR', color: '#1C9C8C' },
+  wheels:     { ar: 'العجلات',           en: 'Wheels & Tires',   code: 'WHL', color: '#6B7785' },
+  electrical: { ar: 'الكهربا',           en: 'Electrical',       code: 'ELE', color: '#3B7BE3' },
+  climate:    { ar: 'التكييف',           en: 'Climate',          code: 'CLM', color: '#6FBBEB' },
+  safety:     { ar: 'الأمان',            en: 'Safety',           code: 'SAF', color: '#DB5C9C' },
+  interior:   { ar: 'المقصورة',          en: 'Interior',         code: 'INT', color: '#C49A72' },
+  body:       { ar: 'الهيكل الخارجي',     en: 'Body',             code: 'BDY', color: '#8FA3B8' },
+  chassis:    { ar: 'الشاسيه',           en: 'Chassis',          code: 'CHS', color: '#7D8793' },
+};
+const SEV = {
+  1: { t: 'بسيط', d: 'صلّحها لما تقدر، السيارة بتمشي عادي.', v: '--sev1' },
+  2: { t: 'مهم', d: 'صلّحها بأقرب وقت قبل ما يكبر العطل.', v: '--sev2' },
+  3: { t: 'خطير', d: 'صلّحها فوراً. لا تسوق إذا في أعراض.', v: '--sev3' },
+};
+
+/* ------------------------------------------------------------------ *
+ *  Geometry constants (meters).  x = forward, y = up, z = right.
+ * ------------------------------------------------------------------ */
+const FA = 1.45, RA = -1.40, WY = 0.335, TZ = 0.80, XF = 2.36, CY = 0.36;
+const CYLX = [0, 1, 2, 3, 4, 5].map(i => 1.29 + (2.5 - i) * 0.095);   // cylinder 1 at the front
+const PHASE = [0, 240, 120, 120, 240, 0].map(d => d * Math.PI / 180); // inline-6 crank throws
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const smooth = (a, b, v) => { const t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+
+function mono(pts) { // monotone cubic Hermite interpolation
+  const n = pts.length, xs = pts.map(p => p[0]), ys = pts.map(p => p[1]), d = [], m = [];
+  for (let i = 0; i < n - 1; i++) d.push((ys[i + 1] - ys[i]) / (xs[i + 1] - xs[i]));
+  m[0] = d[0]; m[n - 1] = d[n - 2];
+  for (let i = 1; i < n - 1; i++) m[i] = d[i - 1] * d[i] <= 0 ? 0 : (d[i - 1] + d[i]) / 2;
+  for (let i = 0; i < n - 1; i++) {
+    if (d[i] === 0) { m[i] = m[i + 1] = 0; continue; }
+    const a = m[i] / d[i], b = m[i + 1] / d[i], s = a * a + b * b;
+    if (s > 9) { const t = 3 / Math.sqrt(s); m[i] = t * a * d[i]; m[i + 1] = t * b * d[i]; }
+  }
+  return x => {
+    if (x <= xs[0]) return ys[0];
+    if (x >= xs[n - 1]) return ys[n - 1];
+    let i = 0; while (x > xs[i + 1]) i++;
+    const h = xs[i + 1] - xs[i], t = (x - xs[i]) / h, t2 = t * t, t3 = t2 * t;
+    return (2 * t3 - 3 * t2 + 1) * ys[i] + (t3 - 2 * t2 + t) * h * m[i] + (-2 * t3 + 3 * t2) * ys[i + 1] + (t3 - t2) * h * m[i + 1];
+  };
+}
+const yTop = mono([[-2.36, 0.80], [-2.31, 0.94], [-2.18, 1.00], [-1.70, 1.03], [-0.95, 1.39], [-0.40, 1.43], [0.25, 1.40], [1.06, 0.92], [1.60, 0.85], [2.20, 0.75], [2.36, 0.64]]);
+const yBot = mono([[-2.36, 0.36], [-2.25, 0.30], [-2.0, 0.27], [-1.0, 0.25], [1.0, 0.25], [2.0, 0.24], [2.25, 0.25], [2.36, 0.32]]);
+function halfW(x) {
+  const t = Math.min(1, Math.abs(x) / XF), n = x > 0 ? 6 : 5;
+  let w = 0.905 * Math.pow(Math.max(0, 1 - Math.pow(t, n)), 1 / n);
+  if (x > 1.5) w *= 1 - 0.05 * Math.pow((x - 1.5) / 0.86, 2);
+  if (x < -1.6) w *= 1 - 0.03 * Math.pow((-x - 1.6) / 0.76, 2);
+  return w;
+}
+function sideF(y) {
+  let f = 1 - 0.035 * Math.pow(clamp((0.42 - y) / 0.17, 0, 1), 2);
+  return f * (1 - 0.075 * smooth(0.94, 1.04, y) - 0.13 * clamp((y - 1.0) / 0.42, 0, 1));
+}
+const wSide = (x, y) => halfW(x) * sideF(y);
+function section(x) {
+  const yt = yTop(x), W = halfW(x), Rc = Math.min(0.09, W * 0.5);
+  const ys = yt - Rc, zc = Math.max(0, wSide(x, ys) - Rc), crown = 0.025 * (W / 0.905);
+  return { yt, yb: yBot(x), Rc, ys, zc, crown };
+}
+// top-surface height at (x, z) for placing things on the glass / panels
+function surfY(x, z) {
+  const s = section(x), az = Math.abs(z);
+  if (s.zc < 1e-5) return s.yt;
+  if (az <= s.zc) return s.yt + s.crown * (1 - (az / s.zc) ** 2);
+  const c = clamp((az - s.zc) / s.Rc, 0, 1);
+  return s.ys + s.Rc * Math.sqrt(1 - c * c);
+}
+// x of the front / rear face at height y and lateral offset z
+function endX(z, y, front) {
+  let lo = front ? 1.8 : -XF, hi = front ? XF : -1.8;
+  for (let i = 0; i < 30; i++) {
+    const mid = (lo + hi) / 2, inside = wSide(mid, y) > Math.abs(z);
+    if (front) { if (inside) lo = mid; else hi = mid; } else { if (inside) hi = mid; else lo = mid; }
+  }
+  return (lo + hi) / 2;
+}
+
+/* body panel ids */
+const PANEL = { hood: 1, roof: 2, trunk: 3, frontBumper: 4, rearBumper: 5, fenders: 6, doors: 7, quarterPanels: 8, rockers: 9, pillars: 10, windshield: 11, rearWindow: 12, sideWindows: 13 };
+const beltY = x => 0.955 + 0.03 * clamp((0.9 - x) / 2.6, 0, 1);
+function classify(x, y, z, nx, ny, nzs) {
+  const ax = Math.abs(z), nz = Math.abs(nzs);
+  if (nz > 0.35 && y < 0.80) {
+    if (Math.hypot(x - FA, y - WY) < 0.395) return -1;
+    if (Math.hypot(x - RA, y - WY) < 0.395) return -1;
+  }
+  if (x > 2.12 && y > 0.595 && y < 0.705 && ax > 0.30 && ax < 0.80 && (nx > 0.25 || nz > 0.3)) return 14;
+  if (x < -2.05 && y > 0.84 && y < 0.95 && ax > 0.28 && (nx < -0.25 || nz > 0.3)) return 15;
+  const side = nz > 0.55, belt = beltY(x);
+  if (y > belt && x < 1.12 && x > -1.85) {
+    if (side) {
+      const aF = 0.98 - (y - 0.97) * 1.85, cR = -1.52 + (y - 0.97) * 1.55;
+      const dlo = y > belt + 0.03 && y < 1.31 && x < aF && x > cR && Math.abs(x + 0.02) > 0.045;
+      return dlo ? 13 : 10;
+    }
+    if (x > 0.27) return ax < 0.66 - (y - 0.95) * 0.16 ? 11 : 10;
+    if (x > -0.97) return 2;
+    return ax < 0.60 ? 12 : 10;
+  }
+  if (!side) {
+    if (nx > 0.55) return y < 0.66 ? 4 : 1;
+    if (nx < -0.55) return y < 0.78 ? 5 : 3;
+    if (x > 0.95) return x > 2.28 ? 4 : 1;
+    if (x < -1.65) return x < -2.30 ? 5 : 3;
+    return 10;
+  }
+  if (x > 2.08) return 4;
+  if (x < -2.12) return 5;
+  if (y < 0.34 && x < 1.055 && x > -1.005) return 9;
+  if (x > 1.0) return 6;
+  if (x > -1.0) return 7;
+  return 8;
+}
+const f = v => v.toFixed(4);
+const GLSL_DECL = `
+varying vec3 vOP; varying vec3 vON;
+uniform float uSel; uniform float uHover; uniform float uXray; uniform float uDim;
+uniform vec3 uPaint; uniform vec3 uXrayTint; uniform vec3 uGlass; uniform vec3 uAccent;
+float beltY(float x){ return 0.955 + 0.03*clamp((0.9 - x)/2.6, 0.0, 1.0); }
+int classify(vec3 p, vec3 n){
+  float x = p.x, y = p.y, ax = abs(p.z), nz = abs(n.z);
+  if (nz > 0.35 && y < 0.80) {
+    if (length(vec2(x - ${f(FA)}, y - ${f(WY)})) < 0.395) return -1;
+    if (length(vec2(x - (${f(RA)}), y - ${f(WY)})) < 0.395) return -1;
+  }
+  if (x > 2.12 && y > 0.595 && y < 0.705 && ax > 0.30 && ax < 0.80 && (n.x > 0.25 || nz > 0.3)) return 14;
+  if (x < -2.05 && y > 0.84 && y < 0.95 && ax > 0.28 && (n.x < -0.25 || nz > 0.3)) return 15;
+  bool side = nz > 0.55; float belt = beltY(x);
+  if (y > belt && x < 1.12 && x > -1.85) {
+    if (side) {
+      float aF = 0.98 - (y - 0.97)*1.85; float cR = -1.52 + (y - 0.97)*1.55;
+      bool dlo = y > belt + 0.03 && y < 1.31 && x < aF && x > cR && abs(x + 0.02) > 0.045;
+      return dlo ? 13 : 10;
+    }
+    if (x > 0.27) return ax < 0.66 - (y - 0.95)*0.16 ? 11 : 10;
+    if (x > -0.97) return 2;
+    return ax < 0.60 ? 12 : 10;
+  }
+  if (!side) {
+    if (n.x > 0.55) return y < 0.66 ? 4 : 1;
+    if (n.x < -0.55) return y < 0.78 ? 5 : 3;
+    if (x > 0.95) return x > 2.28 ? 4 : 1;
+    if (x < -1.65) return x < -2.30 ? 5 : 3;
+    return 10;
+  }
+  if (x > 2.08) return 4;
+  if (x < -2.12) return 5;
+  if (y < 0.34 && x < 1.055 && x > -1.005) return 9;
+  if (x > 1.0) return 6;
+  if (x > -1.0) return 7;
+  return 8;
+}`;
+const GLSL_MAIN = `
+int pid = classify(vOP, normalize(vON));
+if (pid < 0) discard;
+float fid = float(pid);
+bool isGlass = pid >= 11 && pid <= 13;
+vec3 glow = vec3(0.0);
+vec3 base = isGlass ? uGlass : uPaint;
+if (pid == 10) base = abs(vOP.x + 0.02) < 0.07 ? vec3(0.025, 0.03, 0.035) : uPaint * 0.85;
+float a = isGlass ? 0.5 : 1.0;
+if (!isGlass && pid != 10 && abs(vON.z) > 0.55) {
+  float g = min(min(abs(vOP.x - 1.0), abs(vOP.x + 0.02)), abs(vOP.x + 1.0));
+  if (g < 0.0045 && vOP.y < 1.0) base *= 0.25;
+  if ((pid == 9 || pid == 7) && abs(vOP.y - 0.34) < 0.003) base *= 0.25;
+}
+if (!gl_FrontFacing) base *= mix(0.28, 1.0, uXray);
+vec3 xc = mix(base, uXrayTint, isGlass ? 0.35 : 0.8);
+base = mix(base, xc, uXray);
+a = mix(a, isGlass ? 0.035 : 0.05, uXray);
+if (pid == 14) {
+  float az = abs(vOP.z);
+  float d = min(abs(length(vec2(az - 0.43, vOP.y - 0.648)) - 0.03), abs(length(vec2(az - 0.60, vOP.y - 0.646)) - 0.03));
+  base = vec3(0.04, 0.05, 0.07); a = mix(1.0, 0.55, uXray);
+  if (d < 0.006) glow = vec3(0.75, 0.88, 1.0) * 2.2;
+}
+if (pid == 15) {
+  base = vec3(0.30, 0.02, 0.03); a = mix(1.0, 0.6, uXray);
+  glow = vec3(1.0, 0.07, 0.05) * (abs(vOP.y - 0.895) < 0.014 ? 1.8 : 0.55);
+}
+if (abs(fid - uHover) < 0.5) { base = mix(base, uAccent, 0.35); a = max(a, 0.32); }
+if (abs(fid - uSel) < 0.5) { base = mix(base, uAccent, 0.6); a = max(a, 0.72); }
+a *= uDim;
+vec4 diffuseColor = vec4(base, a);`;
+
+/* ------------------------------------------------------------------ *
+ *  Part catalogue
+ *  w = where it sits, fn = what it does, br = what happens when it breaks
+ * ------------------------------------------------------------------ */
+const DEF = [];
+const def = o => DEF.push(o);
+const cylPos = i => CYLX[i];
+
+/* ---------- ENGINE ---------- */
+def({ id: 'engineBlock', sys: 'engine', ar: 'كتلة المحرك (البلوك)', en: 'Engine Block', sev: 3, ghost: 0.26, kids: ['pistons', 'crankshaft'],
+  w: 'تحت الكبوت، بنص حجرة المحرك',
+  fn: 'جسم المحرك الأساسي. جوّاه السلندرات (الأسطوانات) اللي بتتحرك فيها البساتم، وكل قطع المحرك التانية بتنركب عليه.',
+  br: 'إذا انشعر (تشقّق) بيصير يسرّب زيت أو ماي، والمحرك بيسخن. غالباً تصليحه غالي كتير وأحياناً بتغيّر المحرك كله.',
+  note: 'هالمجسّم فيه محرك 6 سلندر ورا بعض بخط واحد (Inline-6)، وهاد النوع مشهور عند BMW بنعومته.',
+  build(h) { h.mesh(rbox(0.62, 0.34, 0.30, 0.03), { p: [1.29, 0.45, 0] }); } });
+
+def({ id: 'headGasket', sys: 'engine', ar: 'جوان الراس', en: 'Head Gasket', sev: 3,
+  w: 'بين البلوك وراس المحرك',
+  fn: 'طبقة رقيقة بتسكّر بين البلوك والراس، فما بيطلع ضغط الاحتراق وما بيختلط الزيت بماء التبريد.',
+  br: 'دخان أبيض من الشكمان، ماء الرديتر بينقص بدون تسريب واضح، المحرك بيسخن، والزيت ممكن يصير لونه حليبي.',
+  build(h) { h.mesh(box(0.62, 0.012, 0.30), { mat: { color: '#B9C0C8', metal: 0.7, rough: 0.35 }, p: [1.29, 0.626, 0] }); } });
+
+def({ id: 'cylinderHead', sys: 'engine', ar: 'راس المحرك (السلندر هيد)', en: 'Cylinder Head', sev: 3, ghost: 0.3, kids: ['valves', 'sparkPlugs', 'injectors'],
+  w: 'فوق البلوك مباشرة',
+  fn: 'الغطا اللي فوق السلندرات. فيه غرفة الاحتراق، الصبابات، عمود الكامات، ومكان البواجي والبخاخات.',
+  br: 'إذا التوى من السخونة الزايدة المحرك بيفقد ضغط، بيرجف وبيطلع دخان. تصليحه تجليخ أو تغيير الراس.',
+  build(h) { h.mesh(rbox(0.62, 0.10, 0.28, 0.02), { p: [1.29, 0.682, 0] }); } });
+
+def({ id: 'valveCover', sys: 'engine', ar: 'غطا الصبابات', en: 'Valve Cover', sev: 1, ghost: 0.34, kids: ['camshaft'],
+  w: 'أعلى نقطة بالمحرك',
+  fn: 'غطا فوق راس المحرك، بيحمي عمود الكامات وبيمنع الزيت يطلع لبرّا.',
+  br: 'الجوانة (الكاوتشوكة) تبعه بتنشف مع الوقت فبيرشح زيت، وممكن تشم ريحة زيت محروق إذا نقط على الشكمان.',
+  note: 'رشح الزيت من جوانة غطا الصبابات من أشهر الأعطال بسيارات BMW اللي عمرها كم سنة.',
+  build(h) { h.mesh(rbox(0.60, 0.07, 0.22, 0.025), { mat: { color: '#5A3B2C', metal: 0.4, rough: 0.5 }, p: [1.29, 0.767, 0] }); } });
+
+const ANIM = { pistons: [], rods: [], crank: null, cams: [], fan: null, spinners: [] };
+def({ id: 'pistons', sys: 'engine', ar: 'البساتم (المكابس)', en: 'Pistons & Connecting Rods', sev: 3,
+  w: 'جوّا السلندرات بالبلوك',
+  fn: 'بتطلع وبتنزل جوّا السلندر. انفجار البنزين مع الهوا بيدفعها لتحت، والذراع (Connecting Rod) بيحوّل حركتها لدوران بعمود الكرنك.',
+  br: 'إذا تآكلت الشنابر (Piston Rings) المحرك بياكل زيت وبيطلع دخان أزرق. إذا انكسر بستم أو ذراع غالباً المحرك بيخرب.',
+  build(h) {
+    const pm = h.mat({ color: '#D7DCE2', metal: 0.8, rough: 0.3 }), rm = h.mat({ metal: 0.6, rough: 0.4 });
+    CYLX.forEach(() => {
+      ANIM.pistons.push(h.mesh(new THREE.CylinderGeometry(0.041, 0.041, 0.055, 28), { mat: pm }));
+      ANIM.rods.push(h.mesh(new THREE.CylinderGeometry(0.009, 0.012, 0.17, 10), { mat: rm }));
+    });
+  } });
+
+def({ id: 'crankshaft', sys: 'engine', ar: 'عمود الكرنك', en: 'Crankshaft', sev: 3,
+  w: 'أسفل البلوك، بطول المحرك',
+  fn: 'بيحوّل حركة البساتم (طلوع ونزول) لدوران. هاد الدوران هو اللي بيوصل للعجلات بالآخر.',
+  br: 'إذا تآكلت السبيكة (Bearings) بتسمع دقّة قوية من تحت المحرك وبينزل ضغط الزيت. لازم توقّف فوراً.',
+  build(h) {
+    const g = h.group({ p: [0, CY, 0] }); ANIM.crank = g;
+    const m = h.mat({ color: '#C9CED6', metal: 0.85, rough: 0.3 });
+    h.mesh(cylX(0.022, 0.022, 0.70), { mat: m, p: [1.28, 0, 0], parent: g });
+    CYLX.forEach((x, i) => {
+      const a = PHASE[i], c = Math.cos(a), s = Math.sin(a);
+      h.mesh(cylX(0.016, 0.016, 0.05), { mat: m, p: [x, 0.04 * c, 0.04 * s], parent: g });
+      [-0.03, 0.03].forEach(dx => h.mesh(box(0.012, 0.09, 0.055), { p: [x + dx, 0.012 * c, 0.012 * s], r: [a, 0, 0], parent: g }));
+    });
+  } });
+
+def({ id: 'camshaft', sys: 'engine', ar: 'عمود الكامات (الكامة)', en: 'Camshafts (VANOS)', sev: 2,
+  w: 'جوّا الراس، تحت غطا الصبابات',
+  fn: 'بيلف وبيفتح ويسكّر الصبابات بالوقت المظبوط. بيلف بنص سرعة الكرنك. هون في كامتين: وحدة للسحب ووحدة للعادم.',
+  br: 'التآكل بيعمل صوت تكتكة وضعف ورجفة. عند BMW في نظام VANOS بيغيّر توقيت الكامة، وإذا خرب ممكن تحس بضعف ورجفة عالدورات الواطية.',
+  build(h) {
+    const m = h.mat({ color: '#D9DEE4', metal: 0.85, rough: 0.3 });
+    [-0.055, 0.055].forEach((z, k) => {
+      const g = h.group({ p: [0, 0.752, z] }); ANIM.cams.push(g);
+      h.mesh(cylX(0.011, 0.011, 0.58), { mat: m, p: [1.29, 0, 0], parent: g });
+      CYLX.forEach((x, i) => [-0.022, 0.022].forEach(dx => {
+        const a = PHASE[i] / 2 + k * 1.6;
+        h.mesh(cylX(0.016, 0.016, 0.012, 16), { p: [x + dx, 0.006 * Math.cos(a), 0.006 * Math.sin(a)], parent: g });
+      }));
+    });
+  } });
+
+def({ id: 'valves', sys: 'engine', ar: 'الصبابات (البلوف)', en: 'Intake & Exhaust Valves', sev: 3,
+  w: 'براس المحرك، 4 فوق كل سلندر',
+  fn: 'بوابات صغيرة: صبابات السحب بتدخّل الهوا، وصبابات العادم بتطلّع الغاز المحروق.',
+  br: 'إذا احترقت أو ما عادت تسكّر منيح المحرك بيضعف وبيرجف (Misfire). بأغلب المحركات الحديثة إذا انقطع جنزير التوقيت البساتم بتضرب بالصبابات وبتعوّجها.',
+  build(h) {
+    const m = h.mat({ color: '#E3E6EA', metal: 0.8, rough: 0.3 });
+    CYLX.forEach(x => [-1, 1].forEach(side => [-0.022, 0.022].forEach(dx => {
+      const g = h.group({ p: [x + dx, 0.645, side * 0.03], r: [side * 0.2, 0, 0] });
+      h.mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.075, 8), { mat: m, p: [0, 0.037, 0], parent: g });
+      h.mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.004, 16), { mat: m, parent: g });
+    })));
+  } });
+
+def({ id: 'timingChain', sys: 'engine', ar: 'جنزير التوقيت (الكاتينة)', en: 'Timing Chain', sev: 3,
+  w: 'ورا المحرك بهالموديل (مكانه بيختلف حسب المحرك)',
+  fn: 'بيربط الكرنك بعمود الكامات عشان الصبابات تفتح وتسكّر مع حركة البساتم بالظبط. بعض السيارات فيها سير (Timing Belt) بداله.',
+  br: 'خشخشة عند التشغيل عالبارد ممكن تعني إنه مرخي. إذا انقطع المحرك بيطفي وممكن يخرب كله.',
+  note: 'ببعض محركات BMW الحديثة (متل B58) الجنزير موجود ورا المحرك جهة الجير، فتغييره شغلة كبيرة.',
+  build(h) {
+    const X = 0.972, P = [[0, 0.318], [0.038, 0.355], [0.068, 0.52], [0.097, 0.75], [0.06, 0.795], [-0.06, 0.795], [-0.097, 0.75], [-0.068, 0.52], [-0.038, 0.355]];
+    h.mesh(tube(P.map(([z, y]) => [X, y, z]), 0.006, 120, true), { mat: { color: '#9AA3AE', metal: 0.8, rough: 0.35 } });
+    h.mesh(cylX(0.035, 0.035, 0.012), { p: [X, CY, 0] });
+    [-0.055, 0.055].forEach(z => h.mesh(cylX(0.04, 0.04, 0.012), { p: [X, 0.752, z] }));
+  } });
+
+def({ id: 'sparkPlugs', sys: 'engine', ar: 'البواجي', en: 'Spark Plugs', sev: 2,
+  w: 'براس المحرك، تحت الكويلات',
+  fn: 'بتعمل شرارة كهربا جوّا السلندر فبتولّع خليط البنزين والهوا.',
+  br: 'إذا ضعفت: صعوبة بالتشغيل، رجفة، ضعف، وصرف بنزين زيادة. بتتغيّر كجزء من الصيانة الدورية (شوف كتيّب السيارة).',
+  note: 'محركات الديزل ما فيها بواجي شرارة، فيها بواجي تسخين (Glow Plugs).',
+  build(h) {
+    const a = h.mat({ color: '#C7CCD3', metal: 0.8, rough: 0.35 }), c = h.mat({ color: '#F4F1EA', metal: 0, rough: 0.4 });
+    CYLX.forEach(x => {
+      h.mesh(new THREE.CylinderGeometry(0.009, 0.009, 0.05, 12), { mat: a, p: [x, 0.66, 0] });
+      h.mesh(new THREE.CylinderGeometry(0.007, 0.007, 0.05, 12), { mat: c, p: [x, 0.71, 0] });
+    });
+  } });
+
+def({ id: 'ignitionCoils', sys: 'engine', ar: 'الكويلات', en: 'Ignition Coils', sev: 2,
+  w: 'فوق غطا الصبابات، واحد لكل سلندر',
+  fn: 'بتاخد 12 فولت من البطارية وبتحوّلها لعشرات آلاف الفولتات، عشان البوجيه تقدر تعمل شرارة.',
+  br: 'إذا خرب واحد: المحرك بيرجف، السيارة بتقطّع، ولمبة المحرك (Check Engine) بتضوي.',
+  build(h) {
+    const m = h.mat({ color: '#3C4048', metal: 0.2, rough: 0.6 }), k = h.mat({});
+    CYLX.forEach(x => {
+      h.mesh(rbox(0.045, 0.035, 0.065, 0.008), { mat: m, p: [x, 0.82, 0] });
+      h.mesh(box(0.02, 0.02, 0.025), { mat: k, p: [x, 0.825, -0.042] });
+    });
+  } });
+
+def({ id: 'oilPan', sys: 'engine', ar: 'كرتير الزيت', en: 'Oil Pan (Sump)', sev: 2, ghost: 0.36, kids: ['oilPump'],
+  w: 'أسفل المحرك، أوطى نقطة فيه',
+  fn: 'حوض تحت المحرك بيتجمّع فيه زيت المحرك.',
+  br: 'إذا انضرب من تحت (حجر أو مطب) أو خربت جوانته بيرشح زيت. إذا فضي الزيت المحرك بيخرب بسرعة.',
+  build(h) { h.mesh(rbox(0.50, 0.11, 0.28, 0.02), { p: [1.27, 0.225, 0] }); } });
+
+def({ id: 'oilPump', sys: 'engine', ar: 'طرمبة الزيت', en: 'Oil Pump', sev: 3,
+  w: 'جوّا كرتير الزيت',
+  fn: 'بتسحب الزيت من الكرتير وبتضخّه لكل قطع المحرك لتزيّتها وتبرّدها.',
+  br: 'إذا خربت بتضوي لمبة ضغط الزيت الحمرا. وقّف فوراً وإلا المحرك بيتلف بسرعة كتير.',
+  build(h) {
+    h.mesh(rbox(0.09, 0.055, 0.09, 0.01), { p: [1.40, 0.245, 0] });
+    h.mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.06, 8), { p: [1.33, 0.22, 0], r: [0, 0, Math.PI / 2] });
+  } });
+
+def({ id: 'oilFilter', sys: 'engine', ar: 'فلتر الزيت', en: 'Oil Filter', sev: 2,
+  w: 'على جنب المحرك الشمال',
+  fn: 'بينضّف الزيت من الوسخ وبرادة المعادن قبل ما يرجع يدور بالمحرك.',
+  br: 'إذا ما تغيّر بوقته بينسد، والزيت الوسخ بياكل المحرك من جوّا. بيتغيّر مع كل تغيير زيت.',
+  build(h) {
+    h.mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.12, 24), { p: [1.40, 0.50, -0.20] });
+    h.mesh(new THREE.CylinderGeometry(0.044, 0.044, 0.02, 24), { mat: { color: '#2F343B' }, p: [1.40, 0.57, -0.20] });
+  } });
+
+def({ id: 'engineMounts', sys: 'engine', ar: 'كراسي المحرك', en: 'Engine Mounts', sev: 1,
+  w: 'على جنبين المحرك فوق الصبفريم',
+  fn: 'قواعد من كاوتشوك ومعدن بتشيل المحرك وبتمتص رجّته عن جسم السيارة.',
+  br: 'رجّة قوية بالمقود والكراسي، وخبطة عند التبديل أو الانطلاق.',
+  build(h) {
+    const r = h.mat({ color: '#30343B', metal: 0.1, rough: 0.8 });
+    [-1, 1].forEach(s => {
+      h.mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.06, 20), { mat: r, p: [1.25, 0.25, s * 0.22] });
+      h.mesh(box(0.08, 0.03, 0.09), { p: [1.25, 0.295, s * 0.18] });
+    });
+  } });
+
+def({ id: 'serpentineBelt', sys: 'engine', ar: 'سير المحرك (سير الدينمو)', en: 'Serpentine Belt & Pulleys', sev: 2,
+  w: 'قدّام المحرك',
+  fn: 'سير واحد بيلف مع الكرنك وبيدوّر الإكسسوارات: الدينمو وكمبروسر المكيف (وبسيارات تانية طرمبة الماي والدركسيون).',
+  br: 'صوت صرصعة (Squeal) خصوصاً الصبح أو بالمطر يعني مرخي أو ناشف. إذا انقطع بتضوي لمبة الشحن وبيوقف المكيف.',
+  build(h) {
+    const X = 1.645;
+    const P = [[0, 0.285], [-0.23, 0.30], [-0.285, 0.35], [-0.27, 0.58], [-0.23, 0.618], [-0.08, 0.53], [0.10, 0.588], [0.137, 0.55], [0.075, 0.37]];
+    h.mesh(tube(P.map(([z, y]) => [X, y, z]), 0.007, 140, true), { mat: { color: '#33373E', metal: 0, rough: 0.85 } });
+    const pm = h.mat({ color: '#B9BFC7', metal: 0.8, rough: 0.35 });
+    h.mesh(cylX(0.075, 0.075, 0.03), { mat: pm, p: [X, CY, 0] });
+    h.mesh(cylX(0.03, 0.03, 0.03), { mat: pm, p: [X, 0.50, -0.08] });
+    h.mesh(cylX(0.035, 0.035, 0.03), { mat: pm, p: [X, 0.553, 0.10] });
+  } });
+
+/* ---------- AIR & TURBO ---------- */
+def({ id: 'airFilter', sys: 'intake', ar: 'فلتر الهوا (علبة الفلتر)', en: 'Air Filter & Airbox', sev: 1,
+  w: 'حجرة المحرك قدّام عالشمال',
+  fn: 'بينضّف الهوا الداخل للمحرك من الغبرة والرمل، والخرطوم بيوصّله للتيربو.',
+  br: 'إذا انسد المحرك بيتخنّق: ضعف بالقوة وصرف بنزين أكتر. تغييره سهل ورخيص.',
+  build(h) {
+    h.mesh(rbox(0.32, 0.16, 0.26, 0.03), { mat: { opacity: 0.5 }, p: [1.74, 0.70, -0.51] });
+    h.mesh(box(0.25, 0.035, 0.20), { mat: { color: '#F1E2B2', metal: 0, rough: 0.9 }, p: [1.74, 0.70, -0.51] });
+    h.mesh(tube([[1.62, 0.71, -0.40], [1.70, 0.72, -0.18], [1.64, 0.70, 0.12], [1.44, 0.62, 0.32], [1.32, 0.545, 0.36]], 0.035, 60), { mat: { color: '#3A3F46', rough: 0.8 } });
+  } });
+
+def({ id: 'throttleBody', sys: 'intake', ar: 'بوابة الهوا (الثروتل)', en: 'Throttle Body', sev: 2,
+  w: 'أول مجمّع السحب',
+  fn: 'بوابة (فراشة) بتتحكم بكمية الهوا الداخلة للمحرك حسب قدّيش دايس عالبنزين.',
+  br: 'إذا اتوسّخت أو خربت: رجفة والسيارة واقفة، تقطيع، أو السيارة بتدخل وضع الطوارئ (Limp Mode).',
+  note: 'بكتير من محركات BMW البنزين في نظام Valvetronic بيتحكم بكمية الهوا عن طريق رفعة الصبابات، فالثروتل بيضل مفتوح أغلب الوقت.',
+  build(h) {
+    h.mesh(cylX(0.042, 0.042, 0.06), { p: [1.55, 0.63, -0.36] });
+    h.mesh(box(0.03, 0.05, 0.03), { mat: { color: '#30343B' }, p: [1.55, 0.68, -0.36] });
+  } });
+
+def({ id: 'intakeManifold', sys: 'intake', ar: 'مجمّع السحب (المنفولد)', en: 'Intake Manifold', sev: 2,
+  w: 'على جنب المحرك الشمال',
+  fn: 'مواسير بتوزّع الهوا بالتساوي على كل السلندرات.',
+  br: 'إذا شرخ أو خربت جواناته بيصير تهريب هوا: رجفة، صوت صفير، ولمبة المحرك بتضوي.',
+  build(h) {
+    h.mesh(rbox(0.44, 0.10, 0.10, 0.03), { p: [1.30, 0.63, -0.34] });
+    CYLX.forEach(x => h.mesh(tube([[x, 0.63, -0.30], [x, 0.69, -0.24], [x, 0.67, -0.15]], 0.018, 16), {}));
+  } });
+
+def({ id: 'turbo', sys: 'intake', ar: 'التيربو', en: 'Turbocharger', sev: 2,
+  w: 'على جنب المحرك اليمين',
+  fn: 'مروحتين على عمود واحد: غاز العادم بيلف وحدة، والتانية بتضغط هوا زيادة جوّا المحرك. النتيجة قوة أكبر من محرك أصغر.',
+  br: 'دخان أزرق، صوت صفير عالي، وضعف واضح بالقوة. أكتر سبب شائع: زيت قليل أو وسخ.',
+  note: 'بعد سواقة قوية خلّي المحرك يهدى شوي قبل ما تطفيه، وغيّر الزيت بوقته.',
+  build(h) {
+    h.mesh(cylX(0.07, 0.07, 0.07, 28), { mat: { color: '#8D7466', metal: 0.7, rough: 0.45 }, p: [1.13, 0.50, 0.36] });
+    h.mesh(cylX(0.03, 0.03, 0.08), { mat: { color: '#B9BFC7', metal: 0.8, rough: 0.3 }, p: [1.20, 0.515, 0.36] });
+    h.mesh(cylX(0.066, 0.066, 0.06, 28), { p: [1.27, 0.53, 0.36] });
+    const t = new THREE.TorusGeometry(0.066, 0.02, 10, 28); t.rotateY(Math.PI / 2);
+    h.mesh(t, { p: [1.27, 0.53, 0.36] });
+  } });
+
+def({ id: 'intercooler', sys: 'intake', ar: 'الإنتركولر', en: 'Intercooler', sev: 1,
+  w: 'ورا الصدّام القدّامي من تحت',
+  fn: 'متل رديتر للهوا: بيبرّد الهوا اللي ضغطه التيربو، لأن الهوا البارد فيه أكسجين أكتر.',
+  br: 'إذا خزق أو فلت خرطومه: ضعف بالقوة، صوت نفخ هوا، وممكن دخان أسود.',
+  build(h) {
+    h.mesh(box(0.045, 0.13, 0.86), { mat: { map: finTex(), metal: 0.6, rough: 0.4 }, p: [2.18, 0.30, 0] });
+    [-1, 1].forEach(s => h.mesh(box(0.06, 0.15, 0.04), { p: [2.18, 0.30, s * 0.45] }));
+    const pm = h.mat({ color: '#B9BFC7', metal: 0.75, rough: 0.35 });
+    h.mesh(tube([[1.27, 0.57, 0.36], [1.40, 0.62, 0.42], [1.80, 0.42, 0.46], [2.10, 0.30, 0.44], [2.16, 0.30, 0.43]], 0.028, 50), { mat: pm });
+    h.mesh(tube([[2.16, 0.30, -0.43], [1.95, 0.30, -0.46], [1.75, 0.45, -0.42], [1.62, 0.60, -0.37], [1.585, 0.63, -0.36]], 0.028, 50), { mat: pm });
+  } });
+
+/* ---------- FUEL ---------- */
+def({ id: 'fuelTank', sys: 'fuel', ar: 'خزان الوقود (التنك)', en: 'Fuel Tank', sev: 3, ghost: 0.34, kids: ['fuelPump'],
+  w: 'تحت الكرسي الخلفي',
+  fn: 'بيخزّن البنزين أو الديزل. بكتير من السيارات الدفع الخلفي شكله متل السرج، لأن عمود الكردان بيمرق من تحته.',
+  br: 'إذا رشح بتشم ريحة بنزين قوية تحت السيارة. هاد خطر حريق.',
+  build(h) {
+    [-1, 1].forEach(s => h.mesh(rbox(0.48, 0.19, 0.42, 0.05), { p: [-0.86, 0.365, s * 0.35] }));
+    h.mesh(rbox(0.40, 0.05, 0.34, 0.02), { p: [-0.86, 0.435, 0] });
+  } });
+
+def({ id: 'fuelPump', sys: 'fuel', ar: 'طرمبة البنزين', en: 'Fuel Pump', sev: 2,
+  w: 'جوّا الخزان',
+  fn: 'طرمبة كهربا بتدفع البنزين من الخزان لعند المحرك. بمحركات الحقن المباشر في كمان طرمبة ضغط عالي على المحرك.',
+  br: 'صعوبة تشغيل، تقطيع عالسرعات العالية، أو السيارة بتطفي فجأة وما بترجع تشتغل.',
+  build(h) {
+    h.mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.15, 20), { p: [-0.86, 0.37, 0.35] });
+    h.mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.012, 24), { mat: { color: '#3A3F46' }, p: [-0.86, 0.458, 0.35] });
+  } });
+
+def({ id: 'fuelLines', sys: 'fuel', ar: 'خطوط الوقود', en: 'Fuel Lines', sev: 3,
+  w: 'تحت الأرضية من جهة الشمال',
+  fn: 'مواسير بتنقل البنزين من الخزان للمحرك.',
+  br: 'إذا تشقّقت أو رشحت: ريحة بنزين وخطر حريق. لا تسوق السيارة.',
+  build(h) {
+    h.mesh(tube([[-0.86, 0.46, 0.35], [-0.70, 0.475, 0.20], [-0.58, 0.40, 0.0], [-0.55, 0.26, -0.30], [-0.40, 0.245, -0.32], [0.40, 0.245, -0.32], [0.92, 0.26, -0.32], [1.04, 0.45, -0.20], [1.05, 0.72, -0.15], [1.03, 0.745, -0.125]], 0.006, 160), {});
+  } });
+
+def({ id: 'fuelFilter', sys: 'fuel', ar: 'فلتر البنزين', en: 'Fuel Filter', sev: 2,
+  w: 'على خط الوقود تحت السيارة',
+  fn: 'بيصفّي البنزين من الوسخ قبل ما يوصل للبخاخات. بكتير من السيارات الحديثة بيكون جوّا الخزان مع الطرمبة.',
+  br: 'إذا انسد: ضعف بالطلعات والسرعة، تقطيع، وصعوبة تشغيل.',
+  build(h) { h.mesh(cylX(0.028, 0.028, 0.12), { p: [-0.40, 0.245, -0.32] }); } });
+
+def({ id: 'injectors', sys: 'fuel', ar: 'البخاخات (الإنجكترات)', en: 'Fuel Injectors & Rail', sev: 2,
+  w: 'براس المحرك، مع مسطرة البنزين',
+  fn: 'بترش البنزين رشّ ناعم كتير متل الضباب، بالكمية والوقت اللي بيحددهم كمبيوتر السيارة.',
+  br: 'إذا انسدت أو صارت تنقّط: رجفة، صرف زيادة، ريحة بنزين، ولمبة المحرك بتضوي.',
+  build(h) {
+    h.mesh(cylX(0.009, 0.009, 0.54), { mat: { color: '#B9BFC7', metal: 0.8, rough: 0.3 }, p: [1.30, 0.745, -0.125] });
+    CYLX.forEach(x => h.mesh(rod([x, 0.745, -0.125], [x, 0.655, -0.06], 0.008), {}));
+  } });
+
+def({ id: 'fuelDoor', sys: 'fuel', ar: 'فتحة البنزين', en: 'Fuel Filler Door & Neck', sev: 1,
+  w: 'الرفرف الخلفي اليمين',
+  fn: 'الباب والغطا اللي بتعبّي منه، ومعهم ماسورة بتوصل للخزان.',
+  br: 'إذا الغطا مش مسكّر منيح ممكن تضوي لمبة المحرك بسبب تهريب بخار البنزين.',
+  build(h) {
+    const x = -1.62, y = 0.86, z = wSide(x, y) + 0.004;
+    h.mesh(cylZ(0.055, 0.055, 0.012, 28), { p: [x, y, z] });
+    h.mesh(tube([[x, y, z - 0.03], [-1.50, 0.78, 0.62], [-1.25, 0.58, 0.50], [-1.02, 0.46, 0.45]], 0.022, 40), { mat: { color: '#3A3F46', rough: 0.8 } });
+  } });
+
+/* ---------- EXHAUST ---------- */
+def({ id: 'exhaustManifold', sys: 'exhaust', ar: 'مجمّع العادم (منفولد العادم)', en: 'Exhaust Manifold', sev: 2,
+  w: 'على جنب المحرك اليمين',
+  fn: 'بيجمّع الغاز المحروق من كل السلندرات وبيوديه عالتيربو وبعدين عالشكمان.',
+  br: 'إذا شرخ: صوت طقطقة أو نفخ خصوصاً والمحرك بارد، وممكن تفوت ريحة عادم عالمقصورة.',
+  build(h) {
+    const m = h.mat({ metal: 0.6, rough: 0.5 });
+    CYLX.forEach(x => h.mesh(tube([[x, 0.67, 0.145], [x, 0.63, 0.22], [(x + 1.16) / 2, 0.56, 0.28], [1.13, 0.50, 0.31]], 0.016, 24), { mat: m }));
+  } });
+
+def({ id: 'catalytic', sys: 'exhaust', ar: 'علبة البيئة (الكتلايزر)', en: 'Catalytic Converter', sev: 2,
+  w: 'تحت أرضية السيارة قدّام',
+  fn: 'بتحوّل الغازات السامة (متل أول أكسيد الكربون) لغازات أقل ضرر. بسيارات الديزل في كمان فلتر جزيئات (DPF).',
+  br: 'إذا انسدت: السيارة بتتخنّق وبتضعف كتير، ريحة متل البيض الخربان، ولمبة المحرك بتضوي.',
+  build(h) {
+    h.mesh(cylX(0.075, 0.075, 0.28, 28), { p: [0.80, 0.22, 0.24], s: [1, 1, 0.8] });
+    [0.95, 0.65].forEach((x, i) => h.mesh(cylX(i ? 0.075 : 0.03, i ? 0.03 : 0.075, 0.04, 20), { p: [i ? x - 0.01 : x + 0.01, 0.22, 0.24], s: [1, 1, 0.8] }));
+  } });
+
+def({ id: 'o2Sensor', sys: 'exhaust', ar: 'حسّاس الأكسجين (اللامدا)', en: 'Oxygen (Lambda) Sensors', sev: 1,
+  w: 'قبل وبعد علبة البيئة',
+  fn: 'بيقيس كمية الأكسجين بالعادم، وبيخبّر الكمبيوتر إذا الخليط فيه بنزين زيادة أو ناقص.',
+  br: 'صرف بنزين زيادة ولمبة المحرك بتضوي، وممكن تفشل بالفحص الفني (TÜV).',
+  build(h) {
+    h.mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.07, 12), { p: [1.05, 0.37, 0.33], r: [0.5, 0, 0] });
+    h.mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.07, 12), { p: [0.58, 0.265, 0.25] });
+  } });
+
+def({ id: 'muffler', sys: 'exhaust', ar: 'الشكمان (الكاتم)', en: 'Muffler / Silencer', sev: 1,
+  w: 'تحت الشنطة ورا',
+  fn: 'بيخفّف صوت انفجارات المحرك، فيه غرف جوّاه بتكسر موجات الصوت.',
+  br: 'صوت عالي متل التراكتور أو خشخشة من تحت ورا. ما رح يمرق بالفحص الفني.',
+  build(h) { h.mesh(rbox(0.34, 0.17, 0.92, 0.06), { p: [-1.90, 0.285, 0] }); } });
+
+def({ id: 'exhaustPipe', sys: 'exhaust', ar: 'ماسورة وطرف العادم', en: 'Exhaust Pipes & Tips', sev: 2,
+  w: 'تحت السيارة من قدّام لورا',
+  fn: 'بتنقل الغاز من التيربو للكتلايزر وبعدين للشكمان، وبتطلّعه من ورا بعيد عن الركّاب.',
+  br: 'إذا خزقت: صوت عالي، وريحة عادم ممكن تفوت عالمقصورة. هاد خطير بسبب أول أكسيد الكربون.',
+  build(h) {
+    const m = h.mat({ metal: 0.6, rough: 0.45 });
+    h.mesh(tube([[1.10, 0.46, 0.38], [1.03, 0.32, 0.30], [0.96, 0.23, 0.25], [0.93, 0.22, 0.24]], 0.03, 30), { mat: m });
+    h.mesh(tube([[0.66, 0.22, 0.24], [0.2, 0.205, 0.25], [-0.5, 0.205, 0.27], [-1.0, 0.205, 0.29], [-1.45, 0.205, 0.30], [-1.66, 0.215, 0.30], [-1.73, 0.25, 0.30]], 0.03, 80), { mat: m });
+    h.mesh(cylX(0.058, 0.058, 0.32), { mat: m, p: [-0.2, 0.205, 0.255] });
+    const tip = h.mat({ color: '#D5DAE0', metal: 0.95, rough: 0.2 });
+    [-1, 1].forEach(s => {
+      h.mesh(tube([[-2.06, 0.27, s * 0.36], [-2.18, 0.27, s * 0.39], [-2.27, 0.27, s * 0.40]], 0.03, 12), { mat: m });
+      h.mesh(cylX(0.045, 0.045, 0.10, 24, true), { mat: tip, p: [-2.30, 0.27, s * 0.40] });
+    });
+  } });
+
+/* ---------- COOLING ---------- */
+def({ id: 'radiator', sys: 'cooling', ar: 'الرديتر', en: 'Radiator', sev: 3,
+  w: 'قدّام، ورا الشبك',
+  fn: 'بيبرّد ماء المحرك (الكولانت): الماي السخن بيمرق بأنابيب رفيعة والهوا بيبرّده.',
+  br: 'إذا خزق أو انسد: إبرة الحرارة بتطلع، بخار من قدّام، وبقعة ماي ملوّن تحت السيارة.',
+  note: 'لا تفتح غطا الرديتر أو القربة والمحرك سخن أبداً، الماي بيطلع بضغط وبيحرق.',
+  build(h) {
+    h.mesh(box(0.045, 0.36, 0.80), { mat: { map: finTex(), metal: 0.5, rough: 0.45 }, p: [2.05, 0.51, 0] });
+    [-1, 1].forEach(s => h.mesh(box(0.06, 0.38, 0.05), { mat: { color: '#2B3036', rough: 0.7 }, p: [2.05, 0.51, s * 0.425] }));
+  } });
+
+def({ id: 'coolingFan', sys: 'cooling', ar: 'مروحة الرديتر', en: 'Radiator Cooling Fan', sev: 2,
+  w: 'ورا الرديتر',
+  fn: 'بتسحب هوا من خلال الرديتر لما السيارة واقفة أو ماشية على مهل.',
+  br: 'بالزحمة الحرارة بتطلع، وعالأوتوستراد بتكون منيحة. إذا طلعت الإبرة وقّف وطفّي.',
+  build(h) {
+    const ring = new THREE.TorusGeometry(0.17, 0.012, 8, 40); ring.rotateY(Math.PI / 2);
+    const dark = h.mat({ color: '#2B3036', rough: 0.7 });
+    h.mesh(ring, { mat: dark, p: [1.955, 0.51, 0] });
+    h.mesh(cylX(0.05, 0.05, 0.06), { mat: dark, p: [1.915, 0.51, 0] });
+    const g = h.group({ p: [1.955, 0.51, 0] }); ANIM.fan = g;
+    for (let i = 0; i < 7; i++) {
+      const a = i / 7 * Math.PI * 2, bg = new THREE.Group(); bg.rotation.x = a; g.add(bg);
+      h.mesh(box(0.008, 0.13, 0.055), { p: [0, 0.088, 0], r: [0, 0.45, 0], parent: bg });
+    }
+    h.mesh(cylX(0.035, 0.035, 0.03), { parent: g });
+  } });
+
+def({ id: 'waterPump', sys: 'cooling', ar: 'طرمبة الماي', en: 'Water Pump', sev: 3,
+  w: 'قدّام المحرك',
+  fn: 'بتدوّر ماء التبريد بين المحرك والرديتر.',
+  br: 'تسريب ماي من قدّام المحرك، زنّة، وسخونة سريعة.',
+  note: 'ببعض محركات BMW (متل N54 و N55) الطرمبة كهربائية، وممكن توقف فجأة بدون إنذار كبير.',
+  build(h) {
+    h.mesh(cylX(0.055, 0.055, 0.07, 24), { p: [1.625, 0.42, 0.18] });
+    h.mesh(box(0.04, 0.04, 0.04), { mat: { color: '#30343B' }, p: [1.625, 0.48, 0.18] });
+  } });
+
+def({ id: 'thermostat', sys: 'cooling', ar: 'الثرموستات', en: 'Thermostat', sev: 2,
+  w: 'قدّام المحرك، فوق طرمبة الماي',
+  fn: 'بلف بيضل مسكّر والمحرك بارد ليسخن بسرعة، وبيفتح لما يسخن عشان يروح الماي عالرديتر.',
+  br: 'إذا علق مسكّر: المحرك بيسخن بسرعة. إذا علق مفتوح: المحرك بيضل بارد، التدفئة ضعيفة، والصرف بيزيد.',
+  build(h) { h.mesh(rbox(0.06, 0.05, 0.06, 0.012), { p: [1.62, 0.585, 0.20] }); } });
+
+def({ id: 'coolantTank', sys: 'cooling', ar: 'قربة ماء الرديتر', en: 'Coolant Expansion Tank', sev: 2,
+  w: 'حجرة المحرك قدّام عاليمين',
+  fn: 'خزان بلاستيك فيه ماء التبريد الزايد، بيستوعب تمدّد الماي لما يسخن. عليه علامة Min و Max.',
+  br: 'إذا شرخ أو خرب غطاه بينقص الماي وبيسخن المحرك. افحص المستوى والمحرك بارد.',
+  build(h) {
+    h.mesh(rbox(0.16, 0.11, 0.12, 0.025), { mat: { color: '#DDEFF3', opacity: 0.7, rough: 0.3 }, p: [1.82, 0.70, 0.56] });
+    h.mesh(box(0.15, 0.05, 0.11), { mat: {}, p: [1.82, 0.675, 0.56] });
+    h.mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.02, 20), { mat: { color: '#30343B' }, p: [1.80, 0.765, 0.56] });
+  } });
+
+def({ id: 'radiatorHoses', sys: 'cooling', ar: 'خراطيم الرديتر', en: 'Radiator & Coolant Hoses', sev: 2,
+  w: 'بين المحرك والرديتر',
+  fn: 'خراطيم كاوتشوك بتنقل الماي السخن والبارد بين المحرك والرديتر.',
+  br: 'مع العمر بتنشف وبتنفخ وبتشق. خزق صغير يعني تسريب وسخونة.',
+  build(h) {
+    const m = h.mat({ color: '#2E3339', rough: 0.8 });
+    h.mesh(tube([[1.65, 0.60, 0.22], [1.80, 0.64, 0.30], [2.02, 0.64, 0.39]], 0.022, 30), { mat: m });
+    h.mesh(tube([[2.02, 0.36, -0.40], [1.85, 0.30, -0.30], [1.72, 0.34, -0.05], [1.70, 0.40, 0.17], [1.66, 0.42, 0.18]], 0.022, 40), { mat: m });
+    h.mesh(tube([[1.82, 0.645, 0.56], [1.95, 0.62, 0.46], [2.04, 0.67, 0.40]], 0.012, 20), { mat: m });
+  } });
+
+/* ---------- DRIVETRAIN ---------- */
+def({ id: 'flywheel', sys: 'drivetrain', ar: 'الحدّافة', en: 'Flywheel', sev: 2,
+  w: 'ورا المحرك، أول الجير',
+  fn: 'دولاب تقيل مركّب ورا المحرك: بيخلّي الدوران ناعم، والكلتش بيشتغل عليه، والسلف بيدوّره وقت التشغيل.',
+  br: 'إذا تآكلت أسنانه السلف بيطقطق وما بيشغّل. إذا كانت ثنائية الكتلة (Dual-Mass) وخربت: طقطقة ورجّة عند التشغيل والطفي.',
+  build(h) {
+    h.mesh(cylX(0.165, 0.165, 0.025, 40), { mat: { color: '#9AA3AD', metal: 0.85, rough: 0.35 }, p: [0.935, CY, 0] });
+    const t = new THREE.TorusGeometry(0.166, 0.007, 6, 60); t.rotateY(Math.PI / 2);
+    h.mesh(t, { p: [0.935, CY, 0] });
+  } });
+
+def({ id: 'clutch', sys: 'drivetrain', ar: 'الكلتش (الدبرياج) / محوّل العزم', en: 'Clutch / Torque Converter', sev: 2,
+  w: 'جوّا جرس الجير',
+  fn: 'بالجير العادي الكلتش بيفصل المحرك عن الجير وقت التبديل. بالأوتوماتيك محوّل العزم بيعمل نفس الشغلة بالزيت.',
+  br: 'الكلتش الخربان بيزحّط: الدورات بتعلى والسيارة ما بتمشي، وريحة حريق. بالأوتوماتيك: رجفة وتأخير بالتعشيق.',
+  build(h) {
+    h.mesh(cylX(0.15, 0.15, 0.045, 36), { p: [0.885, CY, 0] });
+    h.mesh(cylX(0.09, 0.09, 0.05, 28), { mat: { color: '#D2D6DC', metal: 0.8, rough: 0.3 }, p: [0.885, CY, 0] });
+  } });
+
+def({ id: 'transmission', sys: 'drivetrain', ar: 'الجير (علبة السرعة)', en: 'Transmission / Gearbox', sev: 2, ghost: 0.32, kids: ['clutch'],
+  w: 'تحت الكونسول الوسطاني',
+  fn: 'مجموعة تروس بتغيّر النسبة بين سرعة المحرك وسرعة العجلات: غيار أول للقوة والغيارات العالية للسرعة.',
+  br: 'تبديل بخبطة أو متأخر، طنين، تسريب زيت أحمر، أو ما بيعشّق أبداً. تصليحه غالي، فصيّنه بوقته.',
+  note: 'كتير من سيارات BMW الحديثة فيها جير أوتوماتيك 8 سرعات من شركة ZF.',
+  build(h) {
+    h.mesh(cylX(0.19, 0.13, 0.26, 32), { p: [0.80, CY, 0] });
+    h.mesh(cylX(0.13, 0.11, 0.42, 28), { p: [0.46, CY, 0] });
+    h.mesh(cylX(0.06, 0.05, 0.14, 20), { p: [0.18, CY, 0] });
+  } });
+
+def({ id: 'gearShifter', sys: 'drivetrain', ar: 'عصا الجير', en: 'Gear Selector', sev: 2,
+  w: 'بالكونسول بين الكراسي',
+  fn: 'بتختار فيها: P وقوف، R ورا، N حياد، D قدّام. بالأوتوماتيك الحديث هي زر إلكتروني بيبعت إشارة للجير.',
+  br: 'إذا خربت ممكن ما تقدر تطلع من P، أو بتضوي رسالة عطل عالشاشة.',
+  build(h) {
+    h.mesh(rbox(0.11, 0.02, 0.08, 0.008), { mat: { color: '#2B2F35' }, p: [0.15, 0.63, 0] });
+    h.mesh(new THREE.CylinderGeometry(0.008, 0.01, 0.07, 10), { p: [0.15, 0.67, 0] });
+    h.mesh(new THREE.SphereGeometry(0.03, 20, 14), { p: [0.15, 0.715, 0], s: [1.3, 1, 1] });
+  } });
+
+def({ id: 'driveshaft', sys: 'drivetrain', ar: 'عمود الكردان', en: 'Driveshaft (Propeller Shaft)', sev: 2,
+  w: 'تحت السيارة بالنص',
+  fn: 'عمود طويل بينقل الحركة من الجير لورا عند الدفرنس، بالسيارات الدفع الخلفي متل BMW.',
+  br: 'رجّة بتزيد مع السرعة أو طقّة عند الانطلاق. السبب غالباً الكاوتشوكة (Flex Disc) أو البيلية الوسطانية.',
+  build(h) {
+    const m = h.mat({ color: '#A88FE0', metal: 0.6, rough: 0.4 });
+    h.mesh(rod([0.11, CY, 0], [-0.55, 0.35, 0], 0.034, 20), { mat: m });
+    h.mesh(rod([-0.55, 0.35, 0], [-1.27, 0.335, 0], 0.034, 20), { mat: m });
+    const d = h.mat({ color: '#2F333A', rough: 0.8 });
+    h.mesh(rbox(0.05, 0.10, 0.14, 0.015), { mat: d, p: [-0.55, 0.35, 0] });
+    h.mesh(cylX(0.06, 0.06, 0.03), { mat: d, p: [0.09, CY, 0] });
+  } });
+
+def({ id: 'differential', sys: 'drivetrain', ar: 'الدفرنس', en: 'Differential', sev: 2,
+  w: 'بين العجلات الخلفية',
+  fn: 'علبة تروس بتوزّع الحركة عالعجلتين، وبتخلّي العجلة البرّانية تلف أسرع من الجوّانية باللفّة.',
+  br: 'صوت عوي أو زنّة بيتغيّر مع السرعة، أو تسريب زيت تقيل. لما يقرّب يخرب بتصير طقطقة.',
+  build(h) {
+    h.mesh(new THREE.SphereGeometry(0.12, 28, 20), { p: [RA, WY, 0], s: [1, 0.9, 1.05] });
+    h.mesh(cylX(0.10, 0.10, 0.04, 28), { mat: { color: '#5C4A8E' }, p: [RA - 0.11, WY, 0] });
+    h.mesh(cylX(0.05, 0.05, 0.05), { p: [RA + 0.13, WY, 0] });
+  } });
+
+def({ id: 'axleShafts', sys: 'drivetrain', ar: 'العكوس (أعمدة العجلات)', en: 'Axle Shafts & CV Joints', sev: 2,
+  w: 'من الدفرنس للعجلات الخلفية',
+  fn: 'أعمدة بتنقل الدوران من الدفرنس للعجلات، وفيها مفاصل (CV Joints) بتسمح للعجلة تطلع وتنزل.',
+  br: 'طقطقة وقت اللف يعني مفصل خربان. الجلدة (Boot) إذا انشقت بترش شحم، فغيّرها قبل ما يخرب المفصل.',
+  note: 'بسيارات الدفع الكلي (عند BMW اسمه xDrive) في كمان عكوس للعجلات القدّامية.',
+  build(h) {
+    const boot = h.mat({ color: '#2F333A', rough: 0.8 });
+    [-1, 1].forEach(s => {
+      h.mesh(rod([RA, WY, s * 0.12], [RA, WY, s * 0.69], 0.022, 14), {});
+      h.mesh(cylZ(0.035, 0.05, 0.08, 16), { mat: boot, p: [RA, WY, s * 0.17], r: [s > 0 ? 0 : Math.PI, 0, 0] });
+      h.mesh(cylZ(0.05, 0.03, 0.08, 16), { mat: boot, p: [RA, WY, s * 0.63], r: [s > 0 ? 0 : Math.PI, 0, 0] });
+    });
+  } });
+
+/* ---------- BRAKES ---------- */
+const CORNERS = [{ k: 'FL', x: FA, s: -1 }, { k: 'FR', x: FA, s: 1 }, { k: 'RL', x: RA, s: -1 }, { k: 'RR', x: RA, s: 1 }];
+const CAL_A = 2.3; // caliper angle (rad) around the disc, behind the axle
+const calPos = c => [c.x + 0.135 * Math.cos(CAL_A), WY + 0.135 * Math.sin(CAL_A), c.s * 0.74];
+def({ id: 'brakeDiscs', sys: 'brakes', ar: 'ديسكات الفرامل', en: 'Brake Discs (Rotors)', sev: 2,
+  w: 'جوّا كل عجلة',
+  fn: 'قرص حديد بيلف مع العجلة. الفحمات بتعصره فبتوقف السيارة بالاحتكاك.',
+  br: 'رجّة بالمقود أو بالدعسة وقت الفرملة (ديسك مش مستوي)، أو حزوز عميقة عالوجه.',
+  build(h) {
+    const m = h.mat({ color: '#8E9298', metal: 0.85, rough: 0.4 }), hat = h.mat({ color: '#6E7379', metal: 0.7, rough: 0.5 });
+    CORNERS.forEach(c => {
+      h.mesh(cylZ(0.165, 0.165, 0.026, 44), { mat: m, p: [0, 0, -c.s * 0.06], parent: SPIN[c.k] });
+      h.mesh(cylZ(0.085, 0.085, 0.045, 30), { mat: hat, p: [0, 0, -c.s * 0.035], parent: SPIN[c.k] });
+    });
+  } });
+
+def({ id: 'calipers', sys: 'brakes', ar: 'كاليبرات الفرامل (فكّ الفرامل)', en: 'Brake Calipers', sev: 3, ghost: 0.62, kids: ['brakePads'],
+  w: 'على الديسك جوّا كل عجلة',
+  fn: 'فكّ فيه بستم بيندفع بزيت الفرامل، فبيعصر الفحمات عالديسك.',
+  br: 'إذا علق: السيارة بتسحب لجهة، ريحة حريق، والجنط بيسخن كتير. إذا رشح: الدعسة بتصير طرية، وهاد خطير.',
+  build(h) { CORNERS.forEach(c => h.mesh(rbox(0.07, 0.15, 0.075, 0.018), { p: calPos(c), r: [0, 0, CAL_A - Math.PI / 2] })); } });
+
+def({ id: 'brakePads', sys: 'brakes', ar: 'فحمات الفرامل', en: 'Brake Pads', sev: 3,
+  w: 'جوّا الكاليبر، على جنبين الديسك',
+  fn: 'قطع من مادة احتكاك بتنعصر عالديسك. هي القطعة اللي بتنصرف وبتتغيّر كل فترة.',
+  br: 'صفير يعني قرّبت تخلص. صوت حديد على حديد يعني خلصت وعم تاكل الديسك.',
+  note: 'سيارات BMW فيها حسّاس تآكل بيضوّي لمبة لما تقرّب الفحمات تخلص.',
+  build(h) {
+    const m = h.mat({ color: '#6B5546', metal: 0.2, rough: 0.9 });
+    CORNERS.forEach(c => { const p = calPos(c); [-0.022, 0.022].forEach(dz => h.mesh(box(0.05, 0.11, 0.012), { mat: m, p: [p[0], p[1], p[2] + dz], r: [0, 0, CAL_A - Math.PI / 2] })); });
+  } });
+
+def({ id: 'masterCylinder', sys: 'brakes', ar: 'الماستر والبوستر', en: 'Brake Master Cylinder & Booster', sev: 3,
+  w: 'حجرة المحرك قدّام السواق، عالجدار',
+  fn: 'البوستر بيضاعف قوة رجلك، والماستر بيحوّل الدعسة لضغط بزيت الفرامل بيروح لكل العجلات. فوقه خزان زيت الفرامل.',
+  br: 'الدعسة بتنزل لتحت أو طرية: خطر كبير، لا تسوق. الدعسة قاسية كتير: غالباً البوستر خربان.',
+  note: 'زيت الفرامل بيشرب رطوبة مع الوقت، فبيتغيّر كل كم سنة حسب كتيّب السيارة.',
+  build(h) {
+    h.mesh(cylX(0.11, 0.11, 0.09, 32), { mat: { color: '#30343B', metal: 0.5, rough: 0.5 }, p: [1.005, 0.70, -0.45] });
+    h.mesh(cylX(0.025, 0.025, 0.12), { p: [1.11, 0.70, -0.45] });
+    h.mesh(rbox(0.07, 0.04, 0.06, 0.01), { mat: { color: '#F1E7B8', opacity: 0.75, rough: 0.3 }, p: [1.10, 0.75, -0.45] });
+  } });
+
+def({ id: 'abs', sys: 'brakes', ar: 'وحدة ABS', en: 'ABS / DSC Module', sev: 2,
+  w: 'حجرة المحرك عالشمال',
+  fn: 'كمبيوتر وطرمبة بيمنعوا العجلات تقفّل وقت الفرملة القوية، فبتضل تقدر توجّه. نفس الوحدة بتشغّل نظام الثبات (DSC عند BMW).',
+  br: 'بتضوي لمبة ABS. الفرامل العادية بتضل شغّالة بس بدون حماية من التزحلق.',
+  build(h) {
+    h.mesh(rbox(0.10, 0.08, 0.12, 0.012), { mat: { color: '#B9BFC7', metal: 0.8, rough: 0.35 }, p: [1.20, 0.58, -0.64] });
+    h.mesh(box(0.06, 0.05, 0.03), { p: [1.20, 0.58, -0.565] });
+  } });
+
+def({ id: 'brakeLines', sys: 'brakes', ar: 'خطوط الفرامل', en: 'Brake Lines & Hoses', sev: 3,
+  w: 'من الماستر لكل عجلة',
+  fn: 'مواسير حديد وخراطيم مرنة بتنقل زيت الفرامل المضغوط لكل عجلة.',
+  br: 'إذا صدّت أو خزقت بينقص زيت الفرامل والدعسة بتصير طرية. ممكن تفقد الفرامل.',
+  build(h) {
+    const r = 0.0055, cal = c => { const p = calPos(c); return [p[0], p[1], c.s * 0.70]; };
+    h.mesh(tube([[1.12, 0.70, -0.47], [1.16, 0.64, -0.55], [1.20, 0.60, -0.62]], r, 12), {});
+    h.mesh(tube([[1.22, 0.56, -0.66], [1.32, 0.52, -0.70], cal(CORNERS[0])], r, 16), {});
+    h.mesh(tube([[1.18, 0.56, -0.60], [1.10, 0.40, -0.45], [0.985, 0.31, -0.30], [0.985, 0.31, 0.30], [1.20, 0.38, 0.60], cal(CORNERS[1])], r, 60), {});
+    h.mesh(tube([[1.16, 0.56, -0.66], [1.05, 0.35, -0.66], [0.90, 0.25, -0.64], [-0.90, 0.24, -0.64], [-1.25, 0.30, -0.62], cal(CORNERS[2])], r, 80), {});
+    h.mesh(tube([[0.985, 0.31, 0.30], [0.90, 0.25, 0.64], [-0.90, 0.24, 0.64], [-1.25, 0.30, 0.62], cal(CORNERS[3])], r, 80), {});
+  } });
+
+def({ id: 'pedals', sys: 'brakes', ar: 'الدوّاسات', en: 'Pedals (Gas, Brake, Clutch)', sev: 2,
+  w: 'تحت المقود عند رجليك',
+  fn: 'اليمين بنزين، النص فرامل، والشمال كلتش (بس بالجير العادي). دوّاسة البنزين الحديثة إلكترونية بتبعت إشارة للكمبيوتر.',
+  br: 'إذا خرب حسّاس دوّاسة البنزين: السيارة ما بتستجيب أو بتدخل وضع الطوارئ.',
+  build(h) {
+    const pad = h.mat({ color: '#3A3F46', rough: 0.6 }), arm = h.mat({ color: '#9AA3AD', metal: 0.7, rough: 0.4 });
+    [[-0.36, 0.42], [-0.50, 0.42]].forEach(([z, y]) => {
+      h.mesh(box(0.02, 0.075, 0.08), { mat: pad, p: [0.80, y, z], r: [0, 0, 0.3] });
+      h.mesh(rod([0.805, y + 0.02, z], [0.88, 0.64, z], 0.008), { mat: arm });
+    });
+    h.mesh(box(0.015, 0.14, 0.05), { mat: pad, p: [0.83, 0.38, -0.22], r: [0, 0, 0.35] });
+  } });
+
+def({ id: 'parkingBrake', sys: 'brakes', ar: 'فرامل اليد (الهاند بريك)', en: 'Electric Parking Brake (EPB)', sev: 2,
+  w: 'زر بالكونسول + موتورات عالفرامل الخلفية',
+  fn: 'بتمسك السيارة وهي واقفة. بالسيارات الحديثة هي زر بيشغّل موتورات صغيرة عالكاليبرات الخلفية.',
+  br: 'ما بتمسك عالطلعة، أو ما بتفك، أو بتطلع رسالة عطل. لا توقّف عطلعة بدونها.',
+  build(h) {
+    h.mesh(rbox(0.04, 0.015, 0.05, 0.006), { mat: { color: '#30343B' }, p: [0.02, 0.627, 0.07] });
+    CORNERS.slice(2).forEach(c => { const p = calPos(c); h.mesh(cylZ(0.024, 0.024, 0.07, 14), { p: [p[0] + 0.03, p[1] - 0.03, c.s * 0.69] }); });
+  } });
+
+/* ---------- SUSPENSION ---------- */
+def({ id: 'shocks', sys: 'suspension', ar: 'المساعدات (الأمورتيسير)', en: 'Shock Absorbers (Dampers)', sev: 2,
+  w: 'عند كل عجلة',
+  fn: 'بتهدّي حركة النطّ: بعد المطب السبرينغ بيضل ينطّ، والمساعد بيوقّفه.',
+  br: 'السيارة بتنطّ كتير بعد المطبات، بتميل باللفّات، مسافة الفرملة بتطول، وممكن تشوف زيت عالمساعد.',
+  build(h) {
+    const b = h.mat({}), r = h.mat({ color: '#D2D6DC', metal: 0.85, rough: 0.25 });
+    [-1, 1].forEach(s => {
+      h.mesh(rod([FA, 0.36, s * 0.66], [FA, 0.62, s * 0.62], 0.028, 18), { mat: b });
+      h.mesh(rod([FA, 0.62, s * 0.62], [FA, 0.80, s * 0.60], 0.011, 10), { mat: r });
+      h.mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.02, 20), { mat: b, p: [FA, 0.80, s * 0.60] });
+      h.mesh(rod([RA - 0.22, 0.24, s * 0.66], [RA - 0.22, 0.50, s * 0.64], 0.026, 18), { mat: b });
+      h.mesh(rod([RA - 0.22, 0.50, s * 0.64], [RA - 0.22, 0.63, s * 0.63], 0.01, 10), { mat: r });
+    });
+  } });
+
+def({ id: 'springs', sys: 'suspension', ar: 'السبرنغات (اليايات)', en: 'Coil Springs', sev: 2,
+  w: 'عند كل عجلة',
+  fn: 'بتشيل وزن السيارة وبتمتص المطبات.',
+  br: 'إذا انكسر واحد: السيارة بتنزل من جهة، صوت طقّة، والإطار ممكن يحك. خطير إذا انكسر عالسرعة.',
+  build(h) {
+    [-1, 1].forEach(s => {
+      h.mesh(helix([FA, 0.50, s * 0.64], [FA, 0.77, s * 0.61], 0.075, 6, 0.011), {});
+      h.mesh(helix([RA + 0.18, 0.25, s * 0.56], [RA + 0.18, 0.465, s * 0.56], 0.07, 5, 0.011), {});
+    });
+  } });
+
+def({ id: 'controlArms', sys: 'suspension', ar: 'المقصّات (الأذرع)', en: 'Control Arms & Ball Joints', sev: 2,
+  w: 'تحت، بين العجلة والهيكل',
+  fn: 'أذرع بتربط العجلة بجسم السيارة، بتخلّيها تطلع وتنزل وتضل ماسكة اتجاهها. فيها كاوتشوكات (بوشات) وكرات (Ball Joints).',
+  br: 'طقطقة بالمطبات، رجفة بالمقود، السيارة بتسحب لجهة، وأكل غريب بالإطارات. إذا فلتت الكرة العجلة بتنطوي، وهاد خطير.',
+  build(h) {
+    const m = h.mat({}), j = h.mat({ color: '#30343B', rough: 0.7 });
+    [-1, 1].forEach(s => {
+      h.mesh(rod([FA + 0.02, 0.24, s * 0.69], [FA + 0.10, 0.22, s * 0.30], 0.016), { mat: m });
+      h.mesh(rod([FA, 0.24, s * 0.69], [FA - 0.32, 0.23, s * 0.36], 0.016), { mat: m });
+      h.mesh(new THREE.SphereGeometry(0.025, 14, 10), { mat: j, p: [FA, 0.24, s * 0.69] });
+      h.mesh(rod([RA, 0.24, s * 0.68], [RA - 0.06, 0.26, s * 0.32], 0.016), { mat: m });
+      h.mesh(rod([RA + 0.02, 0.24, s * 0.68], [RA + 0.24, 0.26, s * 0.40], 0.016), { mat: m });
+      h.mesh(rod([RA, 0.44, s * 0.66], [RA + 0.04, 0.44, s * 0.32], 0.014), { mat: m });
+    });
+  } });
+
+def({ id: 'antiRollBar', sys: 'suspension', ar: 'عمود التوازن', en: 'Anti-Roll (Sway) Bar', sev: 1,
+  w: 'قدّام وورا، بالعرض',
+  fn: 'عمود بيربط العجلة اليمين بالشمال، بيخفّف ميلان السيارة باللفّات.',
+  br: 'طقطقة من قدّام بالمطبات (غالباً من الروابط أو الكاوتشوكات)، وميلان زيادة باللفّات.',
+  build(h) {
+    h.mesh(tube([[1.56, 0.30, -0.62], [1.74, 0.27, -0.50], [1.78, 0.27, 0], [1.74, 0.27, 0.50], [1.56, 0.30, 0.62]], 0.012, 60), {});
+    h.mesh(tube([[-1.48, 0.36, -0.58], [-1.62, 0.40, -0.45], [-1.64, 0.40, 0], [-1.62, 0.40, 0.45], [-1.48, 0.36, 0.58]], 0.011, 60), {});
+    [-1, 1].forEach(s => {
+      h.mesh(rod([1.56, 0.30, s * 0.62], [1.47, 0.45, s * 0.645], 0.007), {});
+      h.mesh(rod([-1.48, 0.36, s * 0.58], [-1.44, 0.25, s * 0.60], 0.007), {});
+    });
+  } });
+
+def({ id: 'hubs', sys: 'suspension', ar: 'بيل العجل والطارة', en: 'Wheel Hub & Bearing', sev: 2,
+  w: 'بنص كل عجلة، ورا الديسك',
+  fn: 'بيل (رولمان) جوّا الطارة بيخلّي العجلة تلف بنعومة وهي شايلة وزن السيارة.',
+  br: 'صوت هدير أو طنين بيعلى مع السرعة وبيتغيّر باللفّات. إذا خرب كتير العجلة ممكن ترجف أو تعلّق.',
+  build(h) {
+    const k = h.mat({ color: '#7A8794', metal: 0.6, rough: 0.5 });
+    CORNERS.forEach(c => {
+      h.mesh(cylZ(0.065, 0.065, 0.06, 24), { p: [c.x, WY, c.s * 0.69] });
+      h.mesh(rbox(0.06, 0.28, 0.05, 0.015), { mat: k, p: [c.x, WY - 0.01, c.s * 0.665] });
+    });
+  } });
+
+/* ---------- STEERING ---------- */
+const SW_C = new THREE.Vector3(0.50, 0.91, -0.38), SW_N = new THREE.Vector3(-0.88, 0.47, 0).normalize();
+def({ id: 'steeringWheel', sys: 'steering', ar: 'المقود (الطارة)', en: 'Steering Wheel', sev: 1,
+  w: 'قدّام السواق',
+  fn: 'بتلفّه لتوجّه العجلات القدّامية. فيه أزرار، الزمّور، وإيرباغ السواق.',
+  br: 'إذا مش مستقيم والسيارة ماشية دغري يعني الترصيص (Alignment) مزبّط غلط. رجّة فيه سببها غالباً توازن الإطارات أو الديسكات.',
+  build(h) {
+    const g = h.group({}); g.position.copy(SW_C); g.lookAt(SW_C.clone().add(SW_N));
+    const m = h.mat({ color: '#2B3A3A', rough: 0.6 });
+    h.mesh(new THREE.TorusGeometry(0.175, 0.017, 12, 56), { mat: m, parent: g });
+    h.mesh(cylZ(0.055, 0.055, 0.04, 24), { parent: g });
+    h.mesh(box(0.30, 0.03, 0.012), { mat: m, p: [0, -0.02, 0], parent: g });
+    h.mesh(box(0.03, 0.14, 0.012), { mat: m, p: [0, -0.10, 0], parent: g });
+  } });
+
+def({ id: 'steeringColumn', sys: 'steering', ar: 'عمود الدركسيون', en: 'Steering Column', sev: 2,
+  w: 'من المقود لتحت عند العجلات',
+  fn: 'عمود بيوصّل المقود لعلبة الدركسيون. فيه مفاصل، وبينطوي وقت الحادث عشان يحمي صدرك.',
+  br: 'طقطقة، أو المقود صار فيه لعب (Play)، أو قفل المقود الإلكتروني ما بيفك.',
+  build(h) {
+    h.mesh(tube([[1.60, 0.245, -0.33], [1.40, 0.34, -0.36], [1.12, 0.46, -0.38], [0.96, 0.56, -0.38], [0.78, 0.76, -0.38], [0.61, 0.85, -0.38]], 0.017, 80), {});
+    h.mesh(rod([0.60, 0.855, -0.38], [0.74, 0.78, -0.38], 0.04, 18), { mat: { color: '#2F343A', rough: 0.7 } });
+  } });
+
+def({ id: 'steeringRack', sys: 'steering', ar: 'علبة الدركسيون (الكرمايلة)', en: 'Steering Rack (Rack & Pinion)', sev: 3,
+  w: 'قدّام، تحت المحرك بالعرض',
+  fn: 'بتحوّل دوران المقود لحركة يمين ويسار بتدفع العجلات.',
+  br: 'المقود تقيل، فيه لعب، أو صوت دقّ وقت اللف. التوجيه هو أمانك، فلا تأجّل.',
+  build(h) {
+    h.mesh(cylZ(0.025, 0.025, 0.72, 20), { p: [1.60, 0.22, 0] });
+    const b = h.mat({ color: '#30343B', rough: 0.8 });
+    [-1, 1].forEach(s => h.mesh(cylZ(0.035, 0.02, 0.08, 16), { mat: b, p: [1.60, 0.22, s * 0.38], r: [s > 0 ? 0 : Math.PI, 0, 0] }));
+    h.mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.06, 16), { p: [1.60, 0.24, -0.33] });
+  } });
+
+def({ id: 'tieRods', sys: 'steering', ar: 'أذرع التوجيه (Tie Rods)', en: 'Tie Rods', sev: 3,
+  w: 'أطراف علبة الدركسيون',
+  fn: 'أذرع بتوصّل علبة الدركسيون بالعجلة وبتدفعها يمين ويسار. منها بيتظبط الترصيص.',
+  br: 'رجّة بالمقود، أكل الإطار من طرف، والسيارة بتسحب. إذا انفصلت بتفقد التحكم.',
+  build(h) { [-1, 1].forEach(s => { h.mesh(rod([1.60, 0.22, s * 0.42], [1.62, 0.25, s * 0.655], 0.011), {}); h.mesh(new THREE.SphereGeometry(0.02, 12, 10), { p: [1.62, 0.25, s * 0.655] }); }); } });
+
+def({ id: 'eps', sys: 'steering', ar: 'موتور الدركسيون الكهربائي', en: 'Electric Power Steering (EPS)', sev: 2,
+  w: 'على علبة الدركسيون',
+  fn: 'موتور كهربا بيساعدك تلف المقود بسهولة، خصوصاً وقت الركن. السيارات القديمة كان فيها طرمبة زيت هيدروليك.',
+  br: 'المقود بيصير تقيل كتير فجأة وبتضوي لمبة الدركسيون. بتقدر تلف بس بصعوبة.',
+  build(h) { h.mesh(cylZ(0.042, 0.042, 0.14, 22), { p: [1.54, 0.24, -0.22] }); h.mesh(box(0.06, 0.05, 0.05), { p: [1.575, 0.23, -0.30] }); } });
+
+/* ---------- WHEELS ---------- */
+const SPIN = {};
+def({ id: 'tires', sys: 'wheels', ar: 'الإطارات (الدواليب)', en: 'Tires', sev: 3,
+  w: 'العجلات الأربعة',
+  fn: 'الشي الوحيد اللي لامس الأرض: بتمسك الطريق، بتفرمل، وبتمتص الصدمات الصغيرة.',
+  br: 'ضغط هوا قليل يعني صرف زيادة وخطر انفجار. بألمانيا عمق النقشة لازم يكون 1.6 ملم عالأقل.',
+  note: 'كتير من سيارات BMW عليها إطارات Run-Flat، بتقدر تكمّل فيها مسافة قصيرة بعد البنشر.',
+  build(h) {
+    const P = [[0.238, -0.105], [0.27, -0.116], [0.305, -0.117], [0.326, -0.108], [0.335, -0.088], [0.338, -0.05], [0.338, 0.05], [0.335, 0.088], [0.326, 0.108], [0.305, 0.117], [0.27, 0.116], [0.238, 0.105]].map(([r, y]) => new THREE.Vector2(r, y));
+    const g = new THREE.LatheGeometry(P, 72); g.rotateX(Math.PI / 2);
+    const m = h.mat({ color: '#23272C', metal: 0, rough: 0.92, side: THREE.DoubleSide });
+    CORNERS.forEach(c => h.mesh(g, { mat: m, parent: SPIN[c.k] }));
+  } });
+
+def({ id: 'rims', sys: 'wheels', ar: 'الجنوط', en: 'Wheels (Rims)', sev: 1,
+  w: 'جوّا الإطارات',
+  fn: 'الجنط المعدني اللي بينركب عليه الإطار، وبيتربط بالسيارة ببراغي العجل.',
+  br: 'إذا انعوج من حفرة: رجّة بالمقود ونفّسة بطيئة بالإطار.',
+  build(h) {
+    const m = h.mat({ color: '#C3C9D1', metal: 0.85, rough: 0.28, side: THREE.DoubleSide });
+    CORNERS.forEach(c => {
+      const p = SPIN[c.k], s = c.s;
+      h.mesh(cylZ(0.232, 0.232, 0.205, 48, true), { mat: m, parent: p });
+      h.mesh(cylZ(0.055, 0.055, 0.03, 24), { mat: m, p: [0, 0, s * 0.08], parent: p });
+      for (let k = 0; k < 5; k++) [-0.13, 0.13].forEach(d => {
+        const a = k / 5 * Math.PI * 2 + d, sp = new THREE.Group(); sp.rotation.z = a; sp.position.z = s * 0.078; p.add(sp);
+        h.mesh(box(0.02, 0.18, 0.016), { mat: m, p: [0, 0.14, 0], parent: sp });
+      });
+    });
+  } });
+
+def({ id: 'tpms', sys: 'wheels', ar: 'حسّاس ضغط الهوا', en: 'Tire Pressure Sensor (TPMS)', sev: 2,
+  w: 'جوّا الإطار على الجنط، جنب البلف',
+  fn: 'حسّاس بيقيس ضغط الهوا بكل إطار وبيخبّرك إذا نقص.',
+  br: 'لمبة إطار صفرا عالعدّادات: افحص الضغط بأقرب محطة. إذا ضلّت ضاوية والضغط مظبوط، ممكن بطارية الحسّاس خلصت.',
+  build(h) { CORNERS.forEach(c => { h.mesh(box(0.04, 0.02, 0.03), { p: [0, 0.215, 0], parent: SPIN[c.k] }); h.mesh(new THREE.CylinderGeometry(0.005, 0.005, 0.04, 8), { p: [0, 0.215, c.s * 0.06], r: [Math.PI / 2, 0, 0], parent: SPIN[c.k] }); }); } });
+
+/* ---------- ELECTRICAL ---------- */
+def({ id: 'battery', sys: 'electrical', ar: 'البطارية', en: 'Battery (12V)', sev: 2,
+  w: 'بالشنطة ورا (بهالموديل)',
+  fn: 'بتعطي كهربا للسلف لتشغيل السيارة، ولكل الأجهزة والمحرك طافي.',
+  br: 'التشغيل بطيء، الأضواء ضعيفة، أو ولا شي بيشتغل. بالبرد بتتعب أكتر.',
+  note: 'بكتير من سيارات BMW البطارية بالشنطة لتوزيع الوزن، والبطارية الجديدة لازم تتسجّل بكمبيوتر السيارة.',
+  build(h) {
+    h.mesh(rbox(0.30, 0.19, 0.18, 0.015), { p: [-1.95, 0.57, 0.50] });
+    h.mesh(box(0.30, 0.02, 0.18), { mat: { color: '#2B3036' }, p: [-1.95, 0.67, 0.50] });
+    h.mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.03, 12), { mat: { color: '#D9483F' }, p: [-1.85, 0.69, 0.55] });
+    h.mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.03, 12), { mat: { color: '#1E2125' }, p: [-1.85, 0.69, 0.45] });
+    h.mesh(tube([[-1.85, 0.70, 0.55], [-1.62, 0.55, 0.48], [-1.30, 0.50, 0.40], [-0.66, 0.49, 0.40], [-0.55, 0.33, 0.50], [0.50, 0.31, 0.58], [0.93, 0.36, 0.48], [1.02, 0.55, 0.40], [1.08, 0.66, 0.36]], 0.009, 120), { mat: { color: '#D9483F', rough: 0.6 } });
+  } });
+
+def({ id: 'alternator', sys: 'electrical', ar: 'الدينمو', en: 'Alternator', sev: 2,
+  w: 'قدّام المحرك، على السير',
+  fn: 'مولّد كهربا بيلف بسير المحرك، بيشحن البطارية وبيشغّل الكهربا وقت السواقة.',
+  br: 'لمبة البطارية بتضوي وأنت ماشي، الأضواء بتضعف، وبعدين السيارة بتطفي لما تخلص البطارية.',
+  build(h) { h.mesh(cylX(0.07, 0.07, 0.12, 28), { p: [1.58, 0.58, -0.23] }); h.mesh(cylX(0.035, 0.035, 0.03), { mat: { color: '#B9BFC7', metal: 0.8, rough: 0.35 }, p: [1.655, 0.58, -0.23] }); } });
+
+def({ id: 'starter', sys: 'electrical', ar: 'السلف (المارش)', en: 'Starter Motor', sev: 2,
+  w: 'تحت المحرك عند الحدّافة',
+  fn: 'موتور كهربا قوي بيدوّر المحرك أول ما تكبس Start، لحتى يشتغل لحاله.',
+  br: 'صوت تكّة وحدة وما بيدوّر، أو صوت طحن. ممكن البطارية تكون منيحة والسلف هو الخربان.',
+  build(h) { h.mesh(cylX(0.045, 0.045, 0.15, 22), { p: [1.03, 0.30, -0.21] }); h.mesh(cylX(0.025, 0.025, 0.10, 16), { p: [1.03, 0.36, -0.21] }); } });
+
+def({ id: 'ecu', sys: 'electrical', ar: 'كمبيوتر المحرك (ECU / DME)', en: 'Engine Control Unit (ECU)', sev: 2,
+  w: 'حجرة المحرك، قرب الزجاج',
+  fn: 'دماغ المحرك: بيقرأ كل الحسّاسات وبيقرّر كمية البنزين، وقت الشرارة، وضغط التيربو. BMW بتسمّيه DME.',
+  br: 'السيارة ما بتشتغل، أو بتشتغل بوضع الطوارئ، أو أعطال غريبة كتير مع بعض. بينفحص بجهاز OBD.',
+  build(h) { h.mesh(rbox(0.18, 0.045, 0.14, 0.01), { mat: { color: '#B9BFC7', metal: 0.8, rough: 0.35 }, p: [1.06, 0.74, 0.50] }); h.mesh(box(0.05, 0.03, 0.10), { p: [1.165, 0.74, 0.50] }); } });
+
+def({ id: 'fuseBox', sys: 'electrical', ar: 'علبة الفيوزات', en: 'Fuse Box', sev: 1,
+  w: 'تحت الطبلون عند الراكب',
+  fn: 'فيوزات بتحمي الأسلاك: إذا صار ماس كهربا بتنحرق الفيوز بدل ما يحترق السلك.',
+  br: 'جهاز واحد وقف فجأة (متل الولّاعة أو الراديو)؟ غالباً فيوز محروق، بتتغيّر بفيوز بنفس الأمبير.',
+  build(h) { h.mesh(rbox(0.10, 0.16, 0.20, 0.012), { p: [0.80, 0.58, 0.55] }); } });
+
+def({ id: 'headlights', sys: 'electrical', ar: 'الأضواء الأمامية', en: 'Headlights', sev: 2, panel: 14,
+  w: 'قدّام عالزوايا',
+  fn: 'بتضوّي الطريق وبتخلّي الناس يشوفوك. الحلقات المضوية عند BMW اسمها Angel Eyes.',
+  br: 'لمبة محروقة يعني مخالفة وخطر بالليل. ضوّ ضعيف أو أصفر: لمبة قديمة أو زجاج مغبّش.' });
+
+def({ id: 'taillights', sys: 'electrical', ar: 'الأضواء الخلفية', en: 'Taillights & Brake Lights', sev: 2, panel: 15,
+  w: 'ورا عالزوايا',
+  fn: 'ضوّ أحمر ورا، بيقوى لما تفرمل. فيه كمان الغمّاز وضوّ الريوس.',
+  br: 'ضوّ فرامل محروق يعني اللي وراك ما بيعرف إنك عم توقف. افحصها كل فترة.' });
+
+def({ id: 'horn', sys: 'electrical', ar: 'الزمّور', en: 'Horn', sev: 1,
+  w: 'ورا الصدّام القدّامي',
+  fn: 'بينبّه السيارات والناس.',
+  br: 'إذا وقف: غالباً فيوز أو ريليه أو الزمّور نفسه. لازم يشتغل لتمرق بالفحص الفني.',
+  build(h) { h.mesh(cylX(0.045, 0.045, 0.03, 24), { p: [2.22, 0.42, -0.50] }); h.mesh(cylX(0.015, 0.03, 0.03, 16), { p: [2.25, 0.42, -0.50] }); } });
+
+def({ id: 'wipers', sys: 'electrical', ar: 'المسّاحات', en: 'Windshield Wipers', sev: 1,
+  w: 'أسفل الزجاج القدّامي',
+  fn: 'بتمسح المطر والوسخ عن الزجاج القدّامي، ومعها بخّاخ ماي.',
+  br: 'إذا صارت تخطّط أو تزقزق: الشفرات الكاوتشوك ناشفة. غيّرها، رخيصة.',
+  build(h) {
+    const m = h.mat({ color: '#20242A', rough: 0.6 });
+    [[-0.50, 0.08], [0.06, 0.62]].forEach(([z0, z1]) => {
+      const pts = [];
+      for (let i = 0; i <= 8; i++) { const t = i / 8, x = 1.035 - 0.07 * t, z = z0 + (z1 - z0) * t; pts.push([x, surfY(x, z) + 0.014, z]); }
+      h.mesh(tube(pts, 0.007, 30), { mat: m });
+    });
+  } });
+
+def({ id: 'parkingSensors', sys: 'electrical', ar: 'حسّاسات الركن', en: 'Parking Sensors (PDC)', sev: 1,
+  w: 'بالصدّامات قدّام وورا',
+  fn: 'حسّاسات صوتية (Ultrasonic) بتعطيك تيت تيت لما تقرّب على شي. BMW بتسمّيها PDC.',
+  br: 'إذا خرب واحد: صوت متواصل أو النظام ما بيشتغل. لا تعتمد عليها مية بالمية.',
+  build(h) {
+    [0.16, 0.46].forEach(z => [-1, 1].forEach(s => {
+      h.mesh(cylX(0.013, 0.013, 0.012, 16), { p: [endX(z, 0.48, false) - 0.002, 0.48, s * z] });
+      h.mesh(cylX(0.013, 0.013, 0.012, 16), { p: [endX(z, 0.40, true) + 0.002, 0.40, s * z] });
+    }));
+  } });
+
+/* ---------- CLIMATE ---------- */
+def({ id: 'acCompressor', sys: 'climate', ar: 'كمبروسر المكيف', en: 'A/C Compressor', sev: 1,
+  w: 'على المحرك، بيلف بالسير',
+  fn: 'قلب المكيف: بيضغط غاز التبريد وبيدوّره بالنظام.',
+  br: 'المكيف بيطلع هوا مش بارد، أو طقطقة لما تشغّل المكيف.',
+  build(h) { h.mesh(cylX(0.06, 0.06, 0.14, 24), { p: [1.55, 0.35, -0.23] }); h.mesh(cylX(0.05, 0.05, 0.03, 24), { mat: { color: '#B9BFC7', metal: 0.8, rough: 0.35 }, p: [1.645, 0.35, -0.23] }); } });
+
+def({ id: 'condenser', sys: 'climate', ar: 'كوندنسر المكيف', en: 'A/C Condenser & Lines', sev: 1,
+  w: 'قدّام الرديتر',
+  fn: 'متل رديتر صغير: بيطلّع حرارة غاز المكيف للهوا البرّاني. والمواسير بتوصّله بالكمبروسر وصندوق التكييف.',
+  br: 'حجار الطريق ممكن تخزقه فيطلع الغاز والمكيف ما عاد يبرّد.',
+  build(h) {
+    h.mesh(box(0.02, 0.28, 0.80), { mat: { map: finTex(), metal: 0.6, rough: 0.4 }, p: [2.11, 0.52, 0] });
+    const m = h.mat({ color: '#B9BFC7', metal: 0.8, rough: 0.35 });
+    h.mesh(tube([[1.50, 0.38, -0.29], [1.80, 0.42, -0.45], [2.10, 0.42, -0.41]], 0.01, 30), { mat: m });
+    h.mesh(tube([[2.10, 0.63, 0.40], [1.85, 0.66, 0.42], [1.50, 0.72, 0.36], [1.20, 0.75, 0.30], [0.99, 0.76, 0.22], [0.92, 0.72, 0.20]], 0.01, 60), { mat: m });
+  } });
+
+def({ id: 'hvac', sys: 'climate', ar: 'صندوق التكييف والتدفئة', en: 'HVAC Unit (Evaporator & Heater Core)', sev: 1, ghost: 0.4, kids: ['cabinFilter'],
+  w: 'ورا الطبلون',
+  fn: 'فيه المبخّر (Evaporator) اللي بيبرّد الهوا، والرديتر الصغير (Heater Core) اللي بيدفّيه من ماي المحرك، والمروحة اللي بتنفخ.',
+  br: 'ريحة رطوبة يعني وسخ عالمبخّر. ريحة حلوة وضباب عالزجاج ممكن تكون تسريب من الهيتر. المروحة ما بتشتغل: موتور أو مقاومة.',
+  build(h) {
+    h.mesh(rbox(0.20, 0.22, 0.60, 0.03), { p: [0.83, 0.70, 0] });
+    h.mesh(box(0.03, 0.16, 0.22), { mat: { color: '#9FD6F5', opacity: 1, metal: 0.5, rough: 0.4 }, p: [0.86, 0.70, -0.16] });
+    h.mesh(box(0.03, 0.14, 0.18), { mat: { color: '#E36B4E', opacity: 1, metal: 0.5, rough: 0.4 }, p: [0.79, 0.70, -0.14] });
+    h.mesh(cylZ(0.06, 0.06, 0.08, 24), { mat: { color: '#3A3F46', opacity: 1 }, p: [0.83, 0.68, 0.18] });
+  } });
+
+def({ id: 'cabinFilter', sys: 'climate', ar: 'فلتر المكيف', en: 'Cabin Air Filter', sev: 1,
+  w: 'جوّا صندوق التكييف (مكانه بيختلف حسب السيارة)',
+  fn: 'بينضّف الهوا اللي داخل للمقصورة من الغبرة وغبار الطلع.',
+  br: 'إذا انسد: الهوا ضعيف، في ريحة، والزجاج بيغبّش بسرعة. تغييره سهل.',
+  build(h) { h.mesh(box(0.03, 0.16, 0.22), { mat: { color: '#E8DFC4', rough: 0.9 }, p: [0.90, 0.70, 0.10] }); } });
+
+/* ---------- SAFETY ---------- */
+def({ id: 'airbags', sys: 'safety', ar: 'الوسائد الهوائية (الإيرباغ)', en: 'Airbags (SRS)', sev: 3, pass: true,
+  w: 'بالمقود، الطبلون، والسقف عالجناب',
+  fn: 'أكياس بتنفخ بجزء من الثانية وقت الحادث وبتحمي راسك وصدرك. بالمجسّم هي مبيّنة منفوخة عشان تعرف وين بتطلع.',
+  br: 'إذا ضوّت لمبة الإيرباغ ممكن النظام ما يشتغل وقت الحادث. افحصه بسرعة.',
+  build(h) {
+    const m = h.mat({ color: '#F2D4E3', opacity: 0.32, rough: 0.6 });
+    const d = h.mesh(new THREE.SphereGeometry(1, 28, 18), { mat: m, s: [0.17, 0.17, 0.07] });
+    d.position.copy(SW_C.clone().add(SW_N.clone().multiplyScalar(0.11))); d.lookAt(d.position.clone().add(SW_N));
+    h.mesh(new THREE.SphereGeometry(1, 28, 18), { mat: m, p: [0.55, 1.0, 0.38], s: [0.11, 0.16, 0.22] });
+    [-1, 1].forEach(s => h.mesh(rbox(1.62, 0.20, 0.02, 0.008), { mat: m, p: [-0.37, 1.15, s * 0.755] }));
+  } });
+
+def({ id: 'seatbelts', sys: 'safety', ar: 'أحزمة الأمان', en: 'Seatbelts', sev: 3,
+  w: 'عند كل كرسي',
+  fn: 'بتمسكك بالكرسي وقت الفرملة القوية أو الحادث. فيها شدّاد (Pretensioner) بيشدّها بلحظة الحادث.',
+  br: 'إذا ما بيرجع لحاله أو ما بيقفّل صلّحه فوراً. وممنوع قانونياً تسوق بدونه.',
+  build(h) {
+    const m = h.mat({ rough: 0.8 });
+    [-1, 1].forEach(s => {
+      h.mesh(tube([[-0.31, 1.12, s * 0.70], [-0.205, 0.96, s * 0.52], [-0.17, 0.72, s * 0.30], [-0.15, 0.53, s * 0.15]], 0.011, 30), { mat: m });
+      h.mesh(tube([[-0.15, 0.53, s * 0.15], [-0.10, 0.53, s * 0.40], [-0.12, 0.52, s * 0.63]], 0.011, 20), { mat: m });
+      h.mesh(tube([[-1.33, 1.10, s * 0.66], [-1.24, 0.95, s * 0.50], [-1.17, 0.75, s * 0.33], [-1.12, 0.62, s * 0.20]], 0.011, 30), { mat: m });
+    });
+  } });
+
+def({ id: 'adas', sys: 'safety', ar: 'الكاميرا والرادار (أنظمة المساعدة)', en: 'ADAS Camera & Radar', sev: 1,
+  w: 'ورا المراية فوق، وبالصدّام القدّامي',
+  fn: 'كاميرا ورادار بيراقبوا الطريق: تحذير من الاصطدام، فرملة طوارئ، البقاء بالمسار، ومثبّت سرعة ذكي.',
+  br: 'رسالة إنه النظام مش متوفّر: غالباً وسخ أو تلج عالحسّاس، أو تغيّر الزجاج بدون معايرة (Calibration).',
+  build(h) {
+    h.mesh(rbox(0.08, 0.05, 0.10, 0.012), { mat: { color: '#2B3036' }, p: [0.37, surfY(0.37, 0) - 0.05, 0] });
+    h.mesh(rbox(0.03, 0.07, 0.10, 0.01), { p: [endX(0.22, 0.36, true) + 0.004, 0.36, 0.22] });
+  } });
+
+/* ---------- INTERIOR ---------- */
+def({ id: 'dashboard', sys: 'interior', ar: 'الطبلون (التابلو)', en: 'Dashboard', sev: 1, ghost: 0.5, kids: ['hvac', 'cabinFilter'],
+  w: 'قدّام السواق والراكب',
+  fn: 'اللوح اللي قدّامك: جوّاه الأسلاك وصندوق التكييف وإيرباغ الراكب، وعليه الشاشات.',
+  br: 'تكتكة أو قرقعة (Rattles) من كليبسات مرخية. مش خطير بس مزعج.',
+  build(h) {
+    const s = new THREE.Shape(); const P = [[0.95, 0.70], [0.95, 0.90], [0.90, 0.955], [0.75, 0.985], [0.64, 0.975], [0.60, 0.92], [0.63, 0.80], [0.70, 0.72]];
+    s.moveTo(...P[0]); P.slice(1).forEach(p => s.lineTo(...p)); s.closePath();
+    const g = new THREE.ExtrudeGeometry(s, { depth: 1.50, bevelEnabled: true, bevelThickness: 0.01, bevelSize: 0.01, bevelSegments: 2 }); g.translate(0, 0, -0.75);
+    h.mesh(g, { mat: { color: '#5A4C42', rough: 0.7 } });
+  } });
+
+def({ id: 'cluster', sys: 'interior', ar: 'العدّادات', en: 'Instrument Cluster', sev: 2,
+  w: 'ورا المقود',
+  fn: 'بتورجيك السرعة، الدورات، البنزين، الحرارة، ولمبات التحذير.',
+  br: 'إذا طفت أو العدّاد وقف ما بتعرف سرعتك وما بتشوف التحذيرات.',
+  note: 'قاعدة عامة: لمبة حمرا يعني وقّف بأمان فوراً، لمبة صفرا يعني افحص قريب.',
+  build(h) { h.mesh(rbox(0.025, 0.10, 0.28, 0.01), { mat: { color: '#141B24', emissive: '#3E8EFF', ei: 0.55, rough: 0.2 }, p: [0.69, 0.995, -0.38], r: [0, 0, -0.35] }); } });
+
+def({ id: 'infotainment', sys: 'interior', ar: 'الشاشة (iDrive)', en: 'Infotainment Screen (iDrive)', sev: 1,
+  w: 'بنص الطبلون + بكرة التحكم بالكونسول',
+  fn: 'شاشة الملتيميديا: خرائط، موسيقى، تلفون، وإعدادات السيارة. عند BMW النظام اسمه iDrive وفيه بكرة تحكّم بالكونسول.',
+  br: 'بتعلّق أو بتعيد تشغيل لحالها. غالباً بتنحل بتحديث سوفتوير.',
+  build(h) {
+    h.mesh(rbox(0.02, 0.12, 0.30, 0.01), { mat: { color: '#141B24', emissive: '#3E8EFF', ei: 0.5, rough: 0.2 }, p: [0.685, 1.04, 0.02], r: [0, 0, -0.2] });
+    h.mesh(new THREE.CylinderGeometry(0.03, 0.032, 0.025, 28), { mat: { color: '#B9BFC7', metal: 0.85, rough: 0.3 }, p: [-0.06, 0.635, 0] });
+  } });
+
+def({ id: 'centerConsole', sys: 'interior', ar: 'الكونسول الوسطاني', en: 'Center Console', sev: 1,
+  w: 'بين الكراسي القدّامية',
+  fn: 'فيه عصا الجير والأزرار ومكان الكاسات، وبيغطّي نفق الجير والكردان من تحت.',
+  br: 'عادةً مشاكله بسيطة: أزرار خربانة أو قطع مرخية.',
+  build(h) { h.mesh(rbox(1.0, 0.10, 0.26, 0.03), { p: [0.20, 0.57, 0] }); h.mesh(rbox(0.10, 0.27, 0.24, 0.03), { p: [0.66, 0.68, 0] }); } });
+
+def({ id: 'seats', sys: 'interior', ar: 'المقاعد (الكراسي)', en: 'Seats', sev: 1,
+  w: 'المقصورة',
+  fn: 'بتشيلك وبتسندك باللفّات والحوادث. فيها موتورات للتعديل، تدفئة، وحسّاس بيعرف إذا في حدا قاعد (للإيرباغ).',
+  br: 'لمبة الإيرباغ ممكن تضوي إذا خرب حسّاس الكرسي أو فلتت فيشة تحته.',
+  build(h) {
+    [-1, 1].forEach(s => {
+      const z = s * 0.38;
+      h.mesh(rbox(0.50, 0.12, 0.50, 0.05), { p: [0.0, 0.42, z] });
+      h.mesh(rbox(0.12, 0.62, 0.50, 0.05), { p: [-0.30, 0.78, z], r: [0, 0, 0.25] });
+      h.mesh(rbox(0.08, 0.16, 0.26, 0.035), { p: [-0.40, 1.17, z], r: [0, 0, 0.15] });
+    });
+    h.mesh(rbox(0.45, 0.11, 1.36, 0.05), { p: [-0.97, 0.525, 0] });
+    h.mesh(rbox(0.12, 0.56, 1.36, 0.05), { p: [-1.22, 0.86, 0], r: [0, 0, 0.30] });
+  } });
+
+/* ---------- BODY (panels drawn by the shell shader) ---------- */
+const P = (id, ar, en, w, fn, br, sev, extra = {}) => def({ id, sys: 'body', ar, en, w, fn, br, sev, panel: PANEL[id], ...extra });
+P('hood', 'الكبوت', 'Hood (Bonnet)', 'فوق حجرة المحرك',
+  'غطا المحرك من قدّام. بيحمي القطع، وبينفتح لتشوف الزيت والماي.',
+  'إذا القفل خرب ممكن ينفتح وأنت ماشي، وهاد خطير. بعد حادث ممكن يعوج ويصير فيه فراغات.', 1);
+P('roof', 'السقف', 'Roof', 'فوق المقصورة',
+  'سقف السيارة، وهو جزء من هيكل الأمان: بيحميك إذا انقلبت السيارة.',
+  'صدا، أو ماي بيفوت من فتحة السقف (Sunroof) إذا انسدّت مجاريها.', 1);
+P('trunk', 'غطا الشنطة', 'Trunk (Boot) Lid', 'ورا فوق',
+  'باب الشنطة ورا. بهالموديل تحت أرضية الشنطة في البطارية.',
+  'إذا ما بيسكّر منيح بيفوت ماي عالشنطة، أو المكابس (Struts) خربانة فما بيضل مفتوح.', 1);
+P('frontBumper', 'الصدّام الأمامي', 'Front Bumper', 'قدّام تحت',
+  'بيمتص الصدمات الخفيفة. ورا الغطا البلاستيك في عارضة حديد، وفيه فتحات هوا وحسّاسات.',
+  'شرخ أو كليبسات مفكوكة. بعد أي ضربة افحص الحسّاسات والرادار.', 1, {
+  build(h) { h.mesh(rbox(0.02, 0.09, 0.80, 0.01), { mat: { color: '#14181D', rough: 0.6 }, p: [endX(0, 0.36, true) + 0.002, 0.36, 0] }); } });
+P('rearBumper', 'الصدّام الخلفي', 'Rear Bumper', 'ورا تحت',
+  'بيحمي ورا بالحوادث الخفيفة، وفيه حسّاسات الركن وأطراف العادم.',
+  'خدوش، أو حسّاسات ما بتشتغل بعد ضربة.', 1, {
+  build(h) { h.mesh(rbox(0.03, 0.06, 0.92, 0.01), { mat: { color: '#14181D', rough: 0.6 }, p: [endX(0, 0.40, false) - 0.004, 0.40, 0] }); } });
+def({ id: 'grille', sys: 'body', ar: 'الشبك (الكلية)', en: 'Kidney Grille', sev: 1,
+  w: 'قدّام بالنص',
+  fn: 'فتحة الهوا اللي بتبرّد الرديتر والمحرك. شكلها المزدوج (الكلية) هو علامة BMW المشهورة. بكتير من السيارات الحديثة في وراها شفرات بتسكّر وتفتح لتوفّر بنزين.',
+  br: 'إذا انكسر بيصير يفوت حجار عالرديتر.',
+  build(h) {
+    const chrome = h.mat({ color: '#DDE2E8', metal: 1, rough: 0.15 }), dark = h.mat({ color: '#101317', rough: 0.5 });
+    const X = 2.364;
+    [-1, 1].forEach(s => {
+      const outer = roundRect(0.17, 0.155, 0.04), hole = roundRect(0.145, 0.13, 0.03); outer.holes.push(hole);
+      const g = new THREE.ExtrudeGeometry(outer, { depth: 0.02, bevelEnabled: false }); g.rotateY(Math.PI / 2);
+      h.mesh(g, { mat: chrome, p: [X - 0.02, 0.555, s * 0.112] });
+      h.mesh(box(0.012, 0.13, 0.145), { mat: dark, p: [X - 0.012, 0.555, s * 0.112] });
+      for (let i = -2; i <= 2; i++) h.mesh(box(0.012, 0.12, 0.006), { mat: chrome, p: [X - 0.008, 0.555, s * 0.112 + i * 0.026] });
+    });
+  } });
+P('fenders', 'الرفارف الأمامية', 'Front Fenders', 'فوق العجلات القدّامية',
+  'الألواح اللي فوق العجلات القدّامية، بتمنع الطين والحجار يطيروا.',
+  'صدا عند حافة العجلة أو انبعاج من ضربة. غالباً تجميلي، وبينفك بالبراغي.', 1);
+P('doors', 'الأبواب', 'Doors', 'جناب المقصورة',
+  'فيها زجاج بيطلع وينزل، سكّرة، سمّاعات، وعوارض حديد للحماية من الضربات الجانبية.',
+  'الشبّاك ما بيطلع: موتور أو منظّم (Regulator). ماي جوّا الباب: مجاري مسدودة.', 1, {
+  build(h) {
+    const m = h.mat({ color: '#B8C2CC', metal: 0.9, rough: 0.25 });
+    [-1, 1].forEach(s => [[0.40, 0.87], [-0.62, 0.89]].forEach(([x, y]) => h.mesh(rbox(0.11, 0.022, 0.02, 0.008), { mat: m, p: [x, y, s * (wSide(x, y) + 0.008)] })));
+  } });
+P('quarterPanels', 'الرفارف الخلفية', 'Rear Quarter Panels', 'فوق العجلات الخلفية',
+  'ألواح جنب العجلات الخلفية، ملحومة بالهيكل (مش بالبراغي متل الرفرف القدّامي).',
+  'تصليح الضربة فيها أصعب وأغلى لأنها جزء من الهيكل.', 1);
+P('rockers', 'العتبات (السكيرت)', 'Rocker Panels (Sills)', 'تحت الأبواب',
+  'العتبة تحت الأبواب: جزء قوي من الهيكل بيحمي من الضربات الجانبية، وعليها نقاط رفع الكريك.',
+  'الصدا هون أخطر من غيره لأنه بيضعّف الهيكل. حط الكريك بس عالنقاط المخصّصة.', 1);
+P('pillars', 'الأعمدة (A و B و C)', 'Pillars (A, B, C)', 'حوالين الشبابيك',
+  'الأعمدة اللي ماسكة السقف: A جنب الزجاج القدّامي، B بين البابين، C ورا. حديد قوي بيحميك بالانقلاب.',
+  'إذا انضربت بحادث السيارة غالباً بتحتاج تصليح هيكل كبير.', 2);
+P('windshield', 'الزجاج الأمامي', 'Windshield', 'قدّام فوق الكبوت',
+  'زجاج مصفّح (طبقتين وبيناتهم طبقة بلاستيك) فما بيتفتفت. جزء من قوة الهيكل، وعليه الكاميرا والحسّاسات.',
+  'شرخ صغير بيكبر مع البرد والحر، صلّحه بسرعة. شرخ قدّام السواق ممكن يفشّلك بالفحص الفني.', 2);
+P('rearWindow', 'الزجاج الخلفي', 'Rear Window', 'ورا فوق الشنطة',
+  'زجاج ورا فيه خطوط رفيعة بتسخن لتشيل الضباب والتلج.',
+  'إذا الخطوط انقطعت ما بيروح الضباب. هالزجاج غالباً مقسّى، إذا انكسر بيتفتفت لقطع صغيرة.', 1);
+P('sideWindows', 'الشبابيك الجانبية', 'Side Windows', 'بالأبواب',
+  'شبابيك الأبواب، بتطلع وبتنزل بموتور كهربا.',
+  'صوت بس الشبّاك ما بيتحرّك: المنظّم مكسور. ولا صوت: موتور أو فيوز أو زر.', 1);
+def({ id: 'mirrors', sys: 'body', ar: 'المرايات الجانبية', en: 'Side Mirrors', sev: 2,
+  w: 'عالأبواب قدّام',
+  fn: 'بتشوف فيها اللي جنبك ووراك. فيها موتور للتعديل، تدفئة، وغمّاز.',
+  br: 'مكسورة أو مش مظبوطة يعني نقطة عمياء أكبر وخطر وقت تغيير المسار.',
+  build(h) {
+    const paint = h.mat({ color: '#2A5BA6', metal: 0.55, rough: 0.32 }), glass = h.mat({ color: '#A9BCCF', metal: 1, rough: 0.05 });
+    [-1, 1].forEach(s => {
+      const zb = wSide(0.86, 1.0);
+      h.mesh(box(0.06, 0.03, 0.09), { mat: paint, p: [0.88, 0.99, s * (zb + 0.03)] });
+      h.mesh(rbox(0.10, 0.085, 0.17, 0.03), { mat: paint, p: [0.86, 1.01, s * (zb + 0.13)] });
+      h.mesh(box(0.004, 0.068, 0.145), { mat: glass, p: [0.808, 1.01, s * (zb + 0.13)] });
+    });
+  } });
+
+/* ---------- CHASSIS ---------- */
+def({ id: 'chassis', sys: 'chassis', ar: 'الشاسيه (الهيكل الأحادي)', en: 'Chassis / Unibody', sev: 2, ghost: 0.38, pass: true,
+  w: 'تحت كل شي: الأرضية، الجدار الناري، والعوارض',
+  fn: 'الهيكل الحديد الأساسي اللي كل شي بينركب عليه. فيه مناطق بتنطوي وقت الحادث لتمتص الضربة (Crumple Zones) وقفص قوي حوالين الركّاب.',
+  br: 'بعد حادث قوي ممكن يعوج: السيارة بتسحب، الأبواب ما بتسكّر منيح، وأكل غريب بالإطارات. بدّه ورشة هياكل.',
+  build(h) {
+    [-1, 1].forEach(s => {
+      h.mesh(box(1.55, 0.012, 0.64), { p: [0.175, 0.29, s * 0.50] });
+      h.mesh(box(1.55, 0.22, 0.012), { p: [0.175, 0.40, s * 0.175] });
+      h.mesh(box(2.0, 0.10, 0.08), { p: [0.025, 0.31, s * 0.83] });
+      h.mesh(box(1.25, 0.08, 0.06), { p: [1.58, 0.42, s * 0.53] });
+      h.mesh(box(0.70, 0.08, 0.06), { p: [-1.90, 0.42, s * 0.55] });
+      h.mesh(box(0.012, 0.60, 0.60), { p: [0.955, 0.60, s * 0.50] });
+    });
+    h.mesh(box(1.555, 0.012, 0.36), { p: [0.175, 0.51, 0], r: [0, 0, 0.077] });
+    h.mesh(box(0.012, 0.32, 0.40), { p: [0.955, 0.74, 0] });
+    h.mesh(box(0.012, 0.18, 1.62), { p: [-0.60, 0.38, 0] });
+    h.mesh(box(0.95, 0.012, 1.62), { p: [-1.075, 0.47, 0] });
+    h.mesh(box(0.70, 0.012, 1.16), { p: [-1.90, 0.47, 0] });
+    h.mesh(box(0.06, 0.10, 1.30), { p: [2.27, 0.46, 0] });
+    h.mesh(box(0.06, 0.10, 1.30), { p: [-2.27, 0.48, 0] });
+    const liner = h.mat({ color: '#15181C', opacity: 1, rough: 0.9, side: THREE.DoubleSide });
+    CORNERS.forEach(c => {
+      const g = new THREE.CylinderGeometry(0.40, 0.40, 0.26, 32, 1, true, Math.PI / 2, Math.PI); g.rotateX(Math.PI / 2);
+      h.mesh(g, { mat: liner, p: [c.x, WY, c.s * 0.78] }).userData.solidOnly = true;
+    });
+  } });
+
+def({ id: 'subframes', sys: 'chassis', ar: 'الصبفريم (الشاسيه الفرعي)', en: 'Subframes', sev: 2,
+  w: 'تحت المحرك قدّام، وتحت الدفرنس ورا',
+  fn: 'إطارات حديد بينركب عليها المحرك والتعليق والدفرنس، وبعدين بتنربط بالهيكل.',
+  br: 'إذا خربت كاوتشوكاتها: طقّة بالانطلاق والفرملة، وإحساس إن السيارة مش ثابتة.',
+  build(h) {
+    [-1, 1].forEach(s => { h.mesh(box(0.74, 0.04, 0.05), { p: [1.35, 0.20, s * 0.38] }); h.mesh(box(0.50, 0.04, 0.05), { p: [-1.415, 0.27, s * 0.42] }); });
+    h.mesh(box(0.05, 0.04, 0.81), { p: [0.98, 0.20, 0] }); h.mesh(box(0.05, 0.04, 0.81), { p: [1.72, 0.20, 0] });
+    h.mesh(box(0.05, 0.04, 0.89), { p: [-1.18, 0.27, 0] }); h.mesh(box(0.05, 0.04, 0.89), { p: [-1.65, 0.27, 0] });
+  } });
+
+/* ------------------------------------------------------------------ *
+ *  Geometry helpers
+ * ------------------------------------------------------------------ */
+function box(w, h, d) { return new THREE.BoxGeometry(w, h, d); }
+function rbox(w, h, d, r = 0.02) { return new RoundedBoxGeometry(w, h, d, 3, Math.max(0.001, Math.min(r, w / 2 - 0.001, h / 2 - 0.001, d / 2 - 0.001))); }
+function cylX(r1, r2, len, seg = 24, open = false) { const g = new THREE.CylinderGeometry(r1, r2, len, seg, 1, open); g.rotateZ(-Math.PI / 2); return g; }
+function cylZ(r1, r2, len, seg = 24, open = false) { const g = new THREE.CylinderGeometry(r1, r2, len, seg, 1, open); g.rotateX(Math.PI / 2); return g; }
+function tube(pts, r, seg = 48, closed = false) {
+  const c = new THREE.CatmullRomCurve3(pts.map(p => new THREE.Vector3(...p)), closed, 'centripetal');
+  return new THREE.TubeGeometry(c, seg, r, 8, closed);
+}
+function rod(a, b, r, seg = 12) {
+  const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b), len = A.distanceTo(B);
+  const g = new THREE.CylinderGeometry(r, r, len, seg);
+  g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), B.clone().sub(A).normalize()));
+  const m = A.add(B).multiplyScalar(0.5); g.translate(m.x, m.y, m.z); return g;
+}
+function helix(a, b, rad, turns, r) {
+  const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b), ax = B.clone().sub(A).normalize();
+  const u = new THREE.Vector3(1, 0, 0).cross(ax).normalize(), v = ax.clone().cross(u).normalize(), pts = [];
+  for (let i = 0; i <= turns * 24; i++) {
+    const t = i / (turns * 24), ang = t * turns * Math.PI * 2;
+    pts.push(A.clone().lerp(B, t).add(u.clone().multiplyScalar(Math.cos(ang) * rad)).add(v.clone().multiplyScalar(Math.sin(ang) * rad)));
+  }
+  return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), turns * 40, r, 8, false);
+}
+function roundRect(w, hgt, r) {
+  const s = new THREE.Shape(), x = -w / 2, y = -hgt / 2;
+  s.moveTo(x + r, y); s.lineTo(x + w - r, y); s.quadraticCurveTo(x + w, y, x + w, y + r); s.lineTo(x + w, y + hgt - r);
+  s.quadraticCurveTo(x + w, y + hgt, x + w - r, y + hgt); s.lineTo(x + r, y + hgt); s.quadraticCurveTo(x, y + hgt, x, y + hgt - r);
+  s.lineTo(x, y + r); s.quadraticCurveTo(x, y, x + r, y); return s;
+}
+let _fin = null;
+function finTex() {
+  if (_fin) return _fin;
+  const c = document.createElement('canvas'); c.width = 64; c.height = 64; const x = c.getContext('2d');
+  x.fillStyle = '#ffffff'; x.fillRect(0, 0, 64, 64); x.fillStyle = '#9aa3ad';
+  for (let i = 0; i < 64; i += 4) x.fillRect(i, 0, 1, 64);
+  _fin = new THREE.CanvasTexture(c); _fin.wrapS = _fin.wrapT = THREE.RepeatWrapping; _fin.repeat.set(10, 1); _fin.colorSpace = THREE.SRGBColorSpace;
+  return _fin;
+}
+function vary(hex, id) {
+  let hsh = 0; for (const ch of id) hsh = (hsh * 31 + ch.charCodeAt(0)) >>> 0;
+  const c = new THREE.Color(hex), hsl = {}; c.getHSL(hsl);
+  c.setHSL(hsl.h, hsl.s, clamp(hsl.l + ((hsh % 7) - 3) * 0.028, 0.18, 0.82)); return c;
+}
+
+/* ------------------------------------------------------------------ *
+ *  Scene
+ * ------------------------------------------------------------------ */
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.setClearColor(0x000000, 0);
+const scene = new THREE.Scene();
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+scene.add(new THREE.HemisphereLight(0xffffff, 0x445566, 0.55));
+const sun = new THREE.DirectionalLight(0xffffff, 1.3); sun.position.set(4, 7, 3); scene.add(sun);
+const camera = new THREE.PerspectiveCamera(34, 1, 0.05, 80);
+camera.position.set(5.4, 2.8, 5.6);
+const controls = new OrbitControls(camera, canvas);
+controls.target.set(0.05, 0.55, 0); controls.enableDamping = true; controls.dampingFactor = 0.08;
+controls.minDistance = 0.8; controls.maxDistance = 20; controls.maxPolarAngle = Math.PI * 0.93; controls.zoomSpeed = 0.9;
+controls.update();
+
+const carRoot = new THREE.Group(); scene.add(carRoot);
+CORNERS.forEach(c => { const g = new THREE.Group(); g.position.set(c.x, WY, c.s * TZ); carRoot.add(g); SPIN[c.k] = g; ANIM.spinners.push(g); });
+
+// ground: soft contact shadow + measuring grid (0.5 m squares)
+const ground = new THREE.Group(); scene.add(ground);
+{
+  const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d');
+  const gr = x.createRadialGradient(128, 128, 10, 128, 128, 128); gr.addColorStop(0, 'rgba(0,0,0,0.42)'); gr.addColorStop(0.6, 'rgba(0,0,0,0.18)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+  x.fillStyle = gr; x.fillRect(0, 0, 256, 256);
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(6.2, 2.9), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthWrite: false }));
+  m.rotation.x = -Math.PI / 2; m.position.y = 0.002; ground.add(m);
+}
+const gridMat = new THREE.LineBasicMaterial({ color: 0x999999, transparent: true, opacity: 0.55, depthWrite: false });
+{
+  const pts = [], N = 12, step = 0.5;
+  for (let i = -N; i <= N; i++) { pts.push(i * step, 0, -N * step, i * step, 0, N * step, -N * step, 0, i * step, N * step, 0, i * step); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+  ground.add(new THREE.LineSegments(g, gridMat));
+}
+
+/* body shell */
+const bodyU = {
+  uSel: { value: -1 }, uHover: { value: -1 }, uXray: { value: 1 }, uDim: { value: 1 },
+  uPaint: { value: new THREE.Color('#2A5BA6') }, uXrayTint: { value: new THREE.Color('#7DB0FF') },
+  uGlass: { value: new THREE.Color('#16212B') }, uAccent: { value: new THREE.Color('#FF7B3F') },
+};
+const bodyGeo = (() => {
+  const NX = 260, NS = 28, NA = 8, NT = 16, half = [], pos = [], idx = [];
+  for (let i = 0; i < NX; i++) {
+    const s = -1 + 2 * i / (NX - 1), x = XF * (0.6 * s + 0.4 * Math.sin(Math.PI * s / 2)), S = section(x);
+    half.length = 0;
+    for (let k = 0; k <= NS; k++) { const y = S.yb + (S.ys - S.yb) * k / NS; half.push([wSide(x, y), y]); }
+    for (let k = 1; k <= NA; k++) { const t = k / NA * Math.PI / 2; half.push([S.zc + S.Rc * Math.cos(t), S.ys + S.Rc * Math.sin(t)]); }
+    for (let k = 1; k <= NT; k++) { const z = S.zc * (1 - k / NT); half.push([z, S.zc > 1e-5 ? S.yt + S.crown * (1 - (z / S.zc) ** 2) : S.yt]); }
+    const ring = half.map(([z, y]) => [x, y, z]);
+    for (let k = half.length - 2; k >= 0; k--) ring.push([x, half[k][1], -half[k][0]]);
+    ring.forEach(p => pos.push(...p));
+  }
+  const R = (NS + 1 + NA + NT) * 2 - 1;
+  for (let i = 0; i < NX - 1; i++) for (let j = 0; j < R - 1; j++) {
+    const a = i * R + j, b = (i + 1) * R + j, c = i * R + j + 1, d = (i + 1) * R + j + 1;
+    idx.push(a, b, c, b, d, c);
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
+  return g;
+})();
+const bodyMat = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.55, roughness: 0.3, transparent: true, side: THREE.DoubleSide, depthWrite: false });
+bodyMat.onBeforeCompile = sh => {
+  Object.assign(sh.uniforms, bodyU);
+  sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vOP; varying vec3 vON;')
+    .replace('#include <begin_vertex>', '#include <begin_vertex>\nvOP = position; vON = normal;');
+  sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\n' + GLSL_DECL)
+    .replace('vec4 diffuseColor = vec4( diffuse, opacity );', GLSL_MAIN)
+    .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nif (isGlass || pid >= 14) roughnessFactor = 0.05;')
+    .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += glow * uDim;')
+    .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n{ float fr = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), 2.6); diffuseColor.a = min(1.0, diffuseColor.a + fr * 0.42 * uXray * uDim); }');
+};
+const bodyMesh = new THREE.Mesh(bodyGeo, bodyMat); bodyMesh.renderOrder = 10; carRoot.add(bodyMesh);
+const panelBox = {};
+{
+  const p = bodyGeo.attributes.position, n = bodyGeo.attributes.normal;
+  for (let i = 0; i < p.count; i++) {
+    const id = classify(p.getX(i), p.getY(i), p.getZ(i), n.getX(i), n.getY(i), n.getZ(i));
+    if (id < 0) continue;
+    (panelBox[id] || (panelBox[id] = new THREE.Box3())).expandByPoint(new THREE.Vector3(p.getX(i), p.getY(i), p.getZ(i)));
+  }
+}
+
+/* build parts */
+const PARTS = [], BY = {}, pickables = [];
+const ORDER = Object.keys(SYS);
+DEF.sort((a, b) => ORDER.indexOf(a.sys) - ORDER.indexOf(b.sys));
+const sysCount = {};
+for (const d of DEF) {
+  const part = { ...d, meshes: [], mats: [], color: vary(SYS[d.sys].color, d.id) };
+  sysCount[d.sys] = (sysCount[d.sys] || 0) + 1;
+  part.code = SYS[d.sys].code + '-' + String(sysCount[d.sys]).padStart(2, '0');
+  PARTS.push(part); BY[part.id] = part;
+}
+const panelPart = {};
+for (const part of PARTS) {
+  if (part.panel) panelPart[part.panel] = part;
+  if (!part.build) continue;
+  const h = {
+    get base() { return part._base || (part._base = h.mat({})); },
+    mat(o = {}) {
+      const op = o.opacity ?? part.ghost ?? 1;
+      const m = new THREE.MeshStandardMaterial({ color: o.color ?? part.color, metalness: o.metal ?? 0.3, roughness: o.rough ?? 0.55, side: o.side ?? THREE.FrontSide, map: o.map ?? null });
+      if (o.emissive) { m.emissive.set(o.emissive); m.emissiveIntensity = o.ei ?? 1; }
+      if (op < 1) { m.transparent = true; m.opacity = op; m.depthWrite = false; }
+      m.userData.b = { op: m.opacity, tr: m.transparent, dw: m.depthWrite, em: m.emissive.clone(), ei: m.emissiveIntensity };
+      part.mats.push(m); return m;
+    },
+    mesh(geo, o = {}) {
+      const mat = o.mat instanceof THREE.Material ? o.mat : (o.mat ? h.mat(o.mat) : h.base);
+      const m = new THREE.Mesh(geo, mat);
+      if (o.p) m.position.set(...o.p); if (o.r) m.rotation.set(...o.r); if (o.s) m.scale.set(...o.s);
+      if (mat.transparent) m.renderOrder = 2;
+      (o.parent || carRoot).add(m); m.userData.part = part; part.meshes.push(m); pickables.push(m); return m;
+    },
+    group(o = {}) { const g = new THREE.Group(); if (o.p) g.position.set(...o.p); if (o.r) g.rotation.set(...o.r); (o.parent || carRoot).add(g); return g; },
+  };
+  part.build(h);
+}
+
+/* engine motion */
+function engineUpdate(th) {
+  if (ANIM.crank) ANIM.crank.rotation.x = th;
+  ANIM.cams.forEach(g => g.rotation.x = th / 2);
+  CYLX.forEach((x, i) => {
+    const a = th + PHASE[i], pinY = CY + 0.04 * Math.cos(a), pinZ = 0.04 * Math.sin(a);
+    const py = CY + 0.04 * Math.cos(a) + Math.sqrt(0.17 * 0.17 - pinZ * pinZ);
+    ANIM.pistons[i].position.set(x, py + 0.02, 0);
+    const r = ANIM.rods[i]; r.position.set(x, (pinY + py) / 2, pinZ / 2); r.rotation.set(Math.atan2(-pinZ, py - pinY), 0, 0);
+  });
+}
+let theta = 0; engineUpdate(0);
+
+/* ------------------------------------------------------------------ *
+ *  Theme
+ * ------------------------------------------------------------------ */
+function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function applyTheme() {
+  const dark = (document.documentElement.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark';
+  gridMat.color.set(cssVar('--grid') || '#999'); gridMat.opacity = dark ? 0.7 : 0.55;
+  bodyU.uXrayTint.value.set(cssVar('--xray') || '#7DB0FF');
+  bodyU.uAccent.value.set(cssVar('--accent') || '#FF7B3F');
+  selBox.material.color.set(cssVar('--accent') || '#FF7B3F');
+  renderer.toneMappingExposure = dark ? 1.0 : 1.05;
+}
+const selBox = new THREE.Box3Helper(new THREE.Box3(), 0xff7b3f);
+selBox.material.depthTest = false; selBox.material.transparent = true; selBox.material.opacity = 0.9; selBox.renderOrder = 30; selBox.visible = false; scene.add(selBox);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
+new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+applyTheme();
+
+/* ------------------------------------------------------------------ *
+ *  State, highlight, camera
+ * ------------------------------------------------------------------ */
+const state = { sel: null, hover: null, mode: 'xray', isolate: false, running: false };
+const WHITE = new THREE.Color('#ffffff');
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function partBox(part) {
+  scene.updateMatrixWorld(true);
+  const b = new THREE.Box3();
+  if (part.panel && panelBox[part.panel]) b.union(panelBox[part.panel]);
+  part.meshes.forEach(m => b.union(new THREE.Box3().setFromObject(m)));
+  return b;
+}
+function refreshLook() {
+  for (const p of PARTS) {
+    const ghost = state.isolate && state.sel && p !== state.sel;
+    const on = p === state.sel, hv = p === state.hover && !on;
+    for (const m of p.mats) {
+      const b = m.userData.b, tr = ghost ? true : b.tr;
+      if (m.transparent !== tr) { m.transparent = tr; m.needsUpdate = true; }
+      m.opacity = ghost ? b.op * 0.07 : b.op; m.depthWrite = ghost ? false : b.dw;
+      if (on || hv) { m.emissive.copy(b.em).lerp(WHITE, b.ei ? 0.4 : 1); m.emissiveIntensity = Math.max(b.ei, on ? 0.4 : 0.16); }
+      else { m.emissive.copy(b.em); m.emissiveIntensity = b.ei; }
+    }
+    p.meshes.forEach(me => me.renderOrder = (ghost || me.material.transparent) ? 2 : 0);
+  }
+  bodyU.uSel.value = state.sel?.panel ?? -1;
+  bodyU.uHover.value = state.hover?.panel ?? -1;
+  bodyU.uDim.value = state.isolate && state.sel && !state.sel.panel ? 0.12 : 1;
+  if (state.sel) { selBox.box.copy(partBox(state.sel)).expandByScalar(0.02); selBox.visible = true; } else selBox.visible = false;
+}
+function setMode(mode) {
+  state.mode = mode;
+  bodyMesh.visible = mode !== 'hidden';
+  bodyU.uXray.value = mode === 'xray' ? 1 : 0;
+  bodyMat.depthWrite = mode === 'solid';
+  BY.chassis.meshes.forEach(m => { if (m.userData.solidOnly) m.visible = mode === 'solid'; });
+  document.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
+}
+
+let tween = null;
+function flyTo(target, position) {
+  if (reduceMotion) { controls.target.copy(target); camera.position.copy(position); return; }
+  tween = { start: performance.now(), t0: controls.target.clone(), p0: camera.position.clone(), t1: target.clone(), p1: position.clone() };
+}
+function focusOn(part) {
+  const b = partBox(part), c = b.getCenter(new THREE.Vector3()), size = b.getSize(new THREE.Vector3()).length();
+  const dist = clamp(size * 1.5 + 0.7, 1.0, 7.5);
+  const dir = camera.position.clone().sub(controls.target).normalize();
+  flyTo(c, c.clone().add(dir.multiplyScalar(dist)));
+}
+const VIEWS = { // [target, direction, distance on a wide screen]
+  iso: [new THREE.Vector3(0.05, 0.55, 0), new THREE.Vector3(5.35, 2.25, 5.6), 8.1],
+  side: [new THREE.Vector3(0, 0.6, 0), new THREE.Vector3(0.001, 0.3, 6.6), 9.4],
+  top: [new THREE.Vector3(0, 0.5, 0), new THREE.Vector3(0, 1, 0.002), 9.6],
+  under: [new THREE.Vector3(0, 0.3, 0), new THREE.Vector3(1.6, -3.9, 2.4), 8.6],
+};
+// distance scale so the whole car fits the free area on narrow screens
+function fitScale() {
+  const r = canvas.getBoundingClientRect(); let fw = r.width, fh = r.height;
+  if (r.width > 860) { const L = cardEl.hidden ? 16 : cardEl.getBoundingClientRect().right; fw = Math.max(200, indexEl.getBoundingClientRect().left - L); }
+  else { const T = document.querySelector('.bar').getBoundingClientRect().bottom; fh = (cardEl.hidden ? r.height : cardEl.getBoundingClientRect().top) - T; fw = r.width; }
+  return Math.max(1, 0.95 / (fw / Math.max(1, r.height))) * Math.max(1, 0.62 / (fh / Math.max(1, r.height)));
+}
+function viewPos(name) { const [t, d, k] = VIEWS[name]; return [t, t.clone().add(d.clone().normalize().multiplyScalar(k * fitScale()))]; }
+
+/* ------------------------------------------------------------------ *
+ *  Picking
+ * ------------------------------------------------------------------ */
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), tri = new THREE.Triangle(), bary = new THREE.Vector3();
+function bodyPanelAt(hit) {
+  const n = bodyGeo.attributes.normal, { a, b, c } = hit.face;
+  tri.setFromAttributeAndIndices(bodyGeo.attributes.position, a, b, c); tri.getBarycoord(hit.point, bary);
+  const nx = n.getX(a) * bary.x + n.getX(b) * bary.y + n.getX(c) * bary.z;
+  const ny = n.getY(a) * bary.x + n.getY(b) * bary.y + n.getY(c) * bary.z;
+  const nz = n.getZ(a) * bary.x + n.getZ(b) * bary.y + n.getZ(c) * bary.z;
+  const l = Math.hypot(nx, ny, nz) || 1;
+  return classify(hit.point.x, hit.point.y, hit.point.z, nx / l, ny / l, nz / l);
+}
+function pickAt(cx, cy) {
+  const r = canvas.getBoundingClientRect();
+  ndc.set(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
+  ray.setFromCamera(ndc, camera);
+  const targets = bodyMesh.visible ? pickables.concat(bodyMesh) : pickables;
+  const items = [];
+  for (const hit of ray.intersectObjects(targets, false)) {
+    if (!hit.object.visible) continue;
+    if (hit.object === bodyMesh) {
+      const id = bodyPanelAt(hit); if (id < 0) continue;
+      const p = panelPart[id]; if (state.isolate && state.sel && p !== state.sel) continue;
+      items.push({ part: p, body: true });
+    } else {
+      const p = hit.object.userData.part; if (state.isolate && state.sel && p !== state.sel) continue;
+      items.push({ part: p });
+    }
+  }
+  let list = items;
+  if (state.mode === 'xray') { const inner = items.filter(i => !i.body); if (inner.length) list = inner; }
+  return list.length ? resolve(list, 0) : null;
+}
+function resolve(list, i) {
+  const p = list[i].part;
+  if (p.kids) for (let j = i + 1; j < list.length; j++) if (p.kids.includes(list[j].part.id)) return resolve(list, j);
+  if (p.pass) for (let j = i + 1; j < list.length; j++) if (!list[j].part.pass && !list[j].body) return resolve(list, j);
+  return p;
+}
+
+/* ------------------------------------------------------------------ *
+ *  UI
+ * ------------------------------------------------------------------ */
+const $ = s => document.querySelector(s);
+const listEl = $('#list'), cardEl = $('#card'), tipEl = $('#tip'), qEl = $('#q'), indexEl = $('#index');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const norm = s => s.toLowerCase().replace(/[ً-ْـ]/g, '').replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي');
+$('#count').textContent = PARTS.length + ' قطعة';
+$('#legend').innerHTML = ['engine', 'drivetrain', 'brakes', 'suspension', 'electrical', 'cooling'].map(k => `<span><i style="background:${SYS[k].color}"></i>${SYS[k].ar}</span>`).join('') + '<span>…</span>';
+
+function renderList() {
+  const q = norm(qEl.value.trim());
+  let html = '', any = false;
+  for (const k of ORDER) {
+    const items = PARTS.filter(p => p.sys === k && (!q || norm(p.ar + ' ' + p.en + ' ' + p.code).includes(q)));
+    if (!items.length) continue; any = true;
+    html += `<div class="grp"><div class="grp-h"><span class="dot" style="background:${SYS[k].color}"></span>${SYS[k].ar}<span class="en">${SYS[k].en}</span></div>`;
+    html += items.map(p => `<button class="item" data-id="${p.id}" aria-current="${p === state.sel}"><span class="ar">${esc(p.ar)}</span><span class="en">${esc(p.en)}</span></button>`).join('');
+    html += '</div>';
+  }
+  if (!q) html += `<div class="more"><b>بدك تتعمّق أكتر؟</b>
+    <a href="https://www.howacarworks.com/" target="_blank" rel="noopener">How a Car Works: شروحات مصوّرة لكل أنظمة السيارة (إنجليزي)</a>
+    <a href="https://animagraffs.com/how-a-car-engine-works/" target="_blank" rel="noopener">Animagraffs: كيف بيشتغل المحرك، مع رسوم متحركة (إنجليزي)</a></div>`;
+  listEl.innerHTML = any ? html : '<div class="empty">ما في قطعة بهالاسم. جرّب كلمة تانية، بالعربي أو بالإنجليزي.</div>';
+}
+const canSpeak = 'speechSynthesis' in window;
+function renderCard() {
+  const p = state.sel;
+  if (!p) { cardEl.hidden = true; requestAnimationFrame(updateOffset); return; }
+  cardEl.hidden = false;
+  const sv = SEV[p.sev], sys = SYS[p.sys];
+  cardEl.innerHTML = `
+    <div class="card-top">
+      <span class="sys-chip"><i style="background:${sys.color}"></i>${sys.ar}</span>
+      <span class="code">${p.code}</span>
+      <button id="cardClose" aria-label="صغّر البطاقة">${cardEl.classList.contains('collapsed') ? '▴' : '▾'}</button>
+    </div>
+    <div class="name">
+      <h2>${esc(p.ar)}</h2>
+      <div class="en-row"><span class="en-name">${esc(p.en)}</span>${canSpeak ? '<button class="say" id="say" aria-label="اسمع اللفظ بالإنجليزي"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5zM15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>اسمع</button>' : ''}</div>
+    </div>
+    <div class="where"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span>${esc(p.w)}</span></div>
+    <div class="blk"><h3>شو وظيفتها؟</h3><p>${esc(p.fn)}</p></div>
+    <div class="blk"><h3>إذا خربت؟</h3><p>${esc(p.br)}</p></div>
+    <div class="sev" style="--sev-c: var(${sv.v})"><span class="meter" aria-hidden="true">${[1, 2, 3].map(i => `<i class="${i <= p.sev ? 'on' : ''}"></i>`).join('')}</span><div><b>خطورة العطل: ${sv.t}</b><br><span>${sv.d}</span></div></div>
+    ${p.note ? `<div class="note"><b>معلومة:</b> ${esc(p.note)}</div>` : ''}
+    <div class="card-actions">
+      <button class="btn" id="focusBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.3-4.3"/></svg>قرّب عليها</button>
+      <button class="btn" id="isoBtn" aria-pressed="${state.isolate}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M3 12h3M18 12h3M12 3v3M12 18v3"/></svg>اعزلها</button>
+      <span class="grow"><button class="btn" id="prevBtn" aria-label="القطعة السابقة">→</button><button class="btn" id="nextBtn" aria-label="القطعة التالية">←</button></span>
+    </div>`;
+  $('#focusBtn').onclick = () => focusOn(p);
+  $('#isoBtn').onclick = () => { state.isolate = !state.isolate; refreshLook(); renderCard(); };
+  $('#prevBtn').onclick = () => step(-1);
+  $('#nextBtn').onclick = () => step(1);
+  $('#cardClose').onclick = () => { cardEl.classList.toggle('collapsed'); renderCard(); };
+  requestAnimationFrame(updateOffset);
+  const say = $('#say');
+  if (say) say.onclick = () => { try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(p.en.replace(/\(.*?\)/g, '')); u.lang = 'en-US'; u.rate = 0.9; speechSynthesis.speak(u); } catch (e) { /* speech not available */ } };
+}
+function step(d) { const i = PARTS.indexOf(state.sel); select(PARTS[(i + d + PARTS.length) % PARTS.length], { focus: true }); }
+function select(part, { focus = false } = {}) {
+  state.sel = part;
+  if (!part) state.isolate = false;
+  refreshLook(); renderCard();
+  listEl.querySelectorAll('.item').forEach(b => b.setAttribute('aria-current', String(b.dataset.id === part?.id)));
+  const cur = listEl.querySelector(`[data-id="${part?.id}"]`); if (cur) cur.scrollIntoView({ block: 'nearest' });
+  if (part && focus) focusOn(part);
+  if (part && part.panel && state.mode === 'hidden') setMode('xray');
+}
+listEl.addEventListener('click', e => {
+  const b = e.target.closest('.item'); if (!b) return;
+  cardEl.classList.remove('collapsed');
+  select(BY[b.dataset.id], { focus: true });
+  if (matchMedia('(max-width: 860px)').matches) toggleIndex(false);
+});
+qEl.addEventListener('input', renderList);
+document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => { setMode(b.dataset.mode); refreshLook(); }));
+document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => flyTo(...viewPos(b.dataset.view))));
+const runBtn = $('#runBtn');
+runBtn.addEventListener('click', () => {
+  state.running = !state.running; runBtn.setAttribute('aria-pressed', String(state.running));
+  runBtn.querySelector('span').textContent = state.running ? 'وقّف المحرك' : 'شغّل المحرك';
+  runBtn.querySelector('svg').innerHTML = state.running ? '<path d="M7 5h4v14H7zM13 5h4v14h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
+});
+function toggleIndex(open) { indexEl.classList.toggle('open', open); $('#listToggle').setAttribute('aria-expanded', String(open)); }
+$('#listToggle').addEventListener('click', () => toggleIndex(!indexEl.classList.contains('open')));
+document.addEventListener('keydown', e => {
+  if (e.target === qEl) return;
+  if (e.key === 'Escape') select(null);
+  if (state.sel && (e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !e.altKey) { e.preventDefault(); step(e.key === 'ArrowLeft' ? 1 : -1); }
+});
+
+/* pointer: click vs drag, hover tooltip */
+let down = null, hoverXY = null, hintGone = false;
+canvas.addEventListener('pointerdown', e => { if (indexEl.classList.contains('open')) toggleIndex(false); down = { x: e.clientX, y: e.clientY, t: performance.now() }; tween = null; if (!hintGone) { hintGone = true; $('#hint').style.opacity = '0.55'; } });
+canvas.addEventListener('pointerup', e => {
+  if (!down) return;
+  const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y), dt = performance.now() - down.t; down = null;
+  if (moved > 6 || dt > 600) return;
+  const p = pickAt(e.clientX, e.clientY);
+  if (p) cardEl.classList.remove('collapsed');
+  select(p);
+});
+canvas.addEventListener('pointermove', e => { if (e.pointerType === 'mouse' && !down) hoverXY = [e.clientX, e.clientY]; });
+canvas.addEventListener('pointerleave', () => { hoverXY = null; setHover(null); });
+function setHover(p, x, y) {
+  if (p !== state.hover) { state.hover = p; refreshLook(); canvas.style.cursor = p ? 'pointer' : ''; }
+  if (p) { tipEl.innerHTML = `${esc(p.ar)}<span class="en">${esc(p.en)}</span>`; tipEl.style.left = x + 'px'; tipEl.style.top = y + 'px'; tipEl.style.opacity = '1'; }
+  else tipEl.style.opacity = '0';
+}
+
+/* ------------------------------------------------------------------ *
+ *  Loop
+ * ------------------------------------------------------------------ */
+function resize() {
+  const r = canvas.parentElement.getBoundingClientRect();
+  renderer.setSize(r.width, r.height, false); camera.aspect = r.width / Math.max(1, r.height);
+  updateOffset();
+}
+// keep the car centred in the free area between the floating panels
+function updateOffset() {
+  const r = canvas.getBoundingClientRect();
+  let dx = 0, dy = 0;
+  if (r.width > 860) {
+    const L = cardEl.hidden ? 16 : cardEl.getBoundingClientRect().right, R = indexEl.getBoundingClientRect().left;
+    if (R > L) dx = (L + R) / 2 - r.width / 2;
+  } else {
+    const T = document.querySelector('.bar').getBoundingClientRect().bottom, B = cardEl.hidden ? r.height : cardEl.getBoundingClientRect().top;
+    if (B > T) dy = (T + B) / 2 - r.height / 2;
+  }
+  if (dx || dy) camera.setViewOffset(r.width, r.height, -dx, -dy, r.width, r.height); else camera.clearViewOffset();
+  camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(canvas.parentElement); resize();
+const clock = new THREE.Clock();
+let frame = 0;
+function loop() {
+  const dt = Math.min(clock.getDelta(), 0.05); frame++;
+  if (tween) {
+    tween.t = Math.min(1, (performance.now() - tween.start) / 750); const k = tween.t < 0.5 ? 2 * tween.t * tween.t : 1 - Math.pow(-2 * tween.t + 2, 2) / 2;
+    controls.target.lerpVectors(tween.t0, tween.t1, k); camera.position.lerpVectors(tween.p0, tween.p1, k);
+    if (tween.t >= 1) tween = null;
+  }
+  controls.update();
+  if (state.running) {
+    theta += dt * 9; engineUpdate(theta);
+    if (ANIM.fan) ANIM.fan.rotation.x += dt * 14;
+    ANIM.spinners.forEach(g => g.rotation.z -= dt * 5);
+  }
+  if (state.sel && !reduceMotion) {
+    const k = Math.sin(performance.now() / 260) ** 2;
+    selBox.material.opacity = 0.55 + 0.4 * k;
+    state.sel.mats.forEach(m => m.emissiveIntensity = Math.max(m.userData.b.ei, 0.22 + 0.33 * k));
+  }
+  if (hoverXY && frame % 2 === 0) { const [x, y] = hoverXY; hoverXY = null; setHover(pickAt(x, y), x, y); }
+  ground.visible = camera.position.y > 0.05;
+  renderer.render(scene, camera);
+  requestAnimationFrame(loop);
+}
+
+/* boot */
+renderList();
+setMode('xray');
+const fromHash = BY[decodeURIComponent(location.hash.slice(1))];
+if (matchMedia('(max-width: 860px)').matches) cardEl.classList.add('collapsed');
+select(fromHash || BY.engineBlock, { focus: !!fromHash });
+if (!fromHash) { const [t, p] = viewPos('iso'); controls.target.copy(t); camera.position.copy(p); controls.update(); }
+loop();
+window.__carReady = true;
+const ld = $('#loader'); ld.style.opacity = '0'; setTimeout(() => ld.hidden = true, 450);
+window.__car = { PARTS, BY, select, setMode, camera, controls, pickAt };
+</script>
+
+</body>
+</html>
