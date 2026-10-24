@@ -67,14 +67,14 @@ button { cursor: pointer; }
 
 /* The overlay never takes clicks itself; only the real panels do, so the car stays clickable. */
 #ui {
-  position: absolute; inset: 0; pointer-events: none;
+  position: absolute; inset: 0; pointer-events: none; z-index: 6;
   display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 12px;
   padding-block: 12px;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
 .main { display: grid; grid-template-columns: 290px minmax(0, 1fr) 370px; gap: 12px; min-height: 0; }
-#ui .bar, #index, #card, .foot > * { pointer-events: auto; }
+#ui .bar, #index, #card, .foot > *, #sim { pointer-events: auto; }
 
 .surface { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
 
@@ -172,11 +172,62 @@ button { cursor: pointer; }
 #loader .spin { width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--accent); margin: 0 auto; animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+
+/* engine teardown stepper, driving HUD, fault box, exploded-view labels */
+.center { display: flex; flex-direction: column; align-items: center; min-width: 0; min-height: 0; }
+#sim { width: min(560px, 100%); padding: 10px 12px; display: grid; gap: 8px; }
+.sim-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sim-head b { font-family: var(--font-display); font-size: 14px; margin-inline-end: auto; }
+.sim-top { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.gauge { display: grid; line-height: 1.15; text-align: center; min-width: 52px; }
+.gauge b { font-family: var(--font-mono); font-size: 21px; font-weight: 500; }
+.gauge small { font-size: 11px; color: var(--ink-2); font-family: var(--font-mono); }
+.temp { display: grid; gap: 4px; flex: 1; min-width: 110px; font-size: 11.5px; color: var(--ink-2); }
+.temp span { display: block; height: 6px; border-radius: 3px; position: relative; direction: ltr; background: linear-gradient(90deg, #2E9BFF, #4CC27E 40%, #E9B33C 72%, #FF4A3D); }
+.temp span i { position: absolute; top: -4px; width: 3px; height: 14px; margin-left: -1.5px; border-radius: 2px; background: var(--ink); left: 45%; transition: left .25s; }
+.lamps { display: flex; gap: 4px 6px; flex-wrap: wrap; }
+.lamp { width: 26px; height: 26px; padding: 2px; border-radius: 6px; color: var(--ink-2); opacity: .28; box-sizing: border-box; }
+.lamp svg { width: 100%; height: 100%; display: block; }
+.lamp.on { opacity: 1; background: rgba(0, 0, 0, .55); }
+.lamp.on.r { color: #FF4136; } .lamp.on.a { color: #FFB000; }
+.lamp.on.blink { animation: blink .55s steps(2, jump-none) infinite; }
+.sim-msg { margin: 0; font-size: 14px; font-weight: 600; color: var(--sev3); min-height: 1.4em; }
+.snd-note { margin: 0; font-size: 11.5px; color: var(--ink-2); }
+#td { width: min(640px, calc(100vw - 32px)); padding: 10px 12px; display: grid; gap: 8px; box-sizing: border-box; }
+.td-h { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.td-h b { font-family: var(--font-display); font-size: 14px; }
+.td-h .num { font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); }
+.td-h .nm { color: var(--accent); font-weight: 600; font-size: 14px; }
+.td-bar { height: 4px; border-radius: 2px; background: var(--chip); overflow: hidden; }
+.td-bar i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .35s; }
+.td-ctrl { display: flex; gap: 6px; flex-wrap: wrap; }
+.td-ctrl .btn { padding: 4px 10px; font-size: 12.5px; }
+.td-ctrl .btn:disabled { opacity: .4; cursor: default; }
+.td-ctrl .x { margin-inline-start: auto; }
+#labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 4; }
+.tdl { position: absolute; left: 0; top: 0; pointer-events: auto; border: 1px solid var(--line); background: var(--panel); color: var(--ink); font-size: 11.5px; line-height: 1.3; padding: 2px 8px; border-radius: 99px; white-space: nowrap; box-shadow: 0 2px 8px rgba(0, 0, 0, .12); will-change: transform; }
+.tdl:hover { border-color: var(--accent); color: var(--accent); }
+.fault { border: 1px solid var(--line); border-inline-start: 4px solid var(--sev3); border-radius: 12px; padding: 10px 12px; display: grid; gap: 8px; }
+.fault.on { background: var(--demo-bg); }
+.fault-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.fault-h b { font-size: 13px; font-weight: 600; }
+.fault-h .btn { margin-inline-start: auto; padding: 3px 10px; font-size: 12px; }
+.sym { margin: 0; padding: 0; list-style: none; display: grid; gap: 5px; font-size: 14px; }
+.sym li { display: grid; grid-template-columns: 50px minmax(0, 1fr); gap: 8px; align-items: baseline; }
+.sym li i { font-style: normal; font-size: 11.5px; font-weight: 600; color: var(--ink-2); background: var(--chip); border-radius: 6px; padding: 1px 4px; text-align: center; }
+.dx { margin: 0; font-size: 13.5px; }
+.dx b { color: var(--accent); font-weight: 600; }
+@media (max-width: 1500px) { .brand p { display: none; } }
+@media (max-width: 860px) { .lamp:not(.on) { display: none; } .lamps:not(:has(.on)) { display: none; } }
+@media (max-width: 520px) { .seg[aria-label="زاوية الكاميرا"] { display: none; } #colorBtn span, #sndBtn span { display: none; } }
 @media (max-width: 1100px) {
   .main { grid-template-columns: 260px minmax(0, 1fr) 330px; }
 }
 @media (max-width: 860px) {
   #ui { gap: 8px; padding-block: 8px; }
+  #sim { padding: 8px 10px; gap: 6px; }
+  #sim .snd-note { display: none; }
+  .lamp { width: 22px; height: 22px; }
   .main { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
   #listToggle { display: inline-flex; }
   #index { position: absolute; z-index: 25; top: 8px; bottom: 8px; right: max(16px, env(safe-area-inset-right, 0px)); width: min(340px, calc(100% - 32px)); transform: translateX(calc(100% + 40px)); transition: transform .25s ease; }
@@ -193,7 +244,8 @@ button { cursor: pointer; }
   .hint { font-size: 12px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  #index, #tip, #loader { transition: none; }
+  #index, #tip, #loader, .td-bar i, .temp span i { transition: none; }
+  .lamp.on.blink { animation: none; }
   #loader .spin, .demo.playing .demo-h b i { animation: none; }
 }
 </style>
@@ -201,6 +253,7 @@ button { cursor: pointer; }
 <div id="app" dir="rtl" lang="ar">
   <div id="stage"><canvas id="c" aria-label="مجسم سيارة ثلاثي الأبعاد. اسحب لتلف السيارة واكبس على أي قطعة لتشوف كيف بتشتغل."></canvas></div>
   <div id="callout" hidden></div>
+  <div id="labels" aria-hidden="true" hidden></div>
 
   <div id="ui">
     <header class="bar surface">
@@ -221,6 +274,17 @@ button { cursor: pointer; }
         <button class="btn" id="runBtn" aria-pressed="false">
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
           <span>شغّل المحرك</span>
+        </button>
+        <button class="btn" id="driveBtn" aria-pressed="false" title="السيارة بتمشي عالطريق">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 15l1.6-5A2 2 0 0 1 8.5 8.6h7a2 2 0 0 1 1.9 1.4L19 15M3.5 15h17v3.5h-17zM7 18.5V20M17 18.5V20"/></svg>
+          <span>سوق</span>
+        </button>
+        <button class="btn" id="tdBtn" aria-pressed="false" title="فكّ المحرك قطعة قطعة">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg>
+          <span>فكّ المحرك</span>
+        </button>
+        <button class="btn" id="sndBtn" aria-pressed="true" aria-label="الصوت" title="الصوت">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"></svg>
         </button>
         <button class="btn" id="colorBtn" aria-pressed="false" title="بدّل بين ألوان المواد الحقيقية وألوان الأنظمة">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg>
@@ -243,13 +307,14 @@ button { cursor: pointer; }
         </div>
         <div id="list"></div>
       </aside>
-      <div></div>
+      <div class="center"><div id="sim" class="surface" hidden></div></div>
       <section id="card" class="surface"></section>
     </div>
 
     <div class="foot">
       <div class="hint" id="hint">اسحب لتلف · قرّب بالعجلة أو بإصبعين · اكبس على أي قطعة لتشوف شغلها</div>
       <div class="legend" id="legend"></div>
+      <div id="td" class="surface" hidden></div>
     </div>
   </div>
 
@@ -282,6 +347,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 
 /* ------------------------------------------------------------------ *
  *  Systems, severity, effect colours
@@ -320,7 +386,8 @@ const DEG = Math.PI / 180;
 const PHASE = [0, 240, 120, 120, 240, 0].map(d => d * DEG);          // inline-6 crank throws
 const FIRE = [0, 480, 240, 600, 120, 360].map(d => d * DEG);         // firing order 1-5-3-6-2-4
 const TAU2 = 4 * Math.PI;
-let DIM = 0.38, lookReady = false;   // how faded the other parts get while one is selected
+let DIM = 0.38, lookReady = false;
+const ACC = new THREE.Color('#FF7B3F');   // accent, kept in sync with the theme   // how faded the other parts get while one is selected
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const smooth = (a, b, v) => { const t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 const mod = (a, n) => ((a % n) + n) % n;
@@ -486,8 +553,8 @@ if (pid == 15) {
   glow = vec3(1.0, 0.07, 0.05) * (abs(vOP.y - 0.895) < 0.014 ? 1.8 : 0.55) * (1.0 + 2.2 * uBrake);
 }
 if (pid == 12 && uDefrost > 0.0 && fract(vOP.y * 38.0) < 0.16) glow += vec3(1.0, 0.45, 0.1) * 2.0 * uDefrost;
-if (abs(fid - uHover) < 0.5) { base = mix(base, uAccent, 0.35); a = max(a, 0.32); }
-if (abs(fid - uSel) < 0.5) { base = mix(base, uAccent, 0.6); a = max(a, 0.72); }
+if (abs(fid - uHover) < 0.5) { base = mix(base, uAccent, 0.2); a = max(a, 0.3); }
+if (abs(fid - uSel) < 0.5) { base = mix(base, uAccent, 0.36); a = max(a, 0.62); }
 a *= uDim;
 vec4 diffuseColor = vec4(base, a);`;
 
@@ -578,6 +645,20 @@ const DEMOS = {
   spray: { cap: 'الدولاب عم يلف ويطيّر ماي ووسخ (بني)، والبطانة بتحمي الهيكل والأسلاك منهم.', fx: { wheels: 1, flows: ['sprayFL', 'sprayFR', 'sprayRL', 'sprayRR'] }, keys: [[C.dust, 'ماي ووسخ']], cast: ['tires', 'rims'] },
   fenders: { cap: 'الرفرف بيغطّي العجلة وهي عم تلف وتتوجّه، وبيمنع الحجار والطين يطيروا.', fx: { wheels: 1, steer: 1 }, cast: ['tires'] },
   quarter: { cap: 'الرفرف الخلفي بيغطّي العجلة الخلفية وهي عم تلف، وهو ملحوم بالهيكل.', fx: { wheels: 1 }, cast: ['tires'] },
+  bore: { cap: 'البستم عم يطلع وينزل جوّا السلندر، والانفجار (برتقالي) بيصير فوقه بغرفة الاحتراق.', fx: { engine: 'slow', combust: 1, sparks: 1 }, keys: [[C.hot, 'انفجار']], cast: ['pistons', 'pistonRings', 'engineBlock'] },
+  rings: { cap: 'الشنابر طالعة نازلة مع البستم وماسحة جدار السلندر: الفوقانيات بيسكّروا ضغط الانفجار (برتقالي)، والتحتانية بتكشط الزيت لتحت.', fx: { engine: 'slow', combust: 1, flows: ['oil'] }, keys: [[C.hot, 'ضغط الانفجار'], [C.oil, 'زيت']], cast: ['pistons', 'cylinders'] },
+  rods: { cap: 'كل ذراع راسه الصغير طالع نازل مع البستم، وراسه الكبير عم يدور مع الكرنك، فالحركة بتتحوّل لدوران.', fx: { engine: 'slow', combust: 1 }, keys: [[C.hot, 'انفجار']], cast: ['pistons', 'crankshaft'] },
+  bearings: { cap: 'الكرنك عم يدور جوّا السبيكة (الدهبي)، وطرمبة الزيت عم تدفع زيت (أصفر غامق) بيعمل طبقة بيناتهم فما بيحتكّوا.', fx: { engine: 'slow', flows: ['oil'] }, keys: [[C.oil, 'زيت المحرك']], cast: ['crankshaft', 'oilPump', 'conRods'] },
+  springs: { cap: 'كل ما الكامة تدفش الصبابة لتحت، النابض بينضغط، وبعدين بيرجّعها تسكّر بسرعة.', fx: { engine: 'slow', valves: 1 }, cast: ['valves', 'camshaft'] },
+  tensioner: { cap: 'الجنزير (النقاط الفضية) عم يلف، والشدّاد بيدفع المجرى (لاحظ البستم الصغير) ليضل الجنزير مشدود وما يرقص.', fx: { engine: 'slow', flows: ['chain'], tens: 1 }, keys: [[C.silver, 'حركة الجنزير']], cast: ['timingChain', 'camshaft'] },
+  vanos: { cap: 'الكامة عم تلف، والـVANOS عم يقدّمها ويأخّرها شوي (لاحظ العلامة البرتقالية) بضغط الزيت حسب الدورات.', fx: { engine: 'slow', valves: 1, vanos: 1 }, cast: ['camshaft', 'timingChain', 'valves'] },
+  balancer: { cap: 'البكرة عم تلف مع الكرنك، والحلقة البرّانية التقيلة بتهتزّ شوي على الكاوتشوكة (لاحظ العلامة البيضا) فبتمتص التفتّل.', fx: { engine: 'fast', balancer: 1, flows: ['belt'] }, keys: [[C.belt, 'حركة السير']], cast: ['crankshaft', 'serpentineBelt'] },
+  headbolts: { cap: 'البراغي عم تنشد واحد ورا التاني بترتيب حلزوني من النص لبرّا، لحتى ينضغط جوان الراس بالتساوي.', fx: { headBolts: 1 }, cast: ['cylinderHead', 'headGasket', 'engineBlock'] },
+  cks: { cap: 'الحدّافة عم تلف مع الكرنك، والحسّاس (عم يضوي) بيعدّ أسنانها وبيبعت إشارة (أخضر) للكمبيوتر.', fx: { engine: 'slow', cks: 1, flows: ['sigCks'] }, keys: [[C.sig, 'إشارة للكمبيوتر']], cast: ['flywheel', 'crankshaft', 'ecu'] },
+  cms: { cap: 'الحسّاس بيضوي كل ما تمرق العلامة على الكامة، وبيبعت إشارة (أخضر) للكمبيوتر ليعرف أي سلندر دوره.', fx: { engine: 'slow', valves: 1, cms: 1, flows: ['sigCms'] }, keys: [[C.sig, 'إشارة للكمبيوتر']], cast: ['camshaft', 'ecu'] },
+  knock: { cap: 'مع كل انفجار البلوك بيرجف شوي، والحسّاس (عم يضوي) بيسمع الرجفة وبيبعتها (أخضر) للكمبيوتر.', fx: { engine: 'slow', combust: 1, knock: 1, flows: ['sigKnock'] }, keys: [[C.hot, 'انفجار'], [C.sig, 'إشارة']], cast: ['engineBlock', 'ecu'] },
+  ops: { cap: 'الطرمبة عم تدفع الزيت (أصفر غامق) بالمحرك، والحسّاس بيقيس ضغطه وبيضوي أخضر طول ما الضغط منيح.', fx: { engine: 'slow', flows: ['oil'], ops: 1 }, keys: [[C.oil, 'زيت']], cast: ['oilPump', 'oilFilter'] },
+  ects: { cap: 'ماي المحرك (أحمر) بيمرق جنب الحسّاس، والحسّاس بيبعت حرارته (أخضر) للكمبيوتر وللعدّادات.', fx: { engine: 'slow', flows: ['coolant', 'sigEcts'], ects: 1, gauges: 1 }, keys: [[C.hotW, 'ماي سخن'], [C.sig, 'إشارة']], cast: ['thermostat', 'ecu', 'cluster'] },
 };
 
 /* ------------------------------------------------------------------ *
@@ -617,12 +698,14 @@ const CHAIN_X = 0.972, CHAIN = [[0, 0.318], [0.038, 0.355], [0.068, 0.52], [0.09
  *  Part catalogue
  *  w = where it sits, fn = what it does, br = what happens when it breaks, demo = which animation
  * ------------------------------------------------------------------ */
-const RIG = { bolts: {}, discEdge: null, padSensorMat: null, pistons: [], rods: [], crank: null, cams: [], valves: [], coilMats: [], pulleys: [], fan: null, turboWheels: [], throttle: null, flywheel: null, clutch: null, shifter: null, dshaft: null, axles: [], pads: [], discMat: null, pedals: {}, epbSwitch: null, springs: [], shocks: [], swInner: null, rack: null, wipers: [], mirrors: [], flap: null, airbags: [], beltMat: null, seats: [], o2Mat: null, ecuMat: null, fuseMat: null, knob: null, cluster: null, info: null, keepStatic: new Set() };
+const RIG = { bolts: {}, discEdge: null, padSensorMat: null, pistons: [], rods: [], crank: null, cams: [], valves: [], coilMats: [], pulleys: [], fan: null, turboWheels: [], throttle: null, flywheel: null, clutch: null, shifter: null, dshaft: null, axles: [], pads: [], discMat: null, pedals: {}, epbSwitch: null, springs: [], shocks: [], swInner: null, rack: null, wipers: [], mirrors: [], flap: null, airbags: [], beltMat: null, seats: [], o2Mat: null, ecuMat: null, fuseMat: null, knob: null, cluster: null, info: null, rings: [], vsprings: [], vanos: [], tensioner: null, tensPlunger: null, balancer: null, balOuter: null, headBolts: [], cksMat: null, cmsMat: null, knockMat: null, opsMat: null, ectsMat: null, keepStatic: new Set() };
+const VSB = 0.040, VSL = 0.028;   // valve spring seat height and free length on the valve stem
 /* realistic material per part: [colour, metalness, roughness] */
 const RM = {
   alu: ['#A9AFB6', 0.75, 0.38], steel: ['#8D949C', 0.8, 0.35], dark: ['#3E434A', 0.6, 0.45], iron: ['#5E6268', 0.55, 0.6],
   plastic: ['#26292D', 0.05, 0.55], rubber: ['#1C1E21', 0, 0.85], stainless: ['#B9BEC4', 0.85, 0.3], black: ['#1B1D20', 0.35, 0.38],
   red: ['#B8202A', 0.3, 0.3], cognac: ['#8E5B34', 0.05, 0.55], paint: ['#2A5BA6', 0.5, 0.32], webbing: ['#2A2C30', 0, 0.8],
+  bronze: ['#B08D57', 0.8, 0.35], sensor: ['#2C3036', 0.25, 0.5],
 };
 const REAL = {
   engineBlock: 'alu', cylinderHead: 'alu', pistons: 'steel', crankshaft: 'steel', camshaft: 'steel', timingChain: 'steel', ignitionCoils: 'plastic',
@@ -638,6 +721,8 @@ const REAL = {
   subframes: 'black', knuckle: 'alu', ballJoints: 'dark', strutMounts: 'rubber', sbLinks: 'dark', dustShield: 'dark', brakeHose: 'rubber',
   caliperPistons: 'stainless', padSensor: 'plastic', wheelSpeedSensor: 'plastic', valveStem: 'rubber', wheelBolts: 'stainless', archLiners: 'plastic',
   tpms: 'plastic', calipers: 'red', brakeDiscs: 'steel', brakePads: 'dark', tires: 'rubber', rims: 'alu', grille: 'black', mirrors: 'paint', doors: 'steel',
+  cylinders: 'steel', pistonRings: 'dark', conRods: 'steel', crankBearings: 'steel', valveSprings: 'steel', chainTensioner: 'dark', vanos: 'steel', harmonicBalancer: 'steel',
+  headBolts: 'steel', crankSensor: 'sensor', camSensor: 'sensor', knockSensor: 'sensor', oilPressureSensor: 'sensor', coolantTempSensor: 'sensor',
 };
 let colorMode = 'real';
 try { if (localStorage.getItem('carColors') === 'sys') colorMode = 'sys'; } catch (e) { /* storage blocked */ }
@@ -655,12 +740,22 @@ const DEF = [];
 const def = o => DEF.push(o);
 
 /* ---------- ENGINE ---------- */
-def({ id: 'engineBlock', sys: 'engine', demo: 'combustion', ar: 'كتلة المحرك (البلوك)', en: 'Engine Block', sev: 3, ghost: 0.26, kids: ['pistons', 'crankshaft'],
+def({ id: 'engineBlock', sys: 'engine', demo: 'combustion', ar: 'كتلة المحرك (البلوك)', en: 'Engine Block', sev: 3, ghost: 0.26, kids: ['cylinders', 'pistons', 'pistonRings', 'conRods', 'crankshaft', 'crankBearings'],
   w: 'تحت الكبوت، بنص حجرة المحرك',
   fn: 'جسم المحرك الأساسي. جوّاه السلندرات (الأسطوانات) اللي بتتحرك فيها البساتم، وكل قطع المحرك التانية بتنركب عليه.',
   br: 'إذا انشعر (تشقّق) بيصير يسرّب زيت أو ماي، والمحرك بيسخن. غالباً تصليحه غالي كتير وأحياناً بتغيّر المحرك كله.',
   note: 'هالمجسّم فيه محرك 6 سلندر ورا بعض بخط واحد (Inline-6)، وهاد النوع مشهور عند BMW بنعومته.',
   build(h) { h.mesh(rbox(0.62, 0.34, 0.30, 0.03), { p: [1.29, 0.45, 0] }); } });
+
+def({ id: 'cylinders', sys: 'engine', demo: 'bore', ar: 'السلندرات (الأسطوانات)', en: 'Cylinder Bores (Liners)', sev: 3, ghost: 0.45, kids: ['pistons', 'pistonRings', 'conRods'],
+  w: 'جوّا البلوك، 6 ورا بعض',
+  fn: 'الأنابيب اللي بيطلع وينزل فيها البستم. سطحها ناعم كتير وعليه خطوط ناعمة متصالبة (Honing) بتمسك طبقة زيت رقيقة.',
+  br: 'إذا تخدّشت أو تآكلت (من وسخ أو قلّة زيت) بيضعف الضغط، المحرك بياكل زيت وبيطلع دخان أزرق. تصليحها تجليخ أو قمصان جديدة.',
+  note: 'بكتير من المحركات الحديثة (ومنها محركات BMW) البلوك ألمنيوم، وجدار السلندر إمّا قميص حديد أو طبقة معدنية رقيقة مرشوشة عليه.',
+  build(h) {
+    const m = h.mat({ side: THREE.DoubleSide, metal: 0.85, rough: 0.28 }), g = new THREE.CylinderGeometry(0.0445, 0.0445, 0.195, 36, 1, true);
+    CYLX.forEach(x => h.mesh(g, { mat: m, p: [x, 0.5275, 0] }));
+  } });
 
 def({ id: 'headGasket', sys: 'engine', demo: 'gasket', ar: 'جوان الراس', en: 'Head Gasket', sev: 3,
   w: 'بين البلوك وراس المحرك',
@@ -668,7 +763,20 @@ def({ id: 'headGasket', sys: 'engine', demo: 'gasket', ar: 'جوان الراس'
   br: 'دخان أبيض من الشكمان، ماء الرديتر بينقص بدون تسريب واضح، المحرك بيسخن، والزيت ممكن يصير لونه حليبي.',
   build(h) { h.mesh(box(0.62, 0.012, 0.30), { mat: { color: '#B9C0C8', metal: 0.7, rough: 0.35 }, p: [1.29, 0.626, 0] }); } });
 
-def({ id: 'cylinderHead', sys: 'engine', demo: 'head', ar: 'راس المحرك (السلندر هيد)', en: 'Cylinder Head', sev: 3, ghost: 0.3, kids: ['valves', 'sparkPlugs', 'injectors'],
+def({ id: 'headBolts', sys: 'engine', demo: 'headbolts', ar: 'براغي الراس', en: 'Cylinder Head Bolts', sev: 2,
+  w: 'بتمرق من راس المحرك لجوّا البلوك: 14 برغي',
+  fn: 'براغي طويلة بتشدّ الراس عالبلوك بقوة كبيرة لتعصر جوان الراس وتسكّر. بتنشد بترتيب حلزوني من النص لبرّا، بعزم وزاوية محدّدين.',
+  br: 'إذا رخيوا أو انشدّوا غلط: جوان الراس بيضرب، تسريب ماي أو زيت، ودخان أبيض. وكتير منها "براغي تمدّد" (Stretch Bolts) بتتغيّر كل ما ينفك الراس.',
+  build(h) {
+    const m = h.mat({ metal: 0.85, rough: 0.3 }), hd = new THREE.CylinderGeometry(0.0085, 0.0085, 0.01, 6), sh = new THREE.CylinderGeometry(0.0042, 0.0042, 0.2, 8), wa = new THREE.CylinderGeometry(0.011, 0.011, 0.002, 16);
+    for (let k = 0; k <= 6; k++) [-1, 1].forEach(s => {
+      const g = h.group({ p: [CYLX[0] + 0.0475 - k * 0.095, 0.737, s * 0.108] }); g.userData.ex = [0, 0.62, s * 0.16];
+      const b = h.group({ parent: g }); RIG.headBolts.push({ b, k, s });
+      h.mesh(hd, { mat: m, p: [0, 0.005, 0], parent: b }); h.mesh(sh, { mat: m, p: [0, -0.1, 0], parent: b }); h.mesh(wa, { mat: m, parent: g });
+    });
+  } });
+
+def({ id: 'cylinderHead', sys: 'engine', demo: 'head', ar: 'راس المحرك (السلندر هيد)', en: 'Cylinder Head', sev: 3, ghost: 0.3, kids: ['valves', 'valveSprings', 'sparkPlugs', 'injectors', 'headBolts'],
   w: 'فوق البلوك مباشرة',
   fn: 'الغطا اللي فوق السلندرات. فيه غرفة الاحتراق، الصبابات، عمود الكامات، ومكان البواجي والبخاخات.',
   br: 'إذا التوى من السخونة الزايدة المحرك بيفقد ضغط، بيرجف وبيطلع دخان. تصليحه تجليخ أو تغيير الراس.',
@@ -681,15 +789,43 @@ def({ id: 'valveCover', sys: 'engine', demo: 'valvetrain', ar: 'غطا الصب�
   note: 'رشح الزيت من جوانة غطا الصبابات من أشهر الأعطال بسيارات BMW اللي عمرها كم سنة.',
   build(h) { h.mesh(rbox(0.60, 0.07, 0.22, 0.025), { mat: { color: '#5A3B2C', metal: 0.4, rough: 0.5 }, p: [1.29, 0.767, 0] }); } });
 
-def({ id: 'pistons', sys: 'engine', demo: 'combustion', ar: 'البساتم (المكابس)', en: 'Pistons & Connecting Rods', sev: 3,
+def({ id: 'pistons', sys: 'engine', demo: 'combustion', ar: 'البساتم (المكابس)', en: 'Pistons', sev: 3,
   w: 'جوّا السلندرات بالبلوك',
-  fn: 'بتطلع وبتنزل جوّا السلندر. انفجار البنزين مع الهوا بيدفعها لتحت، والذراع (Connecting Rod) بيحوّل حركتها لدوران بعمود الكرنك.',
-  br: 'إذا تآكلت الشنابر (Piston Rings) المحرك بياكل زيت وبيطلع دخان أزرق. إذا انكسر بستم أو ذراع غالباً المحرك بيخرب.',
+  fn: 'بتطلع وبتنزل جوّا السلندر. انفجار البنزين مع الهوا بيدفعها لتحت بقوة، ومسمار البستم (Wrist Pin) بيربطها بذراع التوصيل.',
+  br: 'إذا تشقّق أو ذاب طرف البستم (من طرق أو سخونة زايدة) المحرك بيضعف وبيطلع دخان. وإذا انكسر بستم غالباً المحرك بيخرب.',
   build(h) {
-    const pm = h.mat({ color: '#D7DCE2', metal: 0.8, rough: 0.3 }), rm = h.mat({ metal: 0.6, rough: 0.4 });
+    const pm = h.mat({ color: '#D7DCE2', metal: 0.8, rough: 0.3 }), pin = h.mat({ color: '#9AA1A9', metal: 0.9, rough: 0.25 });
+    const body = new THREE.CylinderGeometry(0.041, 0.039, 0.055, 32), crown = new THREE.CylinderGeometry(0.03, 0.03, 0.002, 28), wrist = cylX(0.009, 0.009, 0.07, 14);
     CYLX.forEach(() => {
-      RIG.pistons.push(h.mesh(new THREE.CylinderGeometry(0.041, 0.041, 0.055, 28), { mat: pm }));
-      RIG.rods.push(h.mesh(new THREE.CylinderGeometry(0.009, 0.012, 0.17, 10), { mat: rm }));
+      const g = h.group({}); RIG.pistons.push(g);
+      h.mesh(body, { mat: pm, parent: g }); h.mesh(crown, { mat: pin, p: [0, 0.0285, 0], parent: g }); h.mesh(wrist, { mat: pin, p: [0, -0.02, 0], parent: g });
+    });
+  } });
+
+def({ id: 'pistonRings', sys: 'engine', demo: 'rings', ar: 'الشنابر (حلقات البستم)', en: 'Piston Rings', sev: 3,
+  w: 'بمجاري حوالين راس كل بستم',
+  fn: '3 حلقات حوالين كل بستم: التنتين الفوقانيات بيسكّروا ضغط الانفجار، والتالتة بتكشط الزيت عن جدار السلندر وبترجّعه لتحت.',
+  br: 'إذا تآكلت أو علقت: المحرك بياكل زيت، دخان أزرق خصوصاً وقت الدعسة، ضغط قليل، وضعف.',
+  build(h) {
+    const top = h.mat({ metal: 0.9, rough: 0.3 }), oil = h.mat({ color: '#8A6A3A', metal: 0.8, rough: 0.35 });
+    const tor = new THREE.TorusGeometry(0.0414, 0.0024, 6, 40); tor.rotateX(Math.PI / 2);
+    CYLX.forEach(() => {
+      const g = h.group({}); RIG.rings.push(g);
+      [0.019, 0.011].forEach(y => h.mesh(tor, { mat: top, p: [0, y, 0], parent: g })); h.mesh(tor, { mat: oil, p: [0, 0.003, 0], parent: g });
+    });
+  } });
+
+def({ id: 'conRods', sys: 'engine', demo: 'rods', ar: 'أذرع التوصيل (أذرع البساتم)', en: 'Connecting Rods', sev: 3,
+  w: 'بين كل بستم وعمود الكرنك',
+  fn: 'ذراع حديد قوي: راسه الصغير ماسك البستم بالمسمار، وراسه الكبير ملفوف حوالين الكرنك مع سبيكة. هو اللي بيحوّل الطلوع والنزول لدوران.',
+  br: 'إذا انصرفت سبيكة راسه الكبير بتسمع دقّة معدنية بتزيد مع الدورات (Rod Knock). وإذا انكسر ممكن يخزق البلوك ويخرب المحرك كله.',
+  build(h) {
+    const m = h.mat({ metal: 0.75, rough: 0.35 }), bolt = h.mat({ color: '#5B6168', metal: 0.85, rough: 0.3 });
+    const shaft = box(0.008, 0.12, 0.014), big = cylX(0.025, 0.025, 0.02, 24), small = cylX(0.013, 0.013, 0.016, 18), b = new THREE.CylinderGeometry(0.0035, 0.0035, 0.03, 8);
+    CYLX.forEach(() => {
+      const g = h.group({}); RIG.rods.push(g);
+      h.mesh(shaft, { mat: m, parent: g }); h.mesh(big, { mat: m, p: [0, -0.085, 0], parent: g }); h.mesh(small, { mat: m, p: [0, 0.085, 0], parent: g });
+      [-1, 1].forEach(s => h.mesh(b, { mat: bolt, p: [0, -0.092, s * 0.02], parent: g }));
     });
   } });
 
@@ -708,7 +844,17 @@ def({ id: 'crankshaft', sys: 'engine', demo: 'crank', ar: 'عمود الكرنك
     });
   } });
 
-def({ id: 'camshaft', sys: 'engine', demo: 'valvetrain', ar: 'عمود الكامات (الكامة)', en: 'Camshafts (VANOS)', sev: 2,
+def({ id: 'crankBearings', sys: 'engine', demo: 'bearings', ar: 'السبيكة وكراسي الكرنك', en: 'Main Bearings & Caps', sev: 3,
+  w: 'حوالين عمود الكرنك: 7 كراسي رئيسية',
+  fn: 'أنصاص حلقات من معدن طري (لونها دهبي) حوالين الكرنك، والكراسي الحديد بتشدّها عالبلوك. الكرنك ما بيلمسها مباشرة: بيدور على طبقة زيت بالضغط.',
+  br: 'إذا قلّ الزيت أو ضغطه بتنصرف: دقّة عميقة من تحت المحرك ولمبة ضغط الزيت. وإذا كمّلت سواقة الكرنك بيعلق والمحرك بيوقف.',
+  build(h) {
+    const brz = h.mat({ color: '#C9A15A', metal: 0.85, rough: 0.3, side: THREE.DoubleSide }), cap = h.mat({ metal: 0.7, rough: 0.4 });
+    const shell = cylX(0.0255, 0.0255, 0.016, 28, true), capG = rbox(0.022, 0.03, 0.09, 0.006);
+    for (let k = 0; k <= 6; k++) { const x = CYLX[0] + 0.0475 - k * 0.095; h.mesh(shell, { mat: brz, p: [x, CY, 0] }); h.mesh(capG, { mat: cap, p: [x, CY - 0.042, 0] }); }
+  } });
+
+def({ id: 'camshaft', sys: 'engine', demo: 'valvetrain', ar: 'عمود الكامات (الكامة)', en: 'Camshafts', sev: 2,
   w: 'جوّا الراس، تحت غطا الصبابات',
   fn: 'بيلف وبيفتح ويسكّر الصبابات بالوقت المظبوط. بيلف بنص سرعة الكرنك. هون في كامتين: وحدة للسحب ووحدة للعادم.',
   br: 'التآكل بيعمل صوت تكتكة وضعف ورجفة. عند BMW في نظام VANOS بيغيّر توقيت الكامة، وإذا خرب ممكن تحس بضعف ورجفة عالدورات الواطية.',
@@ -735,8 +881,22 @@ def({ id: 'valves', sys: 'engine', demo: 'valvetrain', ar: 'الصبابات (ا
       const m = side > 0 ? me : mi;
       h.mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.075, 8), { mat: m, p: [0, 0.037, 0], parent: g });
       h.mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.004, 16), { mat: m, parent: g });
-      RIG.valves.push({ g, i, ex: side > 0, base: g.position.clone(), dir: new THREE.Vector3(0, -Math.cos(al), -Math.sin(al)) });
+      RIG.valves.push({ g, i, ex: side > 0, base: g.position.clone(), dir: new THREE.Vector3(0, -Math.cos(al), -Math.sin(al)), lift: 0 });
     })));
+  } });
+
+def({ id: 'valveSprings', sys: 'engine', demo: 'springs', ar: 'نوابض الصبابات (يايات البلوف)', en: 'Valve Springs & Retainers', sev: 2,
+  w: 'براس المحرك، حوالين ساق كل صبابة',
+  fn: 'نابض صغير قوي حوالين كل صبابة: الكامة بتدفش الصبابة لتفتح، والنابض بيرجّعها تسكّر بسرعة وبيضل ضاغطها على مقعدها.',
+  br: 'إذا ضعف أو انكسر: الصبابة ما بتسكّر بوقتها، تكتكة، رجفة (Misfire) خصوصاً عالدورات العالية، وممكن البستم يضرب فيها.',
+  build(h) {
+    const sm = h.mat({ metal: 0.7, rough: 0.35 }), rm = h.mat({ color: '#B9BFC7', metal: 0.85, rough: 0.3 }), pts = [];
+    for (let i = 0; i <= 70; i++) { const t = i / 70, a = t * 5 * Math.PI * 2; pts.push(new THREE.Vector3(0.0078 * Math.cos(a), t * VSL, 0.0078 * Math.sin(a))); }
+    const geo = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 70, 0.0012, 5), ret = new THREE.CylinderGeometry(0.0095, 0.0095, 0.003, 16);
+    RIG.valves.forEach(v => {
+      const g = h.group({ p: v.base.toArray(), r: [v.g.rotation.x, 0, 0] });
+      RIG.vsprings.push({ v, s: h.mesh(geo, { mat: sm, p: [0, VSB, 0], parent: g }), r: h.mesh(ret, { mat: rm, p: [0, VSB + VSL, 0], parent: g }) });
+    });
   } });
 
 def({ id: 'timingChain', sys: 'engine', demo: 'timing', ar: 'جنزير التوقيت (الكاتينة)', en: 'Timing Chain', sev: 3,
@@ -748,6 +908,32 @@ def({ id: 'timingChain', sys: 'engine', demo: 'timing', ar: 'جنزير التو
     h.mesh(tube(CHAIN, 0.006, 120, true), { mat: { color: '#9AA3AE', metal: 0.8, rough: 0.35 } });
     h.mesh(cylX(0.035, 0.035, 0.012), { p: [CHAIN_X, CY, 0] });
     [-0.055, 0.055].forEach(z => h.mesh(cylX(0.04, 0.04, 0.012), { p: [CHAIN_X, 0.752, z] }));
+  } });
+
+def({ id: 'chainTensioner', sys: 'engine', demo: 'tensioner', ar: 'شدّاد الجنزير ومجاريه', en: 'Chain Tensioner & Guides', sev: 3,
+  w: 'جنب جنزير التوقيت ورا المحرك',
+  fn: 'الشدّاد بستم صغير بيشتغل بضغط الزيت وبيدفع مجرى بلاستيك عالجنزير ليضل مشدود. والمجاري بتمنع الجنزير يخبط ويرقص.',
+  br: 'إذا ضعف الشدّاد أو تكسّرت المجاري: خشخشة معدنية أول التشغيل، الجنزير بيرخى، وممكن ينطّ سن ويخرّب التوقيت.',
+  build(h) {
+    const gm = h.mat({ color: '#B4692E', metal: 0.05, rough: 0.6 }), bm = h.mat({ metal: 0.6, rough: 0.45 });
+    [1, -1].forEach(s => h.mesh(tube([[0.05, 0.40], [0.078, 0.52], [0.104, 0.70]].map(([z, y]) => [CHAIN_X, y, s * z]), 0.006, 30), { mat: gm }));
+    const g = h.group({ p: [CHAIN_X, 0.53, -0.125] }); RIG.tensioner = g;
+    h.mesh(rbox(0.03, 0.04, 0.032, 0.006), { mat: bm, parent: g });
+    RIG.tensPlunger = h.mesh(cylZ(0.0065, 0.0065, 0.026, 14), { mat: { color: '#C9CED6', metal: 0.9, rough: 0.25 }, p: [0, 0, 0.02], parent: g });
+  } });
+
+def({ id: 'vanos', sys: 'engine', demo: 'vanos', ar: 'وحدات VANOS (توقيت الكامات)', en: 'VANOS Cam Phasers', sev: 2,
+  w: 'على آخر عمودين الكامات، مع عجلات الجنزير',
+  fn: 'وحدة بتشتغل بزيت المحرك، بتلف الكامة شوي لقدّام أو لورا وهي شغّالة، فبيتغيّر وقت فتح الصبابات حسب الدورات: عزم أحسن تحت، قوة أكتر فوق، وصرف أقل.',
+  br: 'إذا علقت أو وسخ السولونويد تبعها: السلانسيه مش ثابت، ضعف عالدورات الواطية، تكتكة، ولمبة المحرك.',
+  note: 'VANOS اختصار ألماني معناه "التحكم المتغيّر بعمود الكامات". نفس الفكرة عند شركات تانية اسمها VVT أو VTC.',
+  build(h) {
+    const m = h.mat({ metal: 0.8, rough: 0.32 }), mk = h.mat({ color: '#FF7A1F', metal: 0.3, rough: 0.5 }), bolt = h.mat({ color: '#5B6168', metal: 0.9, rough: 0.3 });
+    [-0.055, 0.055].forEach(z => {
+      const g = h.group({ p: [0.950, 0.752, z] }); RIG.vanos.push(g);
+      h.mesh(cylX(0.034, 0.034, 0.028, 36), { mat: m, parent: g }); h.mesh(cylX(0.012, 0.012, 0.032, 6), { mat: bolt, parent: g });
+      h.mesh(box(0.004, 0.012, 0.006), { mat: mk, p: [-0.0145, 0.024, 0], parent: g });
+    });
   } });
 
 def({ id: 'sparkPlugs', sys: 'engine', demo: 'ignition', ar: 'البواجي', en: 'Spark Plugs', sev: 2,
@@ -800,6 +986,60 @@ def({ id: 'oilFilter', sys: 'engine', demo: 'oil', ar: 'فلتر الزيت', en
     h.mesh(new THREE.CylinderGeometry(0.044, 0.044, 0.02, 24), { mat: { color: '#2F343B' }, p: [1.40, 0.57, -0.20] });
   } });
 
+def({ id: 'oilPressureSensor', sys: 'engine', demo: 'ops', ar: 'حسّاس ضغط الزيت', en: 'Oil Pressure Sensor', sev: 2,
+  w: 'على جنب المحرك الشمال، قرب فلتر الزيت',
+  fn: 'بيقيس ضغط الزيت بالمحرك. إذا الضغط نزل كتير بيضوّي لمبة الزيت الحمرا، وبالسيارات الحديثة بيبعت القيمة للكمبيوتر كمان.',
+  br: 'إذا خرب ممكن تضوي لمبة الزيت والضغط سليم، أو أخطر: ما تضوي والضغط فعلاً قليل. ولما يرشح بتلاقي زيت تحته.',
+  build(h) {
+    const m = h.mat({ color: '#2C3036', metal: 0.3, rough: 0.5 }); RIG.opsMat = m;
+    h.mesh(cylZ(0.0105, 0.0105, 0.012, 6), { mat: { color: '#B9BFC7', metal: 0.85, rough: 0.3 }, p: [1.48, 0.46, -0.158] });
+    h.mesh(cylZ(0.009, 0.009, 0.024, 16), { mat: m, p: [1.48, 0.46, -0.176] });
+    h.mesh(rbox(0.016, 0.014, 0.014, 0.003), { mat: { color: '#1B1D20' }, p: [1.48, 0.46, -0.195] });
+  } });
+
+def({ id: 'crankSensor', sys: 'engine', demo: 'cks', ar: 'حسّاس الكرنك', en: 'Crankshaft Position Sensor', sev: 3,
+  w: 'ورا المحرك جنب الحدّافة، مقابل أسنانها',
+  fn: 'حسّاس مغناطيسي بيعدّ أسنان بتلف مع الكرنك، فالكمبيوتر بيعرف سرعة المحرك ووين كل بستم بالظبط، ليقرّر وقت الشرارة والبخ.',
+  br: 'المحرك بيطفي فجأة وأنت ماشي (خصوصاً لما يسخن)، أو بيدوّر وما بيشتغل. ولمبة المحرك بتضوي.',
+  build(h) {
+    const m = h.mat({ color: '#26292E', metal: 0.2, rough: 0.55 }); RIG.cksMat = m;
+    const d = new THREE.Vector3(0, 0.6, -0.8), c = new THREE.Vector3(0.935, CY, 0);
+    h.mesh(rod(c.clone().addScaledVector(d, 0.18).toArray(), c.clone().addScaledVector(d, 0.22).toArray(), 0.008, 14), { mat: m });
+    h.mesh(rbox(0.018, 0.02, 0.02, 0.004), { mat: { color: '#1B1D20' }, p: c.clone().addScaledVector(d, 0.232).toArray() });
+  } });
+
+def({ id: 'camSensor', sys: 'engine', demo: 'cms', ar: 'حسّاس الكامة', en: 'Camshaft Position Sensors', sev: 2,
+  w: 'قدّام راس المحرك، عند آخر الكامات',
+  fn: 'بيقرأ علامات على عمود الكامات، فالكمبيوتر بيعرف أي سلندر عم يعمل شوط الانفجار، وبيراقب إذا الـVANOS عم يظبط التوقيت متل ما لازم.',
+  br: 'التشغيل بياخد وقت أطول، رجفة وضعف، ولمبة المحرك. غالباً السيارة بتضل تمشي بس مش متل العادة.',
+  build(h) {
+    const m = h.mat({ color: '#26292E', metal: 0.2, rough: 0.55 }); RIG.cmsMat = m;
+    [-0.055, 0.055].forEach(z => { h.mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.035, 14), { mat: m, p: [1.605, 0.778, z] }); h.mesh(rbox(0.018, 0.016, 0.02, 0.004), { mat: { color: '#1B1D20' }, p: [1.605, 0.803, z] }); });
+  } });
+
+def({ id: 'knockSensor', sys: 'engine', demo: 'knock', ar: 'حسّاس الطرق (النوك)', en: 'Knock Sensors', sev: 2,
+  w: 'مبرغيين على جنب البلوك الشمال',
+  fn: 'متل ميكروفون صغير بيسمع رجفة البلوك. إذا الخليط انفجر بكّير وعمل "طرق" (Knock)، بيخبّر الكمبيوتر فبيأخّر الشرارة شوي ليحمي البساتم.',
+  br: 'لمبة المحرك، وضعف بالقوة لأن الكمبيوتر بيأخّر الشرارة احتياطاً. وإذا في طرق حقيقي وما انكشف، ممكن يأذي البساتم.',
+  build(h) {
+    const m = h.mat({ color: '#2C3036', metal: 0.3, rough: 0.5 }); RIG.knockMat = m;
+    [1.39, 1.19].forEach(x => {
+      h.mesh(cylZ(0.016, 0.016, 0.012, 20), { mat: m, p: [x, 0.42, -0.158] });
+      h.mesh(rbox(0.016, 0.014, 0.018, 0.004), { mat: { color: '#1B1D20' }, p: [x, 0.445, -0.16] });
+      h.mesh(cylZ(0.0045, 0.0045, 0.02, 6), { mat: { color: '#9AA1A9', metal: 0.9 }, p: [x, 0.42, -0.168] });
+    });
+  } });
+
+def({ id: 'coolantTempSensor', sys: 'engine', demo: 'ects', ar: 'حسّاس حرارة الماي', en: 'Coolant Temperature Sensor', sev: 2,
+  w: 'قدّام راس المحرك، قرب مخرج الماي للرديتر',
+  fn: 'بيقيس حرارة ماي المحرك. الكمبيوتر بيستعمله ليزيد البنزين والمحرك بارد، ليشغّل المروحة بوقتها، وليحرّك مؤشّر الحرارة.',
+  br: 'مؤشّر حرارة غلط، المروحة ما بتشتغل بوقتها، صعوبة تشغيل عالبارد، صرف زيادة ودخان أسود.',
+  build(h) {
+    const m = h.mat({ color: '#2C3036', metal: 0.3, rough: 0.5 }); RIG.ectsMat = m;
+    h.mesh(cylX(0.0075, 0.0075, 0.026, 14), { mat: { color: '#C9A15A', metal: 0.85, rough: 0.3 }, p: [1.613, 0.66, 0.11] });
+    h.mesh(rbox(0.016, 0.016, 0.018, 0.004), { mat: m, p: [1.633, 0.66, 0.11] });
+  } });
+
 def({ id: 'engineMounts', sys: 'engine', demo: 'mounts', ar: 'كراسي المحرك', en: 'Engine Mounts', sev: 1,
   w: 'على جنبين المحرك فوق الصبفريم',
   fn: 'قواعد من كاوتشوك ومعدن بتشيل المحرك وبتمتص رجّته عن جسم السيارة.',
@@ -822,6 +1062,21 @@ def({ id: 'serpentineBelt', sys: 'engine', demo: 'belt', ar: 'سير المحر�
     pulley(h, pm, [BELT_X, CY, 0], 0.075, 1);
     pulley(h, pm, [BELT_X, 0.50, -0.08], 0.03, 2.5);
     pulley(h, pm, [BELT_X, 0.553, 0.10], 0.035, 2.1);
+  } });
+
+def({ id: 'harmonicBalancer', sys: 'engine', demo: 'balancer', ar: 'بكرة الكرنك (مخمّد الاهتزاز)', en: 'Harmonic Balancer (Vibration Damper)', sev: 2,
+  w: 'قدّام المحرك على راس الكرنك، ورا بكرة السير',
+  fn: 'حلقة حديد تقيلة مركّبة على طبقة كاوتشوك فوق راس الكرنك. بتمتص الاهتزاز الالتوائي (تفتّل الكرنك مع كل انفجار) قبل ما يأذيه.',
+  br: 'إذا تفسّخت الكاوتشوكة: رجّة، الحلقة البرّانية بترقص، السير بيتمايل أو بيطلع من مكانه، ومع الوقت ممكن الكرنك ينشعر.',
+  build(h) {
+    const g = h.group({ p: [1.612, CY, 0] }); RIG.balancer = g;
+    const st = h.mat({ metal: 0.8, rough: 0.35 }), rub = h.mat({ color: '#1C1E21', metal: 0, rough: 0.85 }), mk = h.mat({ color: '#F4F4F4', metal: 0, rough: 0.5 });
+    h.mesh(cylX(0.036, 0.036, 0.036, 28), { mat: st, parent: g });
+    h.mesh(cylX(0.066, 0.066, 0.022, 40), { mat: rub, parent: g });
+    const sh = new THREE.Shape(); sh.absarc(0, 0, 0.085, 0, Math.PI * 2, false); const hl = new THREE.Path(); hl.absarc(0, 0, 0.066, 0, Math.PI * 2, true); sh.holes.push(hl);
+    const ann = ext(sh, 0.028, 0.002); ann.rotateY(Math.PI / 2);
+    const outer = h.group({ parent: g }); RIG.balOuter = outer;
+    h.mesh(ann, { mat: st, parent: outer }); h.mesh(box(0.03, 0.006, 0.004), { mat: mk, p: [0, 0.084, 0], parent: outer });
   } });
 
 /* ---------- AIR & TURBO ---------- */
@@ -2110,10 +2365,33 @@ controls.update();
 
 const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(4, 4, { type: THREE.HalfFloatType, samples: 4 }));
 composer.addPass(new RenderPass(scene, camera));
+// soft contact shadows between parts (ambient occlusion), computed at half resolution
+const gtao = new GTAOPass(scene, camera, 4, 4);
+gtao.output = GTAOPass.OUTPUT.Default; gtao.blendIntensity = 0.8;
+gtao.updateGtaoMaterial({ radius: 0.12, distanceExponent: 1.5, thickness: 1.2, scale: 1.0, samples: 12, distanceFallOff: 1.0, screenSpaceRadius: false });
+gtao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 12 });
+{
+  const setSize = gtao.setSize.bind(gtao), renderOverride = gtao.renderOverride.bind(gtao);
+  gtao.setSize = (w, h) => setSize(Math.max(1, w >> 1), Math.max(1, h >> 1));
+  // the sky background would be drawn with the override material too (a stray 2 m quad at the origin), so it is left out
+  gtao.renderOverride = (r, ...a) => { const au = r.shadowMap.autoUpdate, bg = scene.background; r.shadowMap.autoUpdate = false; scene.background = null; renderOverride(r, ...a); scene.background = bg; r.shadowMap.autoUpdate = au; };
+  // only solid surfaces cast occlusion: see-through shells, ghosts, particles and helper meshes stay out
+  gtao.overrideVisibility = function () {
+    this.scene.traverse(o => {
+      this._visibilityCache.set(o, o.visible);
+      if (o.isPoints || o.isLine || o.isSprite) { o.visible = false; return; }
+      const m = o.material;
+      if (!o.isMesh) return;
+      if (o.userData.shell) o.visible = false;
+      else if (!Array.isArray(m) && (!m.depthWrite || m.colorWrite === false || (m.transparent && m.opacity < 0.95))) o.visible = false;
+    });
+  };
+}
+composer.addPass(gtao);
 const outline = new OutlinePass(new THREE.Vector2(4, 4), scene, camera);
-Object.assign(outline, { edgeStrength: 5, edgeGlow: 0.7, edgeThickness: 1.8, pulsePeriod: 0 });
+Object.assign(outline, { edgeStrength: 2.4, edgeGlow: 0.2, edgeThickness: 1.1, pulsePeriod: 0 });
 composer.addPass(outline);
-const bloom = new UnrealBloomPass(new THREE.Vector2(4, 4), 0.5, 0.55, 1.0);
+const bloom = new UnrealBloomPass(new THREE.Vector2(4, 4), 0.3, 0.4, 1.1);
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
 
@@ -2121,7 +2399,7 @@ const carRoot = new THREE.Group(); scene.add(carRoot);
 CORNERS.forEach(c => {
   const cg = new THREE.Group(); cg.position.set(c.x, WY, c.s * TZ); carRoot.add(cg); CORNER[c.k] = cg;
   const sg = new THREE.Group(); cg.add(sg); STEER[c.k] = sg;
-  const sp = new THREE.Group(); sg.add(sp); SPIN[c.k] = sp;
+  const sp = new THREE.Group(); sp.rotation.order = 'ZYX'; sg.add(sp); SPIN[c.k] = sp;
 });
 
 // ground: shadow catcher + soft contact shadow + 0.5 m measuring grid that fades out
@@ -2304,7 +2582,8 @@ RIG.mirrors.forEach(mr => DOORS.find(o => o.s === mr.s && o.front).pivot.attach(
 
 const sprung = new THREE.Group(); carRoot.add(sprung);
 const engineG = new THREE.Group(); sprung.add(engineG);
-const ENGINE_SET = new Set(['engineBlock', 'headGasket', 'cylinderHead', 'valveCover', 'pistons', 'crankshaft', 'camshaft', 'valves', 'timingChain', 'sparkPlugs', 'ignitionCoils', 'oilPan', 'oilPump', 'oilFilter', 'serpentineBelt', 'turbo', 'intakeManifold', 'throttleBody', 'exhaustManifold', 'injectors', 'alternator', 'acCompressor', 'starter', 'waterPump', 'thermostat', 'flywheel', 'clutch', 'transmission']);
+const ENGINE_SET = new Set(['engineBlock', 'headGasket', 'cylinderHead', 'valveCover', 'pistons', 'crankshaft', 'camshaft', 'valves', 'timingChain', 'sparkPlugs', 'ignitionCoils', 'oilPan', 'oilPump', 'oilFilter', 'serpentineBelt', 'turbo', 'intakeManifold', 'throttleBody', 'exhaustManifold', 'injectors', 'alternator', 'acCompressor', 'starter', 'waterPump', 'thermostat', 'flywheel', 'clutch', 'transmission',
+  'cylinders', 'pistonRings', 'conRods', 'crankBearings', 'valveSprings', 'chainTensioner', 'vanos', 'harmonicBalancer', 'headBolts', 'crankSensor', 'camSensor', 'knockSensor', 'oilPressureSensor', 'coolantTempSensor']);
 const partOf = o => { let p = o.userData.part; if (!p) o.traverse(c => { if (!p && c.userData.part) p = c.userData.part; }); return p; };
 const nearestCorner = o => { const w = o.getWorldPosition(new THREE.Vector3()); let best = null, bd = 9; CORNERS.forEach(c => { const d = Math.hypot(w.x - c.x, w.z - c.s * TZ); if (d < bd) { bd = d; best = c.k; } }); return best; };
 scene.updateMatrixWorld(true);
@@ -2318,6 +2597,8 @@ RIG.pads.forEach(p => { p.base = p.m.position.z; });
 PARTS.forEach(p => { if (p.fw) p.meshes.forEach(m => { m.userData.ck = cornerAt(m.getWorldPosition(new THREE.Vector3())); }); });
 RIG.seats.forEach(g => { g.userData.x = g.position.x; });
 RIG.valves.forEach(v => { v.base = v.g.position.clone(); });
+// head bolts are tightened from the middle outwards
+const HB_SEQ = [...RIG.headBolts].sort((a, b) => Math.abs(a.k - 3) - Math.abs(b.k - 3) || a.k - b.k || a.s - b.s);
 const FXROOT = new THREE.Group(); sprung.add(FXROOT);
 
 /* ------------------------------------------------------------------ *
@@ -2356,7 +2637,7 @@ class Flow {
       let s = sz;
       if (!this.d.closed) s *= Math.min(1, t * 14) * (this.d.grow ? Math.min(1, (1 - t) * 6) * (1 + Math.max(0, t - 0.86) * 28) : Math.min(1, (1 - t) * 14));
       _dum.position.copy(p); _dum.scale.setScalar(s); _dum.updateMatrix(); this.mesh.setMatrixAt(i, _dum.matrix);
-      this.colorAt(t, _col).multiplyScalar(this.d.hdr ?? 2.4); this.mesh.setColorAt(i, _col);
+      this.colorAt(t, _col).multiplyScalar(this.d.hdr ?? 1.6); this.mesh.setColorAt(i, _col);
     }
     this.mesh.instanceMatrix.needsUpdate = true; this.mesh.instanceColor.needsUpdate = true;
   }
@@ -2386,6 +2667,10 @@ const FLOWDEF = {
   sig1: { segs: [{ c: C.sig, pts: [[1.06, 0.765, 0.50], [1.10, 0.80, 0.40], [1.18, 0.86, 0.20], [1.29, 0.85, 0.06], [1.53, 0.85, 0.0]] }], speed: 0.8, gap: 0.04, size: 0.011 },
   sig2: { segs: [{ c: C.sig, pts: [[1.0, 0.74, 0.45], [0.98, 0.78, 0.10], [1.03, 0.77, -0.12], [1.30, 0.77, -0.13], [1.53, 0.77, -0.13]] }], speed: 0.8, gap: 0.04, size: 0.011 },
   sig3: { segs: [{ c: C.sig, pts: [[1.10, 0.76, 0.45], [1.40, 0.80, 0.10], [1.55, 0.70, -0.30], [1.55, 0.66, -0.36]] }], speed: 0.8, gap: 0.04, size: 0.011 },
+  sigCks: { segs: [{ c: C.sig, pts: [[0.935, 0.53, -0.16], [0.96, 0.80, -0.10], [1.0, 0.83, 0.2], [1.06, 0.78, 0.45]] }], speed: 0.8, gap: 0.04, size: 0.011 },
+  sigCms: { segs: [{ c: C.sig, pts: [[1.605, 0.82, 0.055], [1.5, 0.87, 0.2], [1.25, 0.85, 0.4], [1.08, 0.77, 0.48]] }], speed: 0.8, gap: 0.04, size: 0.011 },
+  sigKnock: { segs: [{ c: C.sig, pts: [[1.29, 0.42, -0.17], [1.25, 0.56, -0.26], [1.1, 0.82, -0.1], [1.06, 0.81, 0.3], [1.06, 0.77, 0.45]] }], speed: 0.8, gap: 0.04, size: 0.011 },
+  sigEcts: { segs: [{ c: C.sig, pts: [[1.62, 0.68, 0.11], [1.5, 0.81, 0.25], [1.25, 0.81, 0.42], [1.08, 0.77, 0.48]] }], speed: 0.8, gap: 0.04, size: 0.011 },
   refrig: { closed: true, segs: [{ c: C.hot, pts: [[1.55, 0.35, -0.23], ...AC1, [2.11, 0.52, -0.20]] }, { c: C.ref, pts: [[2.11, 0.60, 0.20], ...AC2, [0.86, 0.70, 0.0]] }, { c: C.coldW, pts: [[0.86, 0.70, -0.16], [0.95, 0.60, -0.30], [1.20, 0.45, -0.35], [1.45, 0.36, -0.28]] }], speed: 0.8, gap: 0.06, size: 0.014 },
   cabinAir: { segs: [{ c: C.dust, pts: [[1.02, 0.98, 0.25], [0.95, 0.82, 0.15]] }, { c: C.white, pts: [[0.90, 0.70, 0.10], [0.86, 0.70, -0.06]] }, { c: C.icy, pts: [[0.86, 0.70, -0.16], [0.75, 0.80, -0.30], [0.64, 0.92, -0.38], [0.45, 0.96, -0.38], [0.15, 0.96, -0.38], [-0.10, 0.93, -0.38]] }], speed: 0.6, gap: 0.05 },
   cabinAir2: { segs: [{ c: C.dust, pts: [[1.02, 0.98, 0.25], [0.95, 0.82, 0.15]] }, { c: C.white, pts: [[0.90, 0.70, 0.10], [0.86, 0.70, 0.02]] }, { c: C.icy, pts: [[0.86, 0.70, 0.0], [0.75, 0.80, 0.25], [0.64, 0.92, 0.38], [0.45, 0.96, 0.38], [0.15, 0.96, 0.38], [-0.10, 0.93, 0.38]] }], speed: 0.6, gap: 0.05 },
@@ -2423,7 +2708,7 @@ class Waves {
     list.forEach(({ pos, dir }) => {
       const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(...dir).normalize());
       for (let k = 0; k < n; k++) {
-        const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: new THREE.Color(color).multiplyScalar(2), transparent: true, depthTest: false, depthWrite: false, side: THREE.DoubleSide, fog: false }));
+        const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: new THREE.Color(color).multiplyScalar(1.4), transparent: true, depthTest: false, depthWrite: false, side: THREE.DoubleSide, fog: false }));
         m.position.set(...pos); m.quaternion.copy(q); m.renderOrder = 61; m.visible = false; FXROOT.add(m);
         this.items.push({ m, k: k / n, dir: new THREE.Vector3(...dir).normalize(), base: new THREE.Vector3(...pos) });
       }
@@ -2460,7 +2745,7 @@ const RADAR_CONE = (() => {
 // combustion flashes, sparks and injector sprays live with the engine
 const FLASH = { comb: [], spark: [], spray: [] };
 {
-  const add = (geo, color, pos) => { const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: new THREE.Color(color).multiplyScalar(3), transparent: true, depthTest: false, depthWrite: false, fog: false })); m.position.set(...pos); m.visible = false; m.renderOrder = 62; engineG.add(m); return m; };
+  const add = (geo, color, pos) => { const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: new THREE.Color(color).multiplyScalar(2), transparent: true, depthTest: false, depthWrite: false, fog: false })); m.position.set(...pos); m.visible = false; m.renderOrder = 62; engineG.add(m); return m; };
   const sprayGeo = new THREE.ConeGeometry(0.018, 0.06, 16, 1, true); sprayGeo.translate(0, -0.03, 0);
   CYLX.forEach(x => {
     FLASH.comb.push(add(new THREE.SphereGeometry(1, 16, 12), '#FF7A1F', [x, 0.607, 0]));
@@ -2484,9 +2769,10 @@ function drawGauge(ctx, cx, cy, r, f, label, val, color) {
   ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center'; ctx.font = '600 34px system-ui, sans-serif'; ctx.fillText(val, cx, cy + 44);
   ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.font = '16px system-ui, sans-serif'; ctx.fillText(label, cx, cy + 66);
 }
-function drawCluster(kmh, rpm, gear) {
+function drawCluster(kmh, rpm, gear, off) {
   const S = RIG.cluster; if (!S) return; const { ctx, c } = S, W = c.width, H = c.height;
   ctx.fillStyle = '#05080C'; ctx.fillRect(0, 0, W, H);
+  if (off) { S.tex.needsUpdate = true; return; }
   drawGauge(ctx, 100, 92, 72, kmh / 260, 'km/h', String(Math.round(kmh)), '#4FA3FF');
   drawGauge(ctx, W - 100, 92, 72, rpm / 8, 'x1000 rpm', rpm.toFixed(1), '#4FA3FF');
   ctx.fillStyle = '#9FD3FF'; ctx.textAlign = 'center'; ctx.font = 'bold 54px system-ui, sans-serif'; ctx.fillText(gear, W / 2, 104);
@@ -2526,13 +2812,13 @@ function applyTheme() {
   const dark = (document.documentElement.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark';
   if (scene.background) scene.background.dispose();
   scene.background = skyTex(cssVar('--sky-top') || '#fff', cssVar('--sky-bottom') || '#ddd');
-  gridMat.color.set(cssVar('--grid') || '#999'); gridMat.opacity = dark ? 0.9 : 0.75;
+  gridMat.color.set(cssVar('--grid') || '#999'); gridMat.userData.base = dark ? 0.9 : 0.75; gridMat.opacity = gridMat.userData.base;
   bodyU.uXrayTint.value.set(cssVar('--xray') || '#7DB0FF');
   const acc = cssVar('--accent') || '#FF7B3F';
-  bodyU.uAccent.value.set(acc); outline.visibleEdgeColor.set(acc); outline.hiddenEdgeColor.set(acc);
+  bodyU.uAccent.value.set(acc); outline.visibleEdgeColor.set(acc); outline.hiddenEdgeColor.set(acc); ACC.set(acc);
   renderer.toneMappingExposure = dark ? 1.0 : 0.98;
   DIM = dark ? 0.34 : 0.5; if (lookReady) refreshLook();
-  bloom.strength = dark ? 0.55 : 0.35;
+  bloom.strength = dark ? 0.3 : 0.18;
 }
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
 new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
@@ -2542,7 +2828,7 @@ applyTheme();
  *  Selection look, camera, picking
  * ------------------------------------------------------------------ */
 const state = { corner: 'FR', sel: null, hover: null, mode: 'xray', isolate: false, running: false, demo: null, playing: true, t0: 0 };
-const WHITE = new THREE.Color('#ffffff');
+const WHITE = new THREE.Color('#ffffff'), REDF = new THREE.Color('#FF2A1A');
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 function outlineObjs(part) {
@@ -2559,16 +2845,18 @@ function partBox(part, ck) {
   return b;
 }
 function refreshLook() {
-  const sel = state.sel, cast = new Set(state.demo?.cast || []);
+  const sel = state.sel, cast = new Set(state.demo?.cast || []), td = TD.on;
   for (const p of PARTS) {
-    const f = !sel || p === sel ? 1 : cast.has(p.id) ? 0.85 : state.isolate ? 0.06 : DIM;
+    // in the teardown only engine parts show, and the see-through ones turn solid
+    const inTD = td && TD.set.has(p.id), solid = inTD && !!p.ghost;
+    const f = td ? (inTD ? 1 : 0.035) : !sel || p === sel ? 1 : cast.has(p.id) ? 0.85 : state.isolate ? 0.06 : DIM;
     const hv = p === state.hover && p !== sel;
     for (const m of p.mats) {
-      const b = m.userData.b, tr = b.tr || f < 1;
+      const b = m.userData.b, tr = solid ? false : b.tr || f < 1;
       if (m.transparent !== tr) { m.transparent = tr; m.needsUpdate = true; }
-      m.opacity = b.op * f; m.depthWrite = b.dw && f === 1;
+      m.opacity = (solid ? 1 : b.op) * f; m.depthWrite = solid || (b.dw && f === 1);
       m.emissive.copy(b.em); m.emissiveIntensity = b.ei;
-      if (hv) { m.emissive.copy(b.em).lerp(WHITE, b.ei ? 0.4 : 1); m.emissiveIntensity = Math.max(b.ei, 0.18); }
+      if (hv) { m.emissive.copy(b.em).lerp(WHITE, b.ei ? 0.25 : 1); m.emissiveIntensity = Math.max(b.ei, 0.1); }
     }
     p.meshes.forEach(me => { me.renderOrder = me.material.transparent ? 2 : 0; });
   }
@@ -2644,16 +2932,17 @@ function pickAt(cx, cy) {
   for (const hit of ray.intersectObjects(targets, false)) {
     if (!hit.object.visible) continue;
     if (hit.object.userData.shell) { const p = shellHit(hit); if (!p) continue; if (state.isolate && state.sel && p !== state.sel) continue; items.push({ part: p, body: true, point: hit.point.clone() }); }
-    else { const p = hit.object.userData.part; if (state.isolate && state.sel && p !== state.sel) continue; if (hit.object.material.opacity < 0.05) continue; items.push({ part: p, point: hit.point.clone() }); }
+    else { const p = hit.object.userData.part; if (TD.on && !TD.set.has(p.id)) continue; if (state.isolate && state.sel && p !== state.sel) continue; if (hit.object.material.opacity < 0.05) continue; items.push({ part: p, point: hit.point.clone() }); }
   }
   let list = items;
   if (state.mode === 'xray') { const inner = items.filter(i => !i.body); if (inner.length) list = inner; }
-  if (!list.length) return null;
-  const p = resolve(list, 0), it = list.find(i => i.part === p);
+  if (!list.length) { pickFirst = null; return null; }
+  pickFirst = list[0].part;   // what the pointer actually touched first (the engine's outer shell starts the teardown)
+  const p = TD.on ? list[0].part : resolve(list, 0), it = list.find(i => i.part === p);
   pickPoint = it ? it.point : null;
   return p;
 }
-let pickPoint = null;
+let pickPoint = null, pickFirst = null;
 function cornerAt(v) { let best = 'FR', bd = 9; CORNERS.forEach(c => { const d = Math.hypot(v.x - c.x, v.z - c.s * TZ); if (d < bd) { bd = d; best = c.k; } }); return best; }
 function resolve(list, i) {
   const p = list[i].part;
@@ -2692,7 +2981,9 @@ function renderCard() {
   const p = state.sel;
   if (!p) { cardEl.hidden = true; requestAnimationFrame(updateOffset); return; }
   cardEl.hidden = false;
-  const sv = SEV[p.sev], sys = SYS[p.sys], d = state.demo;
+  const sv = SEV[p.sev], sys = SYS[p.sys], simThis = SIM.on && SIM.part === p, d = simThis ? null : state.demo;
+  const F = FAULTS[p.id], tdi = TD.on && !TD.closing ? TD_ORDER.indexOf(p.id) : -1;
+  const sym = F ? [['بتشوف', F.see], ['بتسمع', F.hear], ['بتحس', F.feel], ['بتشم', F.smell]].filter(x => x[1]) : [];
   cardEl.innerHTML = `
     <div class="card-top">
       <span class="sys-chip"><i style="background:${sys.color}"></i>${sys.ar}</span>
@@ -2703,7 +2994,8 @@ function renderCard() {
       <h2>${esc(p.ar)}</h2>
       <div class="en-row"><span class="en-name">${esc(p.en)}</span>${canSpeak ? '<button class="say" id="say" aria-label="اسمع اللفظ بالإنجليزي"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5zM15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>اسمع</button>' : ''}</div>
     </div>
-    ${d ? `<div class="demo ${state.playing ? 'playing' : ''}">
+    ${tdi >= 0 ? `<div class="demo playing"><div class="demo-h"><b><i></i>فكّ المحرك: القطعة ${tdi + 1} من ${TD_ORDER.length}</b></div><p>${esc(TD_NOTE[p.id] || '')} المحرك شغّال على مهل لتشوف كل قطعة كيف بتتحرّك.</p></div>` : ''}
+    ${d && tdi < 0 ? `<div class="demo ${state.playing ? 'playing' : ''}">
       <div class="demo-h"><b><i></i>شوف كيف بتشتغل</b><button class="btn" id="demoBtn" aria-pressed="${state.playing}">${state.playing ? 'وقّف الحركة' : 'شغّل الحركة'}</button></div>
       <p>${esc(d.cap)}${d.live ? ' <b id="capLive"></b>' : ''}</p>
       ${d.keys ? `<div class="keys">${d.keys.map(([c, t]) => `<span><i style="background:${c}"></i>${esc(t)}</span>`).join('')}</div>` : ''}
@@ -2711,10 +3003,16 @@ function renderCard() {
     <div class="where"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span>${esc(p.w)}</span></div>
     <div class="blk"><h3>شو وظيفتها؟</h3><p>${esc(p.fn)}</p></div>
     <div class="blk"><h3>إذا خربت؟</h3><p>${esc(p.br)}</p></div>
+    <div class="fault ${simThis ? 'on' : ''}">
+      <div class="fault-h"><b>جرّب العطل متل الميكانيكي</b><button class="btn" id="faultBtn" aria-pressed="${simThis}">${simThis ? 'وقّف التجربة' : 'سوق وجرّب العطل'}</button></div>
+      ${sym.length ? `<ul class="sym">${sym.map(([k, t]) => `<li><i>${k}</i><span>${esc(t)}</span></li>`).join('')}</ul>` : ''}
+      ${F?.dx ? `<p class="dx"><b>كيف بيعرفها الميكانيكي؟</b> ${esc(F.dx)}</p>` : ''}
+    </div>
     <div class="sev" style="--sev-c: var(${sv.v})"><span class="meter" aria-hidden="true">${[1, 2, 3].map(i => `<i class="${i <= p.sev ? 'on' : ''}"></i>`).join('')}</span><div><b>خطورة العطل: ${sv.t}</b><br><span>${sv.d}</span></div></div>
     ${p.note ? `<div class="note"><b>معلومة:</b> ${esc(p.note)}</div>` : ''}
     <div class="card-actions">
       <button class="btn" id="focusBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.3-4.3"/></svg>قرّب عليها</button>
+      ${TD.set.has(p.id) && !(TD.on && !TD.closing) ? '<button class="btn" id="tdCardBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/></svg>فكّ المحرك قطعة قطعة</button>' : ''}
       <button class="btn" id="isoBtn" aria-pressed="${state.isolate}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M3 12h3M18 12h3M12 3v3M12 18v3"/></svg>اعزلها</button>
       <span class="grow"><button class="btn" id="prevBtn" aria-label="القطعة السابقة">→</button><button class="btn" id="nextBtn" aria-label="القطعة التالية">←</button></span>
     </div>`;
@@ -2724,15 +3022,19 @@ function renderCard() {
   $('#nextBtn').onclick = () => step(1);
   $('#cardClose').onclick = () => { cardEl.classList.toggle('collapsed'); renderCard(); };
   const db = $('#demoBtn'); if (db) db.onclick = () => { state.playing = !state.playing; if (state.playing) state.t0 = performance.now(); renderCard(); };
+  $('#faultBtn').onclick = () => { if (simThis) simStop(); else if (SIM.on) { audioStart(); simSetPart(p); simCam(); } else simStart(p); };
+  const tcb = $('#tdCardBtn'); if (tcb) tcb.onclick = () => { audioStart(); tdStart(p); };
   requestAnimationFrame(updateOffset);
   const say = $('#say');
   if (say) say.onclick = () => { try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(p.en.replace(/\(.*?\)/g, '')); u.lang = 'en-US'; u.rate = 0.9; speechSynthesis.speak(u); } catch (e) { /* speech not available */ } };
 }
 function step(dir) { const i = PARTS.indexOf(state.sel); select(PARTS[(i + dir + PARTS.length) % PARTS.length], { focus: true }); }
-function select(part, { focus = true } = {}) {
+function select(part, { focus = true, sim = false } = {}) {
+  if (TD.on && !TD.closing && part && !TD.set.has(part.id)) tdExit(true);
+  if (SIM.on && SIM.part && part !== SIM.part && !sim) simSetPart(null, { quiet: true });
   state.sel = part; state.demo = part ? DEMOS[part.demo] || null : null; state.playing = true; state.t0 = performance.now();
   if (!part) state.isolate = false;
-  if (part) {
+  if (part && !TD.on) {
     if (part.sys !== 'body' && !part.panel && state.mode === 'solid') setMode('xray');
     if (part.panel && state.mode === 'hidden') setMode('solid');
   }
@@ -2746,18 +3048,28 @@ listEl.addEventListener('click', e => {
   const b = e.target.closest('.item'); if (!b) return;
   cardEl.classList.remove('collapsed');
   state.corner = 'FR';
-  select(BY[b.dataset.id]);
+  audioStart();
+  if (!TD.on && b.dataset.id === 'engineBlock') tdStart(BY.engineBlock); else select(BY[b.dataset.id]);
   if (matchMedia('(max-width: 860px)').matches) toggleIndex(false);
 });
 qEl.addEventListener('input', renderList);
 document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => { setMode(b.dataset.mode); refreshLook(); }));
 document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => flyTo(...viewPos(b.dataset.view))));
 const runBtn = $('#runBtn');
-runBtn.addEventListener('click', () => {
-  state.running = !state.running; runBtn.setAttribute('aria-pressed', String(state.running));
+function syncRunBtn() {
+  runBtn.setAttribute('aria-pressed', String(state.running));
   runBtn.querySelector('span').textContent = state.running ? 'وقّف المحرك' : 'شغّل المحرك';
   runBtn.querySelector('svg').innerHTML = state.running ? '<path d="M7 5h4v14H7zM13 5h4v14h-4z"/>' : '<path d="M8 5v14l11-7z"/>';
-});
+}
+runBtn.addEventListener('click', () => { audioStart(); if (SIM.on) simStop(); state.running = !state.running; syncRunBtn(); });
+$('#driveBtn').addEventListener('click', () => { if (SIM.on) simStop(); else simStart(null); });
+$('#tdBtn').addEventListener('click', () => { if (TD.on && !TD.closing) tdExit(false); else { audioStart(); tdStart(state.sel && TD.set.has(state.sel.id) ? state.sel : BY.engineBlock); } });
+const sndBtn = $('#sndBtn');
+function syncSndBtn() {
+  sndBtn.setAttribute('aria-pressed', String(AU.on)); sndBtn.title = AU.on ? 'الصوت شغّال' : 'الصوت مسكّر';
+  sndBtn.querySelector('svg').innerHTML = AU.on ? '<path d="M11 5 6 9H2v6h4l5 4V5zM15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/>' : '<path d="M11 5 6 9H2v6h4l5 4V5zM16 9l6 6M22 9l-6 6"/>';
+}
+sndBtn.addEventListener('click', () => { AU.on = !AU.on; try { localStorage.setItem('carSound', AU.on ? 'on' : 'off'); } catch (e) { /* storage blocked */ } if (AU.on) audioStart(); syncSndBtn(); });
 const colorBtn = $('#colorBtn');
 function setColorMode(mode) {
   colorMode = mode;
@@ -2771,7 +3083,7 @@ function toggleIndex(open) { indexEl.classList.toggle('open', open); $('#listTog
 $('#listToggle').addEventListener('click', () => toggleIndex(!indexEl.classList.contains('open')));
 document.addEventListener('keydown', e => {
   if (e.target === qEl) return;
-  if (e.key === 'Escape') select(null, { focus: false });
+  if (e.key === 'Escape') { if (TD.on && !TD.closing) tdExit(false); else if (SIM.on) simStop(); else select(null, { focus: false }); }
   if (state.sel && (e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !e.altKey) { e.preventDefault(); step(e.key === 'ArrowLeft' ? 1 : -1); }
 });
 
@@ -2787,7 +3099,13 @@ canvas.addEventListener('pointerup', e => {
   const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y), dt = performance.now() - down.t; down = null;
   if (moved > 8 || dt > 700) return;
   const p = pickAt(e.clientX, e.clientY);
-  if (p) { cardEl.classList.remove('collapsed'); state.corner = p.fw && pickPoint ? cornerAt(pickPoint) : 'FR'; select(p); } else select(null, { focus: false });
+  audioStart();
+  if (p) {
+    cardEl.classList.remove('collapsed'); state.corner = p.fw && pickPoint ? cornerAt(pickPoint) : 'FR';
+    if (TD.on) { TD.play = false; select(p, { focus: false }); tdSync(); }
+    else if (pickFirst && TD_START.has(pickFirst.id)) tdStart(pickFirst);
+    else select(p);
+  } else if (!TD.on) select(null, { focus: false });
 });
 canvas.addEventListener('pointermove', e => { if (e.pointerType === 'mouse' && !down) hoverXY = [e.clientX, e.clientY]; });
 canvas.addEventListener('pointerleave', () => { hoverXY = null; setHover(null); });
@@ -2800,7 +3118,7 @@ function setHover(p, x, y) {
 /* ------------------------------------------------------------------ *
  *  Animation: drives every moving part from the active "how it works" demo
  * ------------------------------------------------------------------ */
-const L = { wear: 0, theta: 0, eng: 0, trans: 0, fan: 0, wv: 0, wa: { FL: 0, FR: 0, RL: 0, RR: 0 }, steer: 0, brake: 0, heat: 0, clutch: 0, gas: 0, doors: 0, hood: 0, trunk: 0, flap: 0, win: 0, mirror: 0, wiper: 0, seat: 0, light: 0, brakeL: 0, defrost: 0, bounce: 0, roll: 0, bump: 0, gear: 0, epb: 0, knob: 0, airbag: 1, menu: 0 };
+const L = { vanos: 0, wear: 0, theta: 0, eng: 0, trans: 0, fan: 0, wv: 0, wa: { FL: 0, FR: 0, RL: 0, RR: 0 }, steer: 0, brake: 0, heat: 0, clutch: 0, gas: 0, doors: 0, hood: 0, trunk: 0, flap: 0, win: 0, mirror: 0, wiper: 0, seat: 0, light: 0, brakeL: 0, defrost: 0, bounce: 0, roll: 0, bump: 0, gear: 0, epb: 0, knob: 0, airbag: 1, menu: 0 };
 const ease = (k, target, dt, rate = 4) => { L[k] += (target - L[k]) * Math.min(1, dt * rate); return L[k]; };
 const openCycle = (t, P) => { const p = mod(t, P) / P; return p < 0.22 ? smooth(0, 0.22, p) : p < 0.62 ? 1 : p < 0.84 ? 1 - smooth(0.62, 0.84, p) : 0; };
 const pressCycle = (t, P) => { const p = mod(t, P) / P; return p < 0.12 ? smooth(0, 0.12, p) : p < 0.6 ? 1 : p < 0.72 ? 1 - smooth(0.6, 0.72, p) : 0; };
@@ -2811,33 +3129,49 @@ let liveGear = '';
 
 function engineUpdate(th, fx) {
   if (RIG.crank) RIG.crank.rotation.x = th;
-  RIG.cams.forEach(g => g.rotation.x = th / 2);
+  const vs = L.vanos;
+  RIG.cams.forEach((g, k) => { g.rotation.x = th / 2 + (k ? -vs : vs); });
+  RIG.vanos.forEach((g, k) => { g.rotation.x = th / 2 + (k ? -vs : vs); });
+  if (RIG.balancer) { RIG.balancer.rotation.x = th; RIG.balOuter.rotation.x = (fx.balancer ? 0.07 : 0) * Math.sin(th * 3); RIG.balOuter.rotation.y = (SIM.on ? SIM.balWob : 0) * Math.sin(th); }
+  if (RIG.tensPlunger) RIG.tensPlunger.position.z = 0.02 + 0.0028 * Math.sin(th * 3) * (fx.tens ? 1 : 0.35);
   const c = mod(th, TAU2), on = L.eng > 0.25;
+  let maxBurn = 0;
   CYLX.forEach((x, i) => {
     const a = th + PHASE[i], pinY = CY + 0.04 * Math.cos(a), pinZ = 0.04 * Math.sin(a);
     const py = pinY + Math.sqrt(0.17 * 0.17 - pinZ * pinZ);
     RIG.pistons[i].position.set(x, py + 0.02, 0);
+    if (RIG.rings[i]) RIG.rings[i].position.set(x, py + 0.02, 0);
     const r = RIG.rods[i]; r.position.set(x, (pinY + py) / 2, pinZ / 2); r.rotation.set(Math.atan2(-pinZ, py - pinY), 0, 0);
-    const d = mod(c - FIRE[i], TAU2);
-    const burn = on && fx.combust && d < 1.5 ? Math.exp(-d * 2.4) : 0;
+    const d = mod(c - FIRE[i], TAU2), miss = SIM.on && i === SIM.miss && SIM.missK > 0.3;
+    const burn = on && fx.combust && !miss && d < 1.5 ? Math.exp(-d * 2.4) : 0;
+    maxBurn = Math.max(maxBurn, burn);
     FLASH.comb[i].visible = burn > 0.02; FLASH.comb[i].scale.setScalar(0.012 + 0.04 * burn); FLASH.comb[i].material.opacity = Math.min(1, burn * 1.4);
-    const spk = on && fx.sparks && (d > TAU2 - 0.22 || d < 0.06);
+    const spk = on && fx.sparks && !miss && (d > TAU2 - 0.22 || d < 0.06);
     FLASH.spark[i].visible = spk; FLASH.spark[i].scale.setScalar(0.011 + 0.004 * Math.random());
     const sprayK = on && fx.spray && d > 2 * Math.PI + 0.2 && d < 2 * Math.PI + 1.7 ? Math.sin((d - 2 * Math.PI - 0.2) / 1.5 * Math.PI) : 0;
     FLASH.spray[i].visible = sprayK > 0.02; FLASH.spray[i].scale.set(sprayK, sprayK, sprayK); FLASH.spray[i].material.opacity = 0.85 * sprayK;
-    if (fx.coils) { const pre = d > TAU2 - 1.3 ? (d - (TAU2 - 1.3)) / 1.3 : d < 0.12 ? 1 : 0; glow(RIG.coilMats[i], ORANGE, 3 * pre); }
+    if (fx.coils) { const pre = d > TAU2 - 1.3 ? (d - (TAU2 - 1.3)) / 1.3 : d < 0.12 ? 1 : 0; glow(RIG.coilMats[i], ORANGE, 2 * pre); }
   });
   for (const v of RIG.valves) {
     const d = mod(c - FIRE[v.i], TAU2);
-    const lift = v.ex ? (d > Math.PI && d < 2 * Math.PI ? Math.sin(d - Math.PI) : 0) : (d > 2 * Math.PI && d < 3 * Math.PI ? Math.sin(d - 2 * Math.PI) : 0);
-    v.g.position.copy(v.base).addScaledVector(v.dir, 0.009 * lift);
+    v.lift = v.ex ? (d > Math.PI && d < 2 * Math.PI ? Math.sin(d - Math.PI) : 0) : (d > 2 * Math.PI && d < 3 * Math.PI ? Math.sin(d - 2 * Math.PI) : 0);
+    v.g.position.copy(v.base).addScaledVector(v.dir, 0.009 * v.lift);
   }
+  for (const s of RIG.vsprings) { const l = 0.009 * s.v.lift; s.s.scale.y = (VSL - l) / VSL; s.r.position.y = VSB + VSL - l; }
+  return maxBurn;
 }
 
 function animate(dt, now) {
-  const d = state.demo && state.playing ? state.demo.fx : {}, td = (now - state.t0) / 1000;
-  const fx = Object.assign({}, state.running ? { engine: 'fast', fan: 1, wheels: 1, gauges: 1 } : {}, d);
+  const td = (now - state.t0) / 1000;
+  let d = state.demo && state.playing ? state.demo.fx : {};
+  // in the teardown the engine keeps turning slowly; flashes only show once their parts are out in the open
+  if (TD.on) d = { engine: 'slow', valves: 1, coils: 1, combust: TD.k.pistons > 0.9 ? 1 : 0, sparks: TD.k.sparkPlugs > 0.9 ? 1 : 0, spray: TD.k.injectors > 0.9 ? 1 : 0 };
+  if (SIM.on) { simUpdate(dt); d = SIM.part ? {} : Object.fromEntries(Object.entries(d).filter(([k]) => !SIM_OWN.has(k))); }
+  const fx = Object.assign({}, state.running && !SIM.on ? { engine: 'fast', fan: 1, wheels: 1, gauges: 1 } : {}, d);
+  // while driving the engine turns too fast for the slow-motion flashes, so only the moving parts show
+  if (SIM.on) Object.assign(fx, { gauges: 1, fan: SIM.rpm > 300 && !SIM.fanDead ? 1 : 0, combust: 0, sparks: 0, spray: 0, valves: 1 }, SIM.fxExtra);
   const flows = new Set(d.flows || []), waves = new Set(d.waves || []);
+  if (SIM.on && SIM.hornOn && SIM.k < 0.5) waves.add('horn');
 
   // engine speed (rad/s of the crank, slowed right down so you can follow it)
   let engT = fx.engine === 'fast' ? 9 : fx.engine === 'slow' ? 2.4 : 0, gasP = 0, brakeP = 0, flowRate = {};
@@ -2845,40 +3179,48 @@ function animate(dt, now) {
   if (fx.pedals) { const ph = mod(td, 6); gasP = ph < 2.6 ? Math.sin(ph / 2.6 * Math.PI) : 0; brakeP = ph > 3 && ph < 5.6 ? pressCycle(ph - 3, 2.6) : 0; engT = 2 + gasP * 7.5; }
   if (fx.brake === 1) brakeP = pressCycle(td, 3.4);
   if (fx.brake === 'abs') brakeP = pressCycle(td, 3.4) * (0.62 + 0.38 * Math.sign(Math.sin(td * 30)));
-  ease('eng', engT, dt, 2.5); L.theta += L.eng * dt;
+  if (SIM.on) { engT = SIM.rpm > 60 ? 1.5 + SIM.rpm / 3200 * 11 : 0; brakeP = SIM.brk; gasP = SIM.thr * 0.8; }
+  ease('eng', engT, dt, SIM.on ? 6 : 2.5); L.theta += L.eng * dt;
   ease('gas', gasP, dt, 8); ease('brake', brakeP, dt, 12);
-  if (fx.shifter) { const gi = Math.floor(mod(td, 5.6) / 1.4); liveGear = GEARS[gi]; ease('gear', [-0.28, -0.1, 0.06, 0.22][gi], dt, 8); } else { liveGear = state.running ? 'D' : 'P'; ease('gear', liveGear === 'D' ? 0.22 : -0.28, dt, 4); }
+  if (fx.shifter) { const gi = Math.floor(mod(td, 5.6) / 1.4); liveGear = GEARS[gi]; ease('gear', [-0.28, -0.1, 0.06, 0.22][gi], dt, 8); } else { liveGear = SIM.on ? SIM.gear : state.running ? 'D' : 'P'; ease('gear', liveGear === 'D' ? 0.22 : -0.28, dt, 4); }
   const capLive = document.getElementById('capLive'); if (capLive && capLive.textContent !== GEAR_AR[liveGear]) capLive.textContent = GEAR_AR[liveGear];
-  engineUpdate(L.theta, fx);
+  ease('vanos', fx.vanos ? 0.35 * Math.sin(td * 0.9) : 0, dt, 4);
+  const maxBurn = engineUpdate(L.theta, fx);
   RIG.pulleys.forEach(p => p.g.rotation.x = -L.theta * p.ratio);
   if (RIG.flywheel) RIG.flywheel.rotation.x = L.theta;
   const clutchT = fx.clutch ? pressCycle(td, 4) : 0; ease('clutch', clutchT, dt, 8);
   L.trans += L.eng * (1 - L.clutch) * dt;
   if (RIG.clutch) { RIG.clutch.rotation.x = L.trans; RIG.clutch.position.x = 0.885 - 0.014 * L.clutch; }
   RIG.turboWheels.forEach(g => g.rotation.x += dt * (fx.turbo || L.eng > 0.5 ? 10 + L.eng * 3 : 0));
-  ease('fan', fx.fan || state.running ? 16 : 0, dt, 2); if (RIG.fan) RIG.fan.rotation.x += L.fan * dt;
+  ease('fan', fx.fan || (state.running && !SIM.on) ? 16 : 0, dt, 2); if (RIG.fan) RIG.fan.rotation.x += L.fan * dt;
   if (RIG.throttle) RIG.throttle.rotation.z = fx.throttle ? 0.12 + 1.25 * (0.5 + 0.5 * Math.sin(td * 1.6)) : 0.12 + clamp(L.eng / 9, 0, 1) * 0.5 + L.gas;
-  engineG.position.set(fx.shake ? 0.003 * Math.sin(now * 0.091) : 0, fx.shake ? 0.003 * Math.sin(now * 0.067 + 1) : 0, fx.shake ? 0.002 * Math.sin(now * 0.08 + 2) : 0);
+  const shk = (fx.shake ? 0.003 : 0) + (SIM.on ? SIM.eShake * 0.0035 : 0) + (fx.knock ? maxBurn * 0.0015 : 0);
+  engineG.position.set(shk * Math.sin(now * 0.091), shk * Math.sin(now * 0.067 + 1), shk * 0.7 * Math.sin(now * 0.08 + 2));
 
   // wheels and drivetrain
   let wT = fx.wheels ? 5 : 0; wT *= 1 - 0.9 * L.brake; if (fx.clutch) wT *= 1 - L.clutch; if (fx.pedals) wT = 2 + L.gas * 6 - L.brake * 6;
-  ease('wv', Math.max(0, wT), dt, 2.2);
+  if (SIM.on) L.wv = SIM.v / R_TIRE; else ease('wv', Math.max(0, wT), dt, 2.2);
   const mult = fx.diffTurn ? { FL: 0.82, FR: 1.18, RL: 0.75, RR: 1.25 } : { FL: 1, FR: 1, RL: 1, RR: 1 };
-  for (const k in L.wa) { L.wa[k] -= L.wv * mult[k] * dt; SPIN[k].rotation.z = L.wa[k]; }
+  for (const k in L.wa) { L.wa[k] -= L.wv * mult[k] * dt; SPIN[k].rotation.z = L.wa[k]; SPIN[k].rotation.x = SIM.on ? SIM.wob[k] : 0; }
   RIG.axles.forEach(a => a.g.rotation.z = a.s < 0 ? L.wa.RL : L.wa.RR);
-  if (RIG.dshaft) RIG.dshaft.rotation.x = fx.wheels ? (L.wa.RL + L.wa.RR) * 1.6 : -L.trans;
+  if (RIG.dshaft) RIG.dshaft.rotation.x = fx.wheels || SIM.on ? (L.wa.RL + L.wa.RR) * 1.6 : -L.trans;
 
-  // steering
-  ease('steer', fx.steer ? 0.36 * Math.sin(td * 1.1) : fx.diffTurn ? 0.22 : 0, dt, 5);
+  // steering (and the car veering when something pulls it to one side)
+  ease('steer', SIM.on ? SIM.steer : fx.steer ? 0.36 * Math.sin(td * 1.1) : fx.diffTurn ? 0.22 : 0, dt, 5);
   STEER.FL.rotation.y = STEER.FR.rotation.y = L.steer;
-  if (RIG.swInner) RIG.swInner.rotation.z = L.steer * 4.2;
+  if (RIG.swInner) RIG.swInner.rotation.z = L.steer * 4.2 + (SIM.on ? SIM.sShake * 0.05 * Math.sin(now * 0.075) : 0);
   if (RIG.rack) RIG.rack.position.z = -L.steer * 0.05;
+  carRoot.rotation.y = SIM.on ? SIM.yaw : 0;
 
-  // suspension: body bounce / roll, one-wheel bump
+  // suspension: body bounce / roll / pitch, wheels over bumps
   ease('bounce', fx.bounce ? 1 : 0, dt, 3); ease('roll', fx.roll ? 1 : 0, dt, 3); ease('bump', fx.bump ? 1 : 0, dt, 3);
-  const dy = L.bounce * 0.035 * Math.sin(td * 5.5), rr = L.roll * 0.05 * Math.sin(td * 1.8), bump = L.bump * 0.065 * Math.max(0, Math.sin(td * 2.4));
-  sprung.rotation.x = rr; sprung.position.set(0, dy + 0.45 - 0.45 * Math.cos(rr), -0.45 * Math.sin(rr)); sprung.updateMatrix();
-  CORNER.FL.position.y = WY + bump;
+  const dy = L.bounce * 0.035 * Math.sin(td * 5.5) + (SIM.on ? SIM.heaveOut + SIM.jy : 0);
+  const rr = L.roll * 0.05 * Math.sin(td * 1.8) + (SIM.on ? SIM.roll : 0), pz = SIM.on ? SIM.pitch : 0;
+  const bump = L.bump * 0.065 * Math.max(0, Math.sin(td * 2.4));
+  sprung.rotation.set(rr, 0, pz);
+  sprung.position.set(0.45 * Math.sin(pz) + (SIM.on ? SIM.jx : 0), dy + 0.45 - 0.45 * Math.cos(pz) * Math.cos(rr), -0.45 * Math.cos(pz) * Math.sin(rr));
+  sprung.updateMatrix();
+  for (const k in CORNER) CORNER[k].position.y = WY + (k === 'FL' ? bump : 0) + (SIM.on ? SIM.cy[k] : 0);
   const off = k => CORNER[k].position.y - WY, tmp = new THREE.Vector3();
   RIG.springs.forEach(s => { const b = off(s.k); tmp.copy(s.top).applyMatrix4(sprung.matrix); s.g.position.y = s.bottom.y + b; s.g.scale.y = (s.len + (tmp.y - s.top.y) - b) / s.len; });
   RIG.shocks.forEach(s => { s.g.position.y = s.y + off(s.k); });
@@ -2890,7 +3232,7 @@ function animate(dt, now) {
   if (RIG.pedals.gas) RIG.pedals.gas.rotation.z = -0.3 * L.gas;
   RIG.pads.forEach(p => { p.m.position.z = p.base + p.dir * 0.006 * Math.max(L.brake, p.rear ? L.epb : 0); });
   if (RIG.epbSwitch) RIG.epbSwitch.position.y = 0.627 - 0.004 * L.epb;
-  ease('heat', (fx.brake || fx.pedals) ? L.brake * 1.6 : 0, dt, 1.2);
+  ease('heat', (fx.brake || fx.pedals) && !SIM.on ? L.brake * 1.6 : 0, dt, 1.2);
   if (L.heat > 0.02) { glow(RIG.discMat, REDHOT, L.heat); glow(RIG.discEdge, REDHOT, L.heat * 0.8); }
   // wheel bolts tightened one by one in a star pattern
   const STAR = [0, 2, 4, 1, 3];
@@ -2899,14 +3241,19 @@ function animate(dt, now) {
     const ph = mod(td, 5) / 0.9, j = STAR.indexOf(i), f = clamp(ph - j, 0, 1);
     b.g.position.z = b.base + b.s * 0.008 * (1 - f); b.g.rotation.z = -f * Math.PI * 4;
   });
+  // head bolts tightened from the middle outwards
+  HB_SEQ.forEach((b, j) => {
+    if (!fx.headBolts) { b.b.position.y = 0; b.b.rotation.y = 0; return; }
+    const f = clamp(mod(td, 8) / 0.42 - j, 0, 1); b.b.position.y = 0.014 * (1 - f); b.b.rotation.y = -f * Math.PI * 3;
+  });
   // brake pads wear down until the sensor trips
   ease('wear', fx.wear ? smooth(0, 4, mod(td, 5.5)) : 0, dt, 6);
   RIG.pads.forEach(p => { if (p.fric) p.m.scale.z = 1 - 0.65 * L.wear; });
-  if (fx.wear && L.wear > 0.78) glow(RIG.padSensorMat, REDHOT, 2.5);
+  if (fx.wear && L.wear > 0.78) glow(RIG.padSensorMat, REDHOT, 2);
 
   // body: doors, hood, trunk, flap, windows, mirrors, wipers
   ease('doors', fx.doors ? openCycle(td, 5) : 0, dt, 6); DOORS.forEach(o => o.pivot.rotation.y = o.s * 1.05 * L.doors);
-  ease('hood', fx.hood ? openCycle(td, 5) : 0, dt, 6); SHELL.byKey.hood.pivot.rotation.z = 0.85 * L.hood;
+  ease('hood', fx.hood ? openCycle(td, 5) : 0, dt, 6); SHELL.byKey.hood.pivot.rotation.z = 0.85 * L.hood + (SIM.on ? SIM.hoodF : 0);
   ease('trunk', fx.trunk ? openCycle(td, 5) : 0, dt, 6); SHELL.byKey.trunk.pivot.rotation.z = -1.0 * L.trunk;
   ease('flap', fx.flap ? openCycle(td, 5) : 0, dt, 6); if (RIG.flap) RIG.flap.rotation.y = 1.5 * L.flap;
   if (fx.flap && L.flap < 0.9) flows.delete('neck');
@@ -2920,8 +3267,10 @@ function animate(dt, now) {
   if (fx.shifter || L.gear) RIG.shifter && (RIG.shifter.rotation.z = L.gear);
   if (fx.idrive) { L.knob += dt * 1.6 * Math.sign(Math.sin(td * 0.7) + 0.01); const mi = Math.floor(mod(td / 0.9, MENU.length)); if (mi !== L.menu) { L.menu = mi; drawInfo(mi); } }
   if (RIG.knob) RIG.knob.rotation.y = L.knob;
-  if ((fx.gauges || state.running || fx.pedals) && RIG.cluster && now - RIG.cluster.last > 70) { RIG.cluster.last = now; drawCluster(L.wv * 22, 0.8 * (L.eng > 0.2) + L.eng * 0.62, liveGear || 'P'); }
-  else if (!fx.gauges && !state.running && RIG.cluster && RIG.cluster.last !== -1 && now - RIG.cluster.last > 400) { RIG.cluster.last = -1; drawCluster(0, 0, liveGear || 'P'); }
+  if ((fx.gauges || state.running || fx.pedals) && RIG.cluster && now - RIG.cluster.last > 70) {
+    RIG.cluster.last = now;
+    if (SIM.on) drawCluster(SIM.kmh, SIM.rpm / 1000, SIM.gear, SIM.clusterOff); else drawCluster(L.wv * 22, 0.8 * (L.eng > 0.2) + L.eng * 0.62, liveGear || 'P');
+  } else if (!fx.gauges && !state.running && RIG.cluster && RIG.cluster.last !== -1 && now - RIG.cluster.last > 400) { RIG.cluster.last = -1; drawCluster(0, 0, liveGear || 'P'); }
 
   // airbags inflate and deflate
   const abK = fx.airbags ? (() => { const p = mod(td, 3.2); return p < 0.15 ? smooth(0, 0.15, p) : p < 1.4 ? 1 : p < 2.3 ? 1 - smooth(1.4, 2.3, p) * 0.9 : 0.1 * (1 - smooth(2.3, 3.0, p)); })() : 1;
@@ -2929,20 +3278,32 @@ function animate(dt, now) {
   RIG.airbags.forEach(a => { a.m.scale.copy(a.s).multiplyScalar(Math.max(0.001, L.airbag)); a.m.visible = L.airbag > 0.02; });
 
   // lights and glows
-  ease('light', fx.lights ? 1 : 0, dt, 4); bodyU.uLight.value = L.light;
-  BEAMS.forEach(b => { b.visible = L.light > 0.02; b.material.opacity = 0.13 * L.light; });
+  ease('light', fx.lights ? 1 : SIM.on ? SIM.light : 0, dt, SIM.on ? 10 : 4); bodyU.uLight.value = L.light;
+  BEAMS.forEach((b, i) => { b.visible = L.light > 0.02 && (!SIM.on || SIM.beams[i]); b.material.opacity = 0.13 * L.light; });
   ease('brakeL', fx.brakeLights ? pressCycle(td, 2.4) : L.brake, dt, 10); bodyU.uBrake.value = L.brakeL;
   ease('defrost', fx.defrost ? 0.65 + 0.35 * Math.sin(td * 3) : 0, dt, 3); bodyU.uDefrost.value = L.defrost;
   RADAR_CONE.visible = !!fx.radar; RADAR_CONE.material.opacity = fx.radar ? 0.07 + 0.04 * Math.sin(td * 4) : 0;
-  if (fx.o2) glow(RIG.o2Mat, GREEN, 1.2 + Math.sin(td * 8));
-  if (fx.ecu) glow(RIG.ecuMat, GREEN, 0.8 + 0.6 * Math.sin(td * 10));
-  if (fx.fuse) glow(RIG.fuseMat, YELLOW, 0.6 + 0.6 * Math.max(0, Math.sin(td * 4)));
-  if (fx.belts) glow(RIG.beltMat, WHITEGLOW, 2.5 * Math.max(0, Math.sin(td * 3)) ** 6);
+  if (fx.o2) glow(RIG.o2Mat, GREEN, 1.0 + 0.8 * Math.sin(td * 8));
+  if (fx.ecu) glow(RIG.ecuMat, GREEN, 0.7 + 0.5 * Math.sin(td * 10));
+  if (fx.fuse) glow(RIG.fuseMat, YELLOW, 0.5 + 0.5 * Math.max(0, Math.sin(td * 4)));
+  if (fx.belts) glow(RIG.beltMat, WHITEGLOW, 2 * Math.max(0, Math.sin(td * 3)) ** 6);
+  if (fx.cks) glow(RIG.cksMat, GREEN, Math.sin(L.theta * 29) > 0 ? 1.1 : 0.15);
+  if (fx.cms) glow(RIG.cmsMat, GREEN, mod(L.theta / 2, Math.PI * 2) < 0.6 ? 1.3 : 0.15);
+  if (fx.knock) glow(RIG.knockMat, GREEN, 0.15 + 1.5 * maxBurn);
+  if (fx.ops) glow(RIG.opsMat, GREEN, 0.7 + 0.3 * Math.sin(td * 5));
+  if (fx.ects) glow(RIG.ectsMat, GREEN, 0.7 + 0.3 * Math.sin(td * 4));
+  // the broken part blinks red while its fault is on; an overheating engine glows
+  // (wheel-corner parts share one material for all four corners, so they are shown by the camera and the effect instead)
+  if (SIM.on && SIM.part && !SIM.part.fw && SIM.k > 0.25) { const pl = 0.5 + 0.5 * Math.sin(now / 230); for (const m of SIM.part.mats) glow(m, REDF, (0.1 + 0.2 * pl) * SIM.k); }
+  if (SIM.on && SIM.temp > 0.75 && SIM.part?.id !== 'engineBlock') for (const m of BY.engineBlock.mats) glow(m, ORANGE, (SIM.temp - 0.75) * 1.6);
 
   // particle flows and waves
   if (fx.brake || fx.pedals) ['brakeFL', 'brakeFR', 'brakeRL', 'brakeRR'].forEach(k => { if (flows.has(k) && L.brake < 0.08) flows.delete(k); flowRate[k] = 0.5 + L.brake * 1.5; });
   for (const k in FLOWDEF) if (flows.has(k) || FLOWS[k]) flow(k).update(dt, flows.has(k), flowRate[k] ?? (k === 'belt' || k === 'chain' || k === 'oil' ? Math.max(0.3, L.eng / 4) : 1));
   for (const k in WAVES) WAVES[k].update(dt, waves.has(k));
+  roadUpdate(dt);
+  fxUpdate(dt, SIM.on ? SIM.v : 0);
+  tdApply(dt);
 }
 
 /* ------------------------------------------------------------------ *
@@ -2978,7 +3339,7 @@ function adapt(dt) {
   const avg = perf.t / perf.n; perf.t = 0; perf.n = 0;
   if (avg < 0.034) return;
   perf.level++;
-  if (perf.level === 1) { renderer.shadowMap.enabled = false; sun.castShadow = false; scene.traverse(o => { if (o.material) o.material.needsUpdate = true; }); bloom.enabled = false; }
+  if (perf.level === 1) { renderer.shadowMap.enabled = false; sun.castShadow = false; scene.traverse(o => { if (o.material) o.material.needsUpdate = true; }); bloom.enabled = false; gtao.enabled = false; }
   else { renderer.setPixelRatio(1); resize(); }
 }
 function loop() {
@@ -2993,10 +3354,13 @@ function loop() {
   animate(dt, now);
   // selection glow: pulse the chosen part and its outline
   const pulse = reduceMotion ? 0.6 : Math.sin(now / 280) ** 2;
-  outline.edgeStrength = 3.5 + 3.5 * pulse;
-  if (state.sel) for (const m of state.sel.mats) if (!touched.has(m)) { m.emissive.copy(m.userData.b.em).lerp(WHITE, m.userData.b.ei ? 0.4 : 1); m.emissiveIntensity = Math.max(m.userData.b.ei, 0.18 + 0.32 * pulse); }
+  outline.edgeStrength = 2.0 + 1.2 * pulse;
+  if (state.sel) for (const m of state.sel.mats) if (!touched.has(m)) { m.emissive.copy(m.userData.b.em).lerp(ACC, m.userData.b.ei ? 0.25 : 1); m.emissiveIntensity = Math.max(m.userData.b.ei, 0.04 + 0.1 * pulse); }
   for (const [m] of touchedPrev) if (!touched.has(m) && !(state.sel && state.sel.mats.includes(m))) { m.emissive.copy(m.userData.b.em); m.emissiveIntensity = m.userData.b.ei; }
-  for (const [m, [c, k]] of touched) { m.emissive.copy(c); m.emissiveIntensity = Math.max(k, state.sel && state.sel.mats.includes(m) ? 0.3 * pulse : 0); }
+  for (const [m, [c, k]] of touched) { m.emissive.copy(c); m.emissiveIntensity = Math.max(k, state.sel && state.sel.mats.includes(m) ? 0.1 * pulse : 0); }
+  if (frame % 2 === 1) labelsUpdate();
+  simHud(dt); audioFrame(dt, now);
+  gtao.enabled = perf.level === 0 && !window.__noAO && state.mode !== 'solid';
   touchedPrev = new Map(touched); touched.clear();
   if (hoverXY && frame % 2 === 0) { const [x, y] = hoverXY; hoverXY = null; setHover(pickAt(x, y), x, y); }
   // name tag above the selected part
@@ -3013,8 +3377,839 @@ function loop() {
   requestAnimationFrame(loop);
 }
 
+/* ------------------------------------------------------------------ *
+ *  Faults: what you see / hear / feel / smell, how a mechanic tells, and what the simulation does
+ *  fx: smoke [colour, where, rate], leak [fluid, [x,y,z]], sparks, shake {e engine, b body, s steering},
+ *      miss [cylinder, amount], stall, nostart, power, brakeEff, heat, pull, lean, flat, wobble, bounce, roll ...
+ *  snd: fault sounds for the synthesiser; lamps: warning lamps that light up
+ * ------------------------------------------------------------------ */
+const LAMPS = {
+  eng: ['a', 'لمبة المحرك', '<path d="M3 10v5M3 12.5h2M5 9h2V7h5V5M7 7h7l2 2h2l2 3v4h-2l-2 2H9l-2-2H5V9"/>'],
+  oil: ['r', 'ضغط الزيت', '<path d="M2 11h3l2 2h8l5-4 2 1-6 7H7l-2-3H2zM12 13V9M9 9h6M21 17.5a1.2 1.2 0 0 1-2.4 0c0-.8 1.2-2.5 1.2-2.5s1.2 1.7 1.2 2.5z"/>'],
+  batt: ['r', 'الشحن والبطارية', '<rect x="3" y="7" width="18" height="12" rx="1.5"/><path d="M7 7V5h3v2M14 7V5h3v2M6.5 13h3M8 11.5v3M14.5 13h3"/>'],
+  temp: ['r', 'حرارة المحرك', '<path d="M12 3v9M12 3a1.6 1.6 0 0 1 1.6 1.6V12a3 3 0 1 1-3.2 0V4.6A1.6 1.6 0 0 1 12 3zM14 6h2.5M14 9h2.5"/><path d="M3 20c1.5-1 3-1 4.5 0s3 1 4.5 0 3-1 4.5 0 3 1 4.5 0"/>'],
+  brk: ['r', 'الفرامل', '<circle cx="12" cy="12" r="6"/><path d="M12 9v3.5M12 15h.01M5 6.5a8.5 8.5 0 0 0 0 11M19 6.5a8.5 8.5 0 0 1 0 11"/>'],
+  abs: ['a', 'ABS', '<circle cx="12" cy="12" r="6.5"/><path d="M4.5 6.5a9 9 0 0 0 0 11M19.5 6.5a9 9 0 0 1 0 11"/><text x="12" y="14.2" font-size="5.6" text-anchor="middle" fill="currentColor" stroke="none" font-family="system-ui, sans-serif" font-weight="700">ABS</text>'],
+  dsc: ['a', 'الثبات DSC', '<path d="M5 12l2-4h10l2 4v4H5zM7 16v1.5M17 16v1.5M6 21c1.5-1.4 1.5-2 0-3M12 21c1.5-1.4 1.5-2 0-3M18 21c1.5-1.4 1.5-2 0-3"/>'],
+  tpms: ['a', 'ضغط الإطارات', '<path d="M6 6c-2.2 3.4-2.2 8.6 0 12h12c2.2-3.4 2.2-8.6 0-12M5 21h14M12 9v4.5M12 16h.01"/>'],
+  pads: ['a', 'الفحمات', '<circle cx="12" cy="12" r="6"/><path d="M4.5 6.5a9 9 0 0 0 0 11M19.5 6.5a9 9 0 0 1 0 11" stroke-dasharray="2.2 2"/>'],
+  eps: ['a', 'الدركسيون', '<circle cx="11" cy="12" r="7"/><circle cx="11" cy="12" r="2"/><path d="M4 12h5M13 12h5M11 14v5M21.5 5v5M21.5 13h.01"/>'],
+  srs: ['r', 'الإيرباغ', '<circle cx="8" cy="5" r="2"/><path d="M7 8l-1 7h5l2 5M6.5 11l5 1"/><circle cx="17" cy="10" r="4"/>'],
+  belt: ['r', 'حزام الأمان', '<circle cx="12" cy="4.5" r="2"/><path d="M8 21v-9a4 4 0 0 1 8 0v9M9 9l6 9"/>'],
+  gear: ['a', 'الجير', '<circle cx="12" cy="12" r="5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1M12 9.5v3M12 14.5h.01"/>'],
+  bulb: ['a', 'لمبة محروقة', '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9V16h7v-2.1A6 6 0 0 0 12 3zM12 7v4M12 13h.01"/>'],
+};
+const FAULTS = {
+  /* engine */
+  engineBlock: { see: 'بقعة زيت أو ماي تحت المحرك، وأحياناً دخان أبيض من الشكمان', feel: 'الحرارة بتطلع والمحرك بيضعف', dx: 'بيعملوا فحص ضغط لنظام التبريد وبيدوّروا عالشرخ بالعين أو بصبغة خاصة. إذا الماي عم ينقص وما في تسريب برّا، ممكن الشرخ يكون جوّا.', fx: { leak: ['coolant', [1.29, 0.29, 0.12]], smoke: ['white', 'tail', 0.6], heat: 0.6 }, lamps: ['temp', 'eng'] },
+  cylinders: { see: 'دخان أزرق، والزيت عم ينقص بسرعة', feel: 'ضعف ورجفة', dx: 'بكاميرا صغيرة من فتحة البوجيه بيشوفوا خدوش طويلة على جدار السلندر، وفحص الضغط بيطلع قليل بهالسلندر.', fx: { smoke: ['blue', 'tail', 1], miss: [2, 0.5], power: 0.8 }, lamps: ['eng'] },
+  headGasket: { see: 'دخان أبيض كتير من الشكمان، وماي الرديتر عم ينقص بدون تسريب واضح', smell: 'ريحة حلوة بالدخان (ماي الرديتر عم يحترق)', feel: 'المحرك بيسخن وبيرجف شوي', dx: 'بيفحصوا إذا في غاز عادم بماي الرديتر (Block Test)، أو بيعملوا فحص ضغط للسلندرات: سلندر ضغطه قليل أو فقاعات بالقربة بتدل عالجوان.', fx: { smoke: ['white', 'tail', 1.5], heat: 0.7, miss: [3, 0.5] }, snd: { boil: 0.35 }, lamps: ['temp', 'eng'] },
+  headBolts: { see: 'دخان أبيض، أو زيت وماي عم يرشحوا بين الراس والبلوك', feel: 'الحرارة بتطلع شوي شوي', dx: 'براغي الراس ما بتنشد "عالعين": في عزم وزاوية من المصنع وترتيب حلزوني، والبراغي المتمدّدة بتتغيّر وما بترجع تنركب.', fx: { smoke: ['white', 'tail', 0.8], leak: ['oil', [1.0, 0.6, -0.14]], heat: 0.4 }, lamps: ['temp'] },
+  cylinderHead: { see: 'دخان أبيض، وأحياناً زيت حوالين الراس', hear: 'صوت المحرك مش منتظم', feel: 'رجفة وضعف، والحرارة بتطلع', dx: 'بعد ما ينفك الراس بيقيسوا استواءه بمسطرة دقيقة وفيلر. إذا معوّج بيتجلّخ، وإذا مشعور بيتغيّر.', fx: { smoke: ['white', 'tail', 0.8], heat: 0.5, miss: [3, 0.6] }, lamps: ['temp', 'eng'] },
+  valveCover: { see: 'زيت حوالين غطا الصبابات، ودخان خفيف طالع من تحت الكبوت', smell: 'ريحة زيت محروق، خصوصاً بعد ما توقف', dx: 'شوف حواف الغطا: إذا مبلولة بالزيت وعليها غبرة لازقة، الجوانة ناشفة. وإذا الزيت وصل لمكان البواجي ممكن يعمل رجفة كمان.', fx: { smoke: ['gray', 'bay', 0.7], leak: ['oil', [1.0, 0.70, 0.13]] } },
+  pistons: { see: 'دخان أزرق من الشكمان', hear: 'طرقة مكتومة (Piston Slap)، أوضح والمحرك بارد', feel: 'ضعف بالقوة والمحرك بيرجف', dx: 'فحص ضغط السلندرات (Compression Test): السلندر الخربان ضغطه أقل من الباقي. وكاميرا صغيرة من فتحة البوجيه بتورجي راس البستم.', fx: { smoke: ['blue', 'tail', 1], miss: [1, 0.5], power: 0.7 }, snd: { slap: 1 }, lamps: ['eng'] },
+  pistonRings: { see: 'دخان أزرق من الشكمان، خصوصاً لما تدعس بعد ما تكون واقف', feel: 'ضعف، والزيت عم ينقص بين تغيير وتغيير', dx: 'فحص الضغط "الناشف" بيطلع قليل، ولما يحطّوا شوية زيت بالسلندر ويعيدوا (فحص مبلول) بيرتفع: هيك بيعرفوا إنها الشنابر مش الصبابات.', fx: { smoke: ['blue', 'tail', 1.5], power: 0.8 } },
+  conRods: { hear: 'دقّة معدنية عالية بتزيد مع الدورات، وأوضح لما تشيل رجلك فجأة عن البنزين', see: 'لمبة ضغط الزيت', feel: 'بالآخر المحرك بيعلق أو الذراع بينكسر', dx: 'بيفصلوا كويل كل سلندر لحاله والمحرك شغّال: إذا خفّت الدقّة لما فصلوا سلندر معيّن، ذراع هالسلندر هو الخربان.', fx: { shake: { e: 1.2 }, stall: 1 }, snd: { knock: 1.2 }, lamps: ['oil', 'eng'], msg: 'ضغط الزيت! وقّف المحرك فوراً' },
+  crankshaft: { hear: 'دقّة عميقة وقوية من أسفل المحرك بتزيد مع الدورات', see: 'لمبة ضغط الزيت الحمرا', feel: 'رجّة، وإذا كمّلت سواقة المحرك بيوقف فجأة', dx: 'الدقّة من تحت (مش من فوق متل الصبابات) وبتصير أوضح لما تعلّي الدورات. الميكانيكي بيسمعها بسمّاعة (Stethoscope) حاططها عالبلوك.', fx: { shake: { e: 1 }, stall: 1 }, snd: { mknock: 1 }, lamps: ['oil', 'eng'], msg: 'ضغط الزيت! وقّف المحرك فوراً' },
+  crankBearings: { hear: 'دقّة عميقة وتقيلة من تحت، أوطى صوت من دقّة الذراع', see: 'ضغط الزيت نازل، ولمبة الزيت بترمش عالسلانسيه', dx: 'برادة نحاسية أو فضية بزيت المحرك أو جوّا الفلتر بتأكّد إن السبيكة عم تنصرف.', fx: { shake: { e: 0.8 } }, snd: { mknock: 0.9 }, lamps: ['oil'] },
+  camshaft: { hear: 'تكتكة سريعة من فوق المحرك بتزيد مع الدورات', feel: 'ضعف ورجفة خفيفة', dx: 'التكتكة من فوق (من غطا الصبابات) وسرعتها نص سرعة الدقّة اللي بتجي من تحت. لما بيفتحوا الغطا بيشوفوا نتوءات الكامة متآكلة.', fx: { miss: [4, 0.4], power: 0.85 }, snd: { tick: 1 }, lamps: ['eng'] },
+  vanos: { feel: 'السلانسيه مش ثابت، وضعف عالدورات الواطية', hear: 'تكتكة أو خشخشة خفيفة من عند الكامات', see: 'لمبة المحرك (خطأ بتوقيت الكامات)', dx: 'بجهاز الفحص بيعملوا اختبار VANOS: بيقارنوا وين لازم تكون الكامة ووين هي فعلاً. وبيفحصوا السولونويد إذا وسخان.', fx: { rough: 0.6, power: 0.7 }, snd: { rattle: 0.3 }, lamps: ['eng'] },
+  valves: { hear: 'تكتكة، وصوت المحرك متقطّع كأنه عم يفوّت ضربة', feel: 'رجفة واضحة خصوصاً عالسلانسيه', see: 'لمبة المحرك بترمش', dx: 'فحص الضغط بيورجي سلندر ضعيف. إذا حطّوا شوية زيت بالسلندر والضغط ما تحسّن، المشكلة بالصبابة مش بالشنابر.', fx: { miss: [2, 1], shake: { e: 0.6 } }, snd: { tick: 0.5 }, lamps: ['eng'] },
+  valveSprings: { hear: 'تكتكة، والمحرك صوته متقطّع', feel: 'رجفة خصوصاً عالدورات العالية', dx: 'بعد فتح غطا الصبابات بيفحصوا كل نابض: المكسور بيبين بالعين، والضعيف بيقيسوا قوّته بجهاز خاص.', fx: { miss: [5, 0.8] }, snd: { tick: 0.6 }, lamps: ['eng'] },
+  timingChain: { hear: 'خشخشة معدنية من ورا المحرك، أوضح أول التشغيل عالبارد', feel: 'ضعف ورجفة إذا نطّ سن', see: 'لمبة المحرك (أخطاء توقيت)', dx: 'الخشخشة بتكون أقوى أول كم ثانية بعد التشغيل وبتخف لما يطلع ضغط الزيت. والكمبيوتر بيسجّل خطأ إنو الكامة مش متزامنة مع الكرنك.', fx: { miss: [0, 0.3] }, snd: { rattle: 1 }, lamps: ['eng'] },
+  chainTensioner: { hear: 'خشخشة معدنية ورا المحرك أول ثواني بعد التشغيل', dx: 'الشدّاد بيشتغل بضغط الزيت، فالخشخشة بتكون أقوى قبل ما يطلع الضغط. بيفحصوا إذا بستمه بيرجع لجوّا بسهولة زيادة.', snd: { rattle: 1 }, lamps: ['eng'] },
+  sparkPlugs: { hear: 'صوت المحرك مش منتظم، وأحياناً فرقعة من الشكمان', feel: 'رجفة عالسلانسيه وتقطيع وقت الدعسة', see: 'لمبة المحرك بترمش (Misfire)', dx: 'الكمبيوتر بيقلّك أي سلندر عم يفوّت (متل P0302 يعني سلندر 2). بيبدّلوا البوجيه مع سلندر تاني: إذا لحقها العطل، هي الخربانة.', fx: { miss: [1, 1], shake: { e: 0.5 } }, snd: { pop: 0.5 }, lamps: ['eng'] },
+  ignitionCoils: { hear: 'المحرك عم يفوّت ضربة بشكل منتظم', feel: 'رجفة قوية وضعف، خصوصاً بالطلعة', see: 'لمبة المحرك بترمش، ورسالة "قوة المحرك مخفّضة"', dx: 'بيبدّلوا الكويل مع سلندر جنبه: إذا انتقل رقم السلندر بالخطأ معه، الكويل هو الخربان.', fx: { miss: [3, 1], shake: { e: 0.7 }, power: 0.75 }, snd: { pop: 0.4 }, lamps: ['eng'], msg: 'قوة المحرك مخفّضة' },
+  oilPan: { see: 'نقط زيت تحت المحرك، وبقعة بالمكان اللي بتصف فيه', smell: 'أحياناً ريحة زيت محروق', dx: 'حط كرتونة نضيفة تحت السيارة ليلة كاملة: مكان النقطة بيدلّ عالمصدر. حوالين برغي التفريغ وجوانة الكرتير من أشهر الأماكن.', fx: { leak: ['oil', [1.27, 0.17, 0.0], 1.3] } },
+  oilPump: { see: 'لمبة الزيت الحمرا بتضوي وأنت ماشي', hear: 'تكتكة من فوق لأن الزيت ما عم يوصل، وبعدين دقّة', feel: 'بالآخر المحرك بيعلق وبيطفي', dx: 'بيركّبوا ساعة ضغط زيت مكان الحسّاس: إذا الضغط فعلاً قليل والزيت مليان، المشكلة بالطرمبة أو مصفاتها مسدودة.', fx: { stall: 1 }, snd: { tick: 0.8, mknock: 0.4 }, lamps: ['oil'], msg: 'ضغط الزيت! وقّف المحرك فوراً' },
+  oilFilter: { see: 'زيت عم ينقّط من عند الفلتر', feel: 'إذا انسد كتير الزيت بيمرق بدون تنضيف والمحرك بيتآكل أسرع', dx: 'تسريب من عند الفلتر بعد تغيير الزيت على طول؟ أول شي: الفلتر مشدود؟ والجوانة القديمة انشالت ولا ضلّت لازقة؟', fx: { leak: ['oil', [1.40, 0.44, -0.20]] } },
+  oilPressureSensor: { see: 'لمبة الزيت ضاوية والضغط سليم، أو زيت عم ينقّط من عنده', dx: 'بيركّبوا ساعة ضغط ميكانيكية مكانه: إذا الضغط منيح، الحسّاس هو الخربان. بس ممنوع تفترض هيك بدون فحص.', fx: { leak: ['oil', [1.48, 0.44, -0.18]] }, lamps: ['oil'] },
+  engineMounts: { hear: 'خبطة (Clunk) لما تنطلق أو تبدّل', feel: 'رجّة قوية بالمقود والكراسي، خصوصاً عالسلانسيه', see: 'المحرك بيتحرّك كتير لما حدا يدعس بنزين والكبوت مفتوح', dx: 'والكبوت مفتوح والفرامل مدعوسة، حدا بيبدّل بين D و R: إذا المحرك نطّ كتير، الكراسي خربانة.', fx: { shake: { e: 2.2, b: 0.8, s: 0.6 } }, snd: { jolt: 0.9 } },
+  serpentineBelt: { hear: 'صرصعة عالية (Squeal)، خصوصاً أول التشغيل أو لما تدعس', see: 'إذا انقطع: لمبة البطارية، والمكيف بيوقف', dx: 'رشّة ماي خفيفة عالسير وهو شغّال: إذا سكت الصوت كم ثانية، الصوت من السير. وبيفحصوا الشقوق بضهره والشدّاد تبعه.', snd: { squeal: 1 } },
+  harmonicBalancer: { feel: 'رجّة واضحة بالمحرك', see: 'بكرة الكرنك عم ترقص، وسير المحرك عم يتمايل', hear: 'نقنقة من قدّام المحرك', dx: 'والمحرك شغّال بيطلّعوا عالبكرة: إذا الحلقة البرّانية عم ترقص أو الكاوتشوكة منفوخة ومشقّقة، لازم تتغيّر.', fx: { shake: { e: 1.2 }, balWob: 1 }, snd: { rattle: 0.3, squeal: 0.25 } },
+  crankSensor: { feel: 'المحرك بيطفي فجأة وأنت ماشي، خصوصاً لما يسخن', see: 'بيدوّر بس ما بيشتغل، وعدّاد الدورات ما بيتحرّك وقت التشغيل', dx: 'وقت التشغيل بجهاز الفحص: إذا قراءة الدورات صفر والمحرك عم يدوّر، الكمبيوتر ما عم يشوف إشارة الكرنك.', fx: { stall: 1 }, lamps: ['eng'] },
+  camSensor: { feel: 'التشغيل بياخد وقت أطول، ورجفة', see: 'لمبة المحرك', dx: 'الكمبيوتر بيسجّل خطأ بإشارة الكامة. وأحياناً زيت فايت عالفيشة بيعمل نفس العطل، فبيفحصوها كمان.', fx: { rough: 0.4, power: 0.8 }, lamps: ['eng'] },
+  knockSensor: { hear: 'تخشخش متل حصى بعلبة (Pinging) وقت الدعسة، إذا في طرق حقيقي', feel: 'ضعف بالقوة لأن الكمبيوتر بيأخّر الشرارة', see: 'لمبة المحرك', dx: 'بيقيسوا إشارة الحسّاس بالجهاز، وبيتأكّدوا إن برغيه مشدود بالعزم الصح لأنه "بيسمع" البلوك من خلاله.', fx: { power: 0.7 }, snd: { ping: 1 }, lamps: ['eng'] },
+  coolantTempSensor: { see: 'مؤشّر الحرارة عم ينطّ أو ضايل تحت، ودخان أسود', feel: 'صعوبة تشغيل عالبارد وصرف زيادة', dx: 'بيقارنوا قراءة الحسّاس بالجهاز مع حرارة المحرك الحقيقية (بميزان حرارة ليزر). الفرق الكبير يعني الحسّاس.', fx: { smoke: ['black', 'tail', 0.5], tempWild: 1 }, lamps: ['eng'] },
+  /* air and turbo */
+  airFilter: { feel: 'السيارة تقيلة وضعيفة بالطلعات', see: 'الفلتر لونه رمادي غامق ومليان غبرة', dx: 'أسهل فحص: بيشيلوا الفلتر وبيحطّوه قدّام ضو قوي. إذا ما بيمرق الضو منه، لازم يتغيّر.', fx: { power: 0.75 }, snd: { hiss: 0.3 } },
+  throttleBody: { feel: 'السلانسيه طالع نازل، والسيارة ممكن تطفي وأنت عم توقف', see: 'لمبة المحرك ورسالة "قوة المحرك مخفّضة"', dx: 'الكمبيوتر بيسجّل خطأ بالثروتل. أحياناً تنظيف الكربون حوالين الفراشة بيحل المشكلة، وبعدها بيعملوا "تعليم" للثروتل بجهاز الفحص.', fx: { power: 0.4, rough: 0.6 }, lamps: ['eng'], msg: 'قوة المحرك مخفّضة' },
+  intakeManifold: { hear: 'صفير أو فحيح (Hiss) من المحرك', feel: 'السلانسيه مش ثابت، ورجفة', see: 'لمبة المحرك (خليط فقير، متل P0171)', dx: 'بيعملوا فحص دخان (Smoke Test): بيضخّوا دخان بالسحب، ووين ما طلع الدخان هون التهريب.', fx: { rough: 0.6 }, snd: { hiss: 1 }, lamps: ['eng'] },
+  turbo: { see: 'دخان أزرق من الشكمان', hear: 'صفير عالي متل السيرينة بيزيد مع الدعسة', feel: 'ضعف واضح، والسيارة ما عاد "تسحب"', dx: 'بيفكّوا خرطوم الهوا وبيحرّكوا عمود التيربو بإيدهم: إذا فيه لعب، المراوح عم تحك، أو في زيت جوّا الخراطيم، التيربو خربان.', fx: { smoke: ['blue', 'tail', 1.3], power: 0.5 }, snd: { siren: 1 }, lamps: ['eng'], msg: 'قوة المحرك مخفّضة' },
+  intercooler: { hear: 'صوت نفخ هوا (Whoosh) وقت الدعسة', feel: 'ضعف بالقوة، خصوصاً بالدعسة القوية', see: 'أحياناً دخان أسود، وزيت حوالين الوصلات', dx: 'بيعملوا فحص ضغط لخراطيم التيربو (Boost Leak Test): بيضغطوا هوا بالنظام وبيسمعوا وين بيطلع.', fx: { power: 0.6, smoke: ['black', 'tail', 0.6] }, snd: { whoosh: 1 }, lamps: ['eng'] },
+  /* fuel */
+  fuelTank: { see: 'نقط بنزين تحت السيارة من ورا', smell: 'ريحة بنزين قوية', dx: 'ريحة البنزين لحالها سبب كافي لتوقّف السيارة. بيرفعوها وبيفحصوا الخزان والخراطيم. لا تقرّب نار أو شرار: خطر حريق.', fx: { leak: ['fuel', [-0.86, 0.27, 0.30]] }, msg: 'ريحة بنزين! لا تسوق' },
+  fuelPump: { hear: 'أول ما تشغّل ما بتسمع زنّة الطرمبة الخفيفة من ورا', feel: 'السيارة بتقطّع عالسرعة وبعدين بتطفي', see: 'المحرك بيدوّر بس ما بيشتغل', dx: 'بيركّبوا ساعة ضغط على خط البنزين: ضغط قليل أو صفر يعني الطرمبة أو الفيوز أو الريليه تبعها.', fx: { stall: 1, power: 0.6 }, lamps: ['eng'] },
+  fuelLines: { see: 'بنزين عم ينقّط تحت السيارة عالجنب الشمال', smell: 'ريحة بنزين وأنت ماشي', dx: 'بيرفعوا السيارة وبيلحقوا الخط من الخزان للمحرك. البقعة بتكون تحت مكان التسريب بالظبط. هاد عطل خطير: لا تسوق.', fx: { leak: ['fuel', [0.2, 0.245, -0.32]] }, msg: 'ريحة بنزين! لا تسوق' },
+  fuelFilter: { feel: 'ضعف بالطلعات، وتقطيع لما تدعس كتير', hear: 'الطرمبة ممكن تزنّ أعلى من العادة', dx: 'ضغط البنزين بيكون منيح عالسلانسيه وبينزل لما يزيد الطلب. إذا الفلتر قديم وما تغيّر بوقته، أول شي بيغيّروه.', fx: { power: 0.55, rough: 0.4 }, snd: { pwhine: 0.3 } },
+  injectors: { see: 'دخان أسود إذا البخاخ عم ينقّط، ولمبة المحرك', feel: 'رجفة عالسلانسيه وصرف زيادة', smell: 'ريحة بنزين', dx: 'بيسمعوا كل بخاخ بسمّاعة: السليم بيطقطق بانتظام، والساكت أو المختلف هو الخربان. وبيقارنوا قيم التصحيح لكل سلندر بالكمبيوتر.', fx: { miss: [4, 0.8], smoke: ['black', 'tail', 0.8] }, snd: { pop: 0.3 }, lamps: ['eng'] },
+  fuelDoor: { see: 'لمبة المحرك بتضوي بعد كم يوم من التعبئة', smell: 'ريحة بنزين خفيفة عند باب البنزين', dx: 'أول سؤال: بعد ما عبّيت، سكّرت الغطا لحتى طقطق؟ خطأ تهريب بخار (متل P0455) مع غطا مرخي، حلّه بسيط.', lamps: ['eng'] },
+  /* exhaust */
+  exhaustManifold: { hear: 'تكتكة سريعة بتمشي مع الدورات، أوضح والمحرك بارد', smell: 'ريحة عادم بحجرة المحرك، وأحياناً بالمقصورة', dx: 'الصوت بيخف لما يسخن المحرك ويتمدّد الحديد. بيدوّروا على أثر سواد (سخام) حوالين الشرخ أو الجوانة.', fx: { smoke: ['gray', 'bay', 0.5] }, snd: { puff: 1 } },
+  catalytic: { feel: 'السيارة متخنّقة وما بتعلّي سرعة', smell: 'ريحة متل البيض الخربان', hear: 'خشخشة من تحت السيارة (إذا تكسّر جوّاها)', see: 'لمبة المحرك (متل P0420)', dx: 'بيقيسوا ضغط العادم قبل العلبة أو حرارتها قبل وبعد. وضربة خفيفة بإيد مطاط عليها بتطلّع خشخشة إذا جوّاها مكسور.', fx: { power: 0.45 }, snd: { uratt: 0.8 }, lamps: ['eng'] },
+  o2Sensor: { see: 'لمبة المحرك، وصرف البنزين زاد', feel: 'غالباً ما في شي واضح، أحياناً السلانسيه مش ثابت', dx: 'بجهاز الفحص بيشوفوا إشارة الحسّاس: القدّامي السليم إشارته بتتأرجح بسرعة، والخربان بطيء أو ثابت.', fx: { rough: 0.2 }, lamps: ['eng'] },
+  muffler: { hear: 'صوت الشكمان عالي ومزعج متل التراكتور، وخشخشة من ورا', feel: 'رجّة خفيفة من ورا', dx: 'والمحرك شغّال بيمرّروا إيدهم (بعيد عن الحديد السخن) حوالين الشكمان: نفخة الهوا بتدلّ عالخزق. والصدا تحت الشكمان بيورجيه.', fx: { smoke: ['gray', 'tail', 0.4] }, snd: { loud: 1, uratt: 0.4 } },
+  exhaustPipe: { hear: 'صوت عالي من تحت، ونفخ', smell: 'ريحة عادم جوّا السيارة (خطر أول أكسيد الكربون)', see: 'إذا انقطعت علّاقة ممكن تشحط عالأرض وتطلّع شرار', dx: 'الشحار الأسود حوالين الوصلة أو الخزق بيدلّ عالمكان. افتح الشبابيك وصلّحها بسرعة إذا في ريحة عادم بالمقصورة.', fx: { sparks: 'pipe' }, snd: { loud: 0.7, scrape: 0.8 } },
+  /* cooling */
+  radiator: { see: 'بخار طالع من قدّام، وبقعة ماي ملوّن تحت السيارة', feel: 'إبرة الحرارة بتطلع للأحمر', smell: 'ريحة حلوة (ماي الرديتر)', dx: 'فحص ضغط لنظام التبريد بيطلّع التسريب. والرديتر المسدود بيبين بكاميرا حرارية: مناطق باردة على وجهه.', fx: { leak: ['coolant', [2.05, 0.33, 0.1]], smoke: ['steam', 'front', 1], heat: 1 }, snd: { hiss: 0.4, boil: 0.5 }, lamps: ['temp'] },
+  coolingFan: { feel: 'الحرارة بتطلع بالزحمة ووقت الوقوف، وعالطريق بترجع طبيعية', hear: 'المروحة ما بتشتغل حتى والمحرك سخن', dx: 'بيشغّلوا المكيف عالآخر والمحرك سخن: المروحة لازم تشتغل. إذا لأ: فيوز، ريليه، أو الموتور نفسه.', fx: { heatIdle: 1, fanDead: 1 }, lamps: ['temp'] },
+  waterPump: { see: 'ماي ملوّن عم ينقّط من قدّام المحرك', hear: 'زنّة أو صرير بيتغيّر مع الدورات', feel: 'الحرارة بتطلع بسرعة', dx: 'بيدوّروا على أثر ماي ناشف (بلّورات) تحت الطرمبة. والطرمبات الكهربائية عند BMW بتنفحص بجهاز الكمبيوتر.', fx: { leak: ['coolant', [1.625, 0.36, 0.18]], heat: 0.9 }, snd: { pwhine: 0.6 }, lamps: ['temp'] },
+  thermostat: { see: 'إبرة الحرارة بتطلع بسرعة (أو بتضل تحت إذا علق مفتوح)', feel: 'التدفئة بتطلّع هوا بارد إذا علق مفتوح', dx: 'الخرطوم الفوقاني للرديتر لازم يسخن بعد ما يحمى المحرك. إذا ضل بارد والمحرك سخن، الثرموستات عالق مسكّر.', fx: { heat: 1 }, lamps: ['temp'] },
+  coolantTank: { see: 'مستوى الماي تحت الـ Min، وأثر ماي ناشف حوالين القربة', smell: 'ريحة حلوة بعد السواقة', feel: 'الحرارة بتطلع شوي شوي', dx: 'فحص ضغط للنظام ولغطا القربة نفسه: الغطا الخربان ما بيمسك الضغط، فبيغلي الماي بسرعة.', fx: { leak: ['coolant', [1.82, 0.62, 0.56]], smoke: ['steam', 'bay', 0.5], heat: 0.7 }, snd: { boil: 0.4 }, lamps: ['temp'] },
+  radiatorHoses: { see: 'بخار من تحت الكبوت، وماي عم يرشّ', hear: 'فحيح بخار', feel: 'الحرارة بتطلع بسرعة كتير', dx: 'والمحرك بارد بيعصروا الخراطيم بإيدهم: المنفوخ أو الطري كتير أو المشقّق لازم يتغيّر.', fx: { leak: ['coolant', [1.85, 0.32, -0.30]], smoke: ['steam', 'bay', 1.2], heat: 1 }, snd: { hiss: 0.8 }, lamps: ['temp'] },
+  /* drivetrain */
+  flywheel: { hear: 'خشخشة وطقطقة عالسلانسيه، وخبطة وقت التشغيل والطفي', feel: 'رجّة بالأرضية والدوّاسات', dx: 'بالحدّافة الثنائية (Dual-Mass) بيقيسوا قدّيش بتلف الكتلتين ضد بعض: إذا اللعب كبير أو في طقطقة، خربانة.', fx: { shake: { e: 0.8, b: 0.5 } }, snd: { rattle: 0.6, jolt: 0.4 } },
+  clutch: { feel: 'الدورات بتعلى بس السيارة ما بتسرع', smell: 'ريحة حريق متل الورق المحروق', hear: 'المحرك عم يعيط والسيارة بطيئة', dx: 'بغيار عالي على سرعة واطية دعسة قوية: إذا الدورات طلعت وسرعة السيارة ما لحقتها، الكلتش (أو محوّل العزم) عم يزحّط.', fx: { slip: 1, smoke: ['gray', 'under', 0.4] } },
+  transmission: { feel: 'تبديل بخبطة قوية أو متأخر، وأحياناً بيزحّط', hear: 'طنين أو عوي بيتغيّر مع السرعة', see: 'زيت أحمر تحت نص السيارة، ورسالة عطل بالجير', dx: 'بيفحصوا مستوى ولون زيت الجير وريحته (المحروق غامق وريحته حريق)، وبيقروا أخطاء وحدة الجير بالكمبيوتر.', fx: { leak: ['atf', [0.46, 0.23, 0]], slip: 0.5 }, snd: { whine: 0.6, shift: 1 }, lamps: ['gear'], msg: 'عطل بالجير. سوق بهدوء' },
+  gearShifter: { see: 'رسالة عطل الجير، والأحرف عالعصا ما بتضوي', feel: 'العصا ما بتبدّل، والسيارة ضايلة على P', dx: 'بيقروا الأخطاء: إذا الجير نفسه سليم والإشارة من العصا مش واصلة، الخربان العصا أو فيشتها.', fx: { stuck: 1 }, lamps: ['gear'], msg: 'ما فيك تبدّل لـ D' },
+  driveshaft: { feel: 'رجّة بالأرضية بتزيد مع السرعة', hear: 'طقّة وقت الانطلاق أو لما تشيل رجلك، ودندنة', dx: 'بيرفعوا السيارة وبيهزّوا العمود بإيدهم، وبيشوفوا الكاوتشوكة (Flex Disc) إذا مشقّقة، والبيلية الوسطانية إذا فيها لعب.', fx: { shake: { b: 1, speed: 1 } }, snd: { jolt: 0.6, drone: 0.7 } },
+  differential: { hear: 'عوي أو زنّة من ورا بتعلى مع السرعة، وبتتغيّر لما تدعس أو تشيل رجلك', see: 'زيت تقيل حوالين الدفرنس', smell: 'ريحة زيت تروس قوية', dx: 'الصوت اللي بيتغيّر مع الدعسة والترك (مش مع اللفّة) بيدلّ عالدفرنس. أمّا الصوت اللي بيتغيّر باللفّة فبيدلّ أكتر عالبيل.', fx: { leak: ['diff', [RA, 0.22, 0]] }, snd: { whine: 1 } },
+  axleShafts: { hear: 'طقطقة سريعة (Click Click) لما تلف وتنطلق', see: 'شحم أسود مرشوش جوّا الجنط إذا انشقّت الجلدة', dx: 'باللف الكامل على سرعة بطيئة بساحة فاضية: الطقطقة بتطلع من جهة المفصل الخربان.', fx: { leak: ['grease', [RA + 0.02, 0.30, 0.62]], corner: 'RR' }, snd: { cv: 1 } },
+  /* brakes */
+  brakeDiscs: { feel: 'رجّة بالمقود وبدعسة الفرامل وقت الفرملة', see: 'حزوز أو بقع زرقا عالديسك', dx: 'الرجّة وقت الفرملة بس (مش طول الوقت) بتدلّ عالديسك. بيقيسوا سماكته وعوجه (Runout) بساعة قياس.', fx: { shake: { s: 1.3, b: 0.4, brake: 1 } }, snd: { scrape: 0.25 } },
+  dustShield: { hear: 'صوت حك معدني أو صفير متواصل بيمشي مع سرعة العجلة', dx: 'الصوت ما بيتغيّر لما تفرمل (عكس الفحمات). بيرفعوا السيارة وبيلفّوا العجلة: إذا الصاج لامس الديسك، بيبعدوه.', fx: { corner: 'FR' }, snd: { scrape: 1 } },
+  calipers: { feel: 'السيارة بتسحب لجهة، وكأنها ماسكة فرامل', smell: 'ريحة حريق من عند عجلة وحدة', see: 'الجنط سخن كتير، وعليه غبرة فحمات أكتر من الباقي', dx: 'بعد مشوار قصير قرّب إيدك (بدون ما تلمس) من الجنوط: الأسخن هو العالق. ولما ترفع السيارة، العجلة العالقة بتلف بصعوبة.', fx: { pull: 1, smoke: ['gray', 'wheelFR', 0.6], power: 0.85 } },
+  caliperPistons: { feel: 'السيارة بتسحب وقت الفرملة أو طول الوقت', see: 'فحمة وحدة منصرفة أكتر من التانية', smell: 'ريحة فحمات محروقة', dx: 'لما يفكّوا الكاليبر بيحاولوا يدفعوا البستم لجوّا: إذا ما بيرجع أو عليه صدا، الكاليبر بيتصلّح أو بيتغيّر.', fx: { pull: 1, smoke: ['gray', 'wheelFR', 0.4] } },
+  brakePads: { hear: 'صفير حاد وقت الفرملة، وبعدين صوت حديد على حديد', see: 'لمبة الفحمات، وشرار من الديسك إذا خلصت عالآخر', feel: 'الفرملة صارت أضعف', dx: 'من بين سبوكات الجنط بتشوف سماكة الفحمة. إذا صارت تقريباً 3 ملم أو أقل، وقت التغيير.', fx: { sparks: 'discFL', brakeEff: 0.75, corner: 'FL' }, snd: { bsq: 0.6, grind: 1 }, lamps: ['pads'] },
+  padSensor: { see: 'لمبة الفحمات ضاوية حتى لو الفحمات جديدة', dx: 'بيقيسوا مقاومة الحسّاس بالملتيميتر: السلك المقطوع يعني لازم يتغيّر، حتى لو الفحمات لسّا فيها.', lamps: ['pads'] },
+  brakeHose: { feel: 'دعسة الفرامل طرية، والسيارة بتسحب لجهة وقت الفرملة', see: 'الخرطوم منفوخ أو مشقّق، أو زيت فرامل عالجنط', dx: 'حدا بيدعس فرامل قوي وأنت بتطلّع عالخرطوم: إذا انتفخ متل البالون، لازم يتغيّر.', fx: { leak: ['brake', [FA - 0.1, 0.40, 0.66]], brakeEff: 0.6, pullBrake: -1, corner: 'FR' }, lamps: ['brk'] },
+  wheelSpeedSensor: { see: 'لمبة ABS ولمبة الثبات (DSC) ضاويين مع بعض', feel: 'الفرامل عادية، بس بدون ABS بالفرملة القوية', dx: 'بجهاز الفحص بيشوفوا سرعة العجلات الأربعة وأنت ماشي: العجلة اللي سرعتها صفر أو بتقطع، حسّاسها هو الخربان.', lamps: ['abs', 'dsc'] },
+  masterCylinder: { feel: 'الدعسة بتنزل لتحت وأنت دايس، والسيارة ما بتوقف منيح', see: 'لمبة الفرامل الحمرا، ومستوى زيت الفرامل نازل', dx: 'والسيارة واقفة: دعسة ثابتة لمدة دقيقة. إذا الدوّاسة عم تنزل شوي شوي بدون تسريب برّا، الماستر عم يسرّب من جوّا.', fx: { brakeEff: 0.3 }, lamps: ['brk'], msg: 'خطر! الفرامل ضعيفة' },
+  abs: { see: 'لمبة ABS ولمبة الثبات', hear: 'أحياناً زنّة الطرمبة طول الوقت', dx: 'إذا كل حسّاسات العجلات سليمة بجهاز الفحص والخطأ من الوحدة نفسها، الوحدة بتتصلّح أو بتتغيّر.', snd: { buzz: 0.6 }, lamps: ['abs', 'dsc'] },
+  brakeLines: { feel: 'الدعسة طرية والفرامل ضعيفة', see: 'نقط زيت فرامل (شفّاف لونه أصفر) جنب العجلة أو تحت السيارة', dx: 'بيلحقوا الخط من الماستر لكل عجلة: الصدا الكتير أو البلل بيدلّ عالمكان. هاد عطل خطير: لا تسوق.', fx: { leak: ['brake', [-0.5, 0.24, 0.64]], brakeEff: 0.45 }, lamps: ['brk'], msg: 'زيت الفرامل ناقص! لا تسوق' },
+  pedals: { feel: 'بتدعس بنزين والسيارة ما بتستجيب منيح', see: 'لمبة المحرك ورسالة "قوة المحرك مخفّضة"', dx: 'دوّاسة البنزين فيها حسّاسين لازم يتطابقوا. بجهاز الفحص بيشوفوا قيمهم وأنت دايس: إذا ما تطابقوا، الدوّاسة خربانة.', fx: { power: 0.3 }, lamps: ['eng'], msg: 'قوة المحرك مخفّضة' },
+  parkingBrake: { see: 'رسالة عطل فرامل اليد، واللمبة ضاوية', feel: 'السيارة تقيلة كأنها ماسكة (إذا ما فكّت)', hear: 'زنّة موتور طويلة، أو ولا صوت لما تكبس الزر', dx: 'بيقروا الأخطاء وبيسمعوا موتورات الكاليبر الخلفية: إذا واحد ما بيشتغل، الموتور أو فيشته.', fx: { power: 0.6, smoke: ['gray', 'wheelRL', 0.3] }, snd: { motor: 0.5 }, lamps: ['brk'] },
+  /* suspension */
+  shocks: { feel: 'السيارة بتنطّ كتير بعد المطب وبتطوّل لتهدى، وبتغطس لقدّام وقت الفرملة', see: 'زيت عالمساعد من برّا', hear: 'خبطة مكتومة بالمطبات', dx: 'اضغط زاوية السيارة بقوة وشيل إيدك: إذا نطّت أكتر من مرّة ونص، المساعد ضعيف.', fx: { bounce: 1 }, snd: { clunk: 0.3 } },
+  strutMounts: { hear: 'طقطقة أو صرير لما تلف المقود وأنت واقف، وخبطة بالمطبات', feel: 'المقود مش ناعم وأنت عم تلف', dx: 'إيدك عالقاعدة تحت الكبوت وحدا عم يلف المقود: إذا حسّيت طقطقة تحت إيدك، هي الخربانة.', snd: { creak: 0.8, clunk: 0.5 } },
+  springs: { see: 'السيارة نازلة من زاوية', hear: 'طقّة حديد بالمطبات', feel: 'السيارة مايلة لجهة', dx: 'قيس من نص الجنط لحافة الرفرف بالزوايا الأربعة: الزاوية الأوطى بكتير غالباً سبرنغها مكسور. والكسر كتير مرّات بيكون بآخر لفّة تحت.', fx: { lean: ['FL', 1] }, snd: { clunk: 0.8 } },
+  controlArms: { hear: 'طقطقة بالمطبات وبالفرملة', feel: 'المقود بيرجف، والسيارة "بتلعب" عالطريق', dx: 'برفع السيارة بيحرّكوا الأذرع بعتلة: البوشة الخربانة بيبين فيها لعب أو شقوق بالكاوتشوك.', fx: { shake: { s: 0.6 }, pull: -0.4 }, snd: { clunk: 0.7 } },
+  antiRollBar: { feel: 'السيارة بتميل كتير باللفّات', hear: 'طقطقة إذا خربت الكاوتشوكات اللي ماسكته', dx: 'باللفّة السيارة بتميل أكتر من العادة. بيفحصوا كاوتشوكات العمود والروابط تبعه بعتلة.', fx: { roll: 1 }, snd: { clunk: 0.4 } },
+  sbLinks: { hear: 'طقطقة خفيفة متكرّرة بالمطبات الصغيرة والطرقات السيّئة', dx: 'بيمسكوا الرابط وبيهزّوه بقوة: إذا فيه لعب بالكرة اللي براسه، خربان. ومن أرخص التصليحات.', snd: { clunk: 0.5, rattleS: 0.4 } },
+  hubs: { hear: 'هدير متل صوت طيارة بعيدة بيعلى مع السرعة، وبيتغيّر لما تميّل يمين أو شمال', feel: 'أحياناً رجّة خفيفة بالمقود', dx: 'باللفّة الخفيفة لليمين بيصير الوزن عالعجلات الشمال: إذا الصوت زاد، البيل الشمال هو الخربان (والعكس).', fx: { wobble: 'FR' }, snd: { hum: 1 } },
+  knuckle: { feel: 'السيارة بتسحب لجهة، والمقود مش دغري', see: 'الإطار عم ينصرف من طرف واحد', dx: 'إذا الترصيص ما عم يضبط بالقيم الطبيعية بعد ضربة رصيف، بيفحصوا الحامل والمقصّات إذا انعوجوا.', fx: { pull: 1, corner: 'FR' } },
+  ballJoints: { hear: 'طقطقة بالمطبات وباللف', feel: 'المقود بيرجف، والعجلة "ميّالة"', dx: 'بيرفعوا العجلة وبيهزّوها من فوق وتحت: إذا في لعب والكرة هي اللي عم تتحرّك، لازم تتغيّر فوراً.', fx: { wobble: 'FL', shake: { s: 0.6 } }, snd: { clunk: 0.6 } },
+  /* steering */
+  steeringWheel: { see: 'المقود مايل والسيارة ماشية دغري', feel: 'رجّة بالمقود على سرعات معيّنة', dx: 'المقود المايل: غالباً ترصيص. الرجّة على سرعة معيّنة (متل 100 لـ 120 كم/س): غالباً توازن الإطارات.', fx: { shake: { s: 1 } } },
+  steeringColumn: { feel: 'المقود فيه لعب، أو بيطقطق وأنت عم تلف', hear: 'طقطقة من تحت الطبلون', dx: 'والسيارة واقفة حرّك المقود يمين وشمال شوي: إذا في طقطقة من المفاصل تحت، العمود أو مفاصله.', snd: { clunk: 0.4, creak: 0.3 }, lamps: ['eps'] },
+  steeringRack: { feel: 'المقود تقيل أو فيه لعب، والسيارة ما بتمشي دغري', hear: 'دقّ من قدّام تحت وقت تلف', dx: 'وحدا عم يلف المقود شوي يمين وشمال، الميكانيكي بيحط إيده على أطراف العلبة ليحس وين اللعب.', fx: { shake: { s: 0.5 }, pull: 0.3 }, snd: { clunk: 0.5 }, lamps: ['eps'] },
+  tieRods: { feel: 'رجّة بالمقود، والسيارة بتسحب', see: 'الإطار عم ينصرف من الطرف', dx: 'برفع العجلة بيمسكوها من اليمين والشمال وبيهزّوها: إذا في لعب، الذراع أو راسه.', fx: { shake: { s: 1 }, pull: 0.6 }, snd: { clunk: 0.4 } },
+  eps: { feel: 'المقود صار تقيل كتير فجأة', see: 'لمبة الدركسيون ضاوية', dx: 'بيقروا أخطاء وحدة الدركسيون. وفولتية البطارية الواطية ممكن تطفي مساعد الدركسيون، فبيفحصوها أول شي.', lamps: ['eps'], msg: 'مساعد التوجيه معطّل' },
+  /* wheels */
+  tires: { see: 'الإطار نازل، ولمبة ضغط الهوا ضاوية', hear: 'خبط منتظم مع كل لفّة', feel: 'السيارة بتسحب لجهة الإطار الفاضي', dx: 'قيس الضغط بالأربعة وهن باردين وقارنه مع الملصق عباب السواق. مسمار بالنقشة؟ رشّ ماي وصابون: الفقاعات بتورجي الخزق.', fx: { lean: ['FR', 0.6], flat: 'FR', pull: 1 }, snd: { thump: 1 }, lamps: ['tpms'] },
+  rims: { feel: 'رجّة بالمقود بتزيد مع السرعة', see: 'الإطار عم ينفّس شوي شوي', dx: 'على جهاز التوازن (Balancing) الجنط المعوّج بيبين وهو عم يلف. وإذا الإطار بيرجع ينفّس، بيرشّوا ماي وصابون على حافة الجنط.', fx: { wobble: 'FR', shake: { s: 0.8 } }, lamps: ['tpms'] },
+  wheelBolts: { hear: 'طقطقة معدنية مع كل لفّة، أقوى باللفّات', feel: 'رجّة ولعب بالعجلة', see: 'العجلة عم ترقص', dx: 'بعد أي تغيير دولاب بيرجعوا يشدّوا البراغي بالعزم بعد حوالي 50 لـ 100 كم. علامات صدا أو لمعة حوالين البرغي بتدلّ إنه كان مرخي.', fx: { wobble: 'FL', shake: { s: 0.6 } }, snd: { bclick: 1 } },
+  valveStem: { see: 'الإطار بينزل ضغطه شوي شوي كل كم يوم', hear: 'فحيح خفيف من البلف أحياناً', dx: 'نقطة ماي وصابون عراس البلف: إذا طلعت فقاعة، البلف عم يرشح.', fx: { lean: ['FR', 0.3], corner: 'FR' }, snd: { hiss: 0.25 }, lamps: ['tpms'] },
+  tpms: { see: 'لمبة ضغط الهوا ضاوية والضغط مظبوط', dx: 'بجهاز TPMS بيقروا كل حسّاس: اللي ما بيرد أو بطاريته ضعيفة هو الخربان.', lamps: ['tpms'] },
+  archLiners: { hear: 'خشخشة أو حك بلاستيك مع الدولاب، أوضح باللفّات', see: 'البطانة مدلّاية تحت قوس العجلة', dx: 'برفع السيارة بيدوّروا على كليبسات مفكوكة. وإذا البطانة لامسة الإطار، بتلاقي عليها أثر حك.', fx: { corner: 'FR' }, snd: { scrape: 0.5 } },
+  /* electrical */
+  battery: { hear: 'تك تك تك سريع لما تكبس Start، أو المحرك بيدوّر ببطء', see: 'أضواء العدّادات ضعيفة أو عم ترمش', dx: 'فولتية البطارية والسيارة طافية: حوالي 12.6 فولت يعني مليانة، وتحت 12.2 تقريباً ضعيفة. وجهاز فحص البطارية بيقول إذا لسّا صالحة.', fx: { nostart: 'click', lights: 'dim' }, lamps: ['batt'], msg: 'البطارية ضعيفة' },
+  alternator: { see: 'لمبة البطارية بتضوي وأنت ماشي، والأضواء بتضعف', hear: 'أحياناً زنّة أو صرير من قدّام المحرك', feel: 'بالآخر الأجهزة بتطفي والسيارة بتوقف', dx: 'والمحرك شغّال، الفولتية عالبطارية لازم تكون تقريباً بين 13.8 و 14.7 فولت. إذا متل فولتية البطارية الطافية أو أقل، الدينمو ما عم يشحن.', fx: { lights: 'dim', stall: 1 }, snd: { pwhine: 0.5 }, lamps: ['batt'], msg: 'خلل بالشحن' },
+  starter: { hear: 'تكّة وحدة قوية وما بيدوّر، أو صوت طحن حديد', see: 'الأضواء قوية (يعني البطارية مش هي المشكلة)', dx: 'إذا الأضواء منيحة والمحرك ما بيدوّر، والفولتية واصلة للسلف وقت الـ Start، السلف هو الخربان.', fx: { nostart: 'single' } },
+  ecu: { see: 'كذا لمبة ضاوية مع بعض، ورسائل غريبة', feel: 'السيارة ما بتشتغل، أو بتمشي بوضع الطوارئ', dx: 'أول شي بيفحصوا الفيوزات والتغذية والأرضي (Ground) للكمبيوتر، لأن مشاكلهم بتعمل نفس الأعراض. إذا جهاز الفحص ما قدر يحكي معه، بتصير الشكوك عليه.', fx: { nostart: 'crank' }, lamps: ['eng', 'dsc', 'gear'], msg: 'عطل بنظام المحرك' },
+  fuseBox: { see: 'جهاز واحد وقف فجأة (متل الولّاعة، الراديو، أو الشبابيك)', dx: 'بلائحة الفيوزات (عغطا العلبة أو بالكتيّب) بتلاقي فيوز الجهاز. الفيوز المحروق سلكه مقطوع من النص.', msg: 'جهاز كهربائي طفى' },
+  headlights: { see: 'ضو واحد طافي، ورسالة "لمبة محروقة"', dx: 'ضو واحد طافي: غالباً اللمبة. الاتنين طافيين مع بعض: غالباً فيوز أو ريليه أو المفتاح.', fx: { lights: 'oneOff' }, lamps: ['bulb'] },
+  taillights: { see: 'ضو فرامل واحد ما بيضوي، ورسالة "لمبة محروقة"', dx: 'خلّي حدا يدعس فرامل وأنت ورا السيارة، أو ارجع على حيط بالليل وشوف الانعكاس.', lamps: ['bulb'] },
+  horn: { hear: 'الزمّور ساكت أو صوته ضعيف ومبحوح', dx: 'إذا بتسمع تكّة الريليه والزمّور ساكت، المشكلة بالزمّور أو سلكه. ولا تكّة: فيوز أو الزر.' },
+  wipers: { see: 'المسّاحات عم تخطّط وتترك ماي', hear: 'زقزقة ونطّ عالزجاج', dx: 'نضّف الشفرة بخرقة: إذا لسّا عم تزقزق أو فيها شقوق، غيّرها.', snd: { wiper: 1 } },
+  parkingSensors: { hear: 'تيت متواصل حتى ما في شي قدّامك', see: 'رسالة عطل الحسّاسات', dx: 'والسيارة عالريوس، حط إصبعك على كل حسّاس: الشغّال بتحس فيه رجفة خفيفة. الساكت هو الخربان.', snd: { beep: 1 }, msg: 'عطل بحسّاسات الركن' },
+  /* climate */
+  acCompressor: { feel: 'المكيف بيطلّع هوا عادي مش بارد', hear: 'طقطقة أو عويل من قدّام المحرك لما تشغّل المكيف', dx: 'بيركّبوا ساعات ضغط المكيف: الضغط العالي والواطي بيقولوا إذا الغاز ناقص أو الكمبروسر ما عم يضغط.', snd: { rattle: 0.4, pwhine: 0.4 } },
+  condenser: { feel: 'المكيف ما عاد يبرّد', see: 'بقعة زيت على وجه الكوندنسر، أو خزق من حجرة', dx: 'بيعبّوا غاز مع صبغة فوسفورية، وبعدين بضو UV بيبين مكان التسريب.' },
+  hvac: { feel: 'ما في هوا من الفتحات، أو بيطلع بس على سرعة وحدة', smell: 'ريحة رطوبة أو ريحة حلوة', dx: 'المروحة بتشتغل بس على أعلى سرعة؟ غالباً المقاومة (Blower Resistor). ولا سرعة: موتور أو فيوز.' },
+  cabinFilter: { feel: 'الهوا ضعيف من الفتحات', smell: 'ريحة غبرة أو عفن', see: 'الزجاج بيغبّش بسرعة', dx: 'شيل الفلتر وشوفه: إذا لونه غامق ومليان ورق شجر وغبرة، غيّره.' },
+  /* safety */
+  airbags: { see: 'لمبة الإيرباغ ضاوية', dx: 'لازم ينقرا الخطأ بجهاز فحص. أشهر الأسباب: فيشة تحت الكرسي مفكوكة أو الشريط الحلزوني (Clock Spring) بالمقود. لا تفك شي بنفسك.', snd: { chime: 0.5 }, lamps: ['srs'] },
+  seatbelts: { see: 'لمبة الحزام بتضوي حتى وهو مسكّر', hear: 'رنين التحذير ما بيوقف', dx: 'بيفحصوا مفتاح القفل (Buckle Switch) بجهاز الفحص. والحزام اللي ما بيقفل لما تشدّه بسرعة لازم يتغيّر.', snd: { chime: 1 }, lamps: ['belt'] },
+  adas: { see: 'رسالة "أنظمة المساعدة مش متوفّرة"', dx: 'نضّف الكاميرا والرادار. إذا الرسالة ضلّت، بيقروا الأخطاء. وبعد تغيير الزجاج أو الصدّام لازم معايرة.', msg: 'أنظمة المساعدة مش متوفّرة' },
+  /* interior */
+  dashboard: { hear: 'تكتكة وقرقعة من الطبلون بالطرقات السيّئة', dx: 'بيضغطوا على أطراف الطبلون وهنن ماشيين لحتى يوقف الصوت: هون الكليبس المرخي.', snd: { rattleS: 1 } },
+  cluster: { see: 'العدّادات طافية أو عم ترمش', dx: 'إذا كل شي تاني شغّال، بيفحصوا فيوز العدّادات، وبعدين تحديث أو فحص الوحدة.', fx: { clusterOff: 1 }, msg: 'العدّادات طافية' },
+  infotainment: { see: 'الشاشة بتعلّق أو بتطفي وبترجع لحالها', dx: 'أول خطوة: إعادة تشغيل النظام (ببعض موديلات BMW بتكبس زر الصوت تقريباً 30 ثانية)، وبعدين تحديث سوفتوير.' },
+  centerConsole: { hear: 'قرقعة أو صرير من الكونسول', dx: 'غالباً قطعة مرخية أو كليبس مكسور. بيفكّوا الغطا وبيشدّوه.', snd: { rattleS: 0.6 } },
+  seats: { see: 'الكرسي ما بيتحرّك، أو لمبة الإيرباغ ضاوية', hear: 'زنّة موتور بس الكرسي ما بيتحرّك', dx: 'إذا بتسمع الموتور والكرسي واقف، المشكلة بالتروس أو الكابل. وإذا لمبة الإيرباغ ضوّت، أول شي بيفحصوا الفيش تحت الكرسي.', snd: { motor: 0.6 }, lamps: ['srs'] },
+  /* body */
+  hood: { see: 'رسالة "الكبوت مفتوح" وهو مسكّر، أو الكبوت عم يرجف', hear: 'خبط خفيف من قدّام بالسرعة', dx: 'اضغط عطرف الكبوت: إذا بيتحرّك لفوق وتحت، القفل مش ماسك. افحصه قبل ما تسوق.', fx: { hoodFlutter: 1 }, snd: { rattleS: 0.5 }, msg: 'الكبوت مش مسكّر منيح' },
+  roof: { see: 'ماي نازل من السقف أو من الأعمدة بعد المطر', dx: 'بيصبّوا ماي بمجاري فتحة السقف: إذا ما نزل تحت السيارة، المجاري مسدودة.' },
+  trunk: { see: 'الشنطة ما بتضل مفتوحة، أو رسالة "الشنطة مفتوحة"', dx: 'المكابس الضعيفة ما بتشيل وزن الغطا. والقفل بيتنضّف ويتزيّت قبل ما يتغيّر.', msg: 'الشنطة مفتوحة' },
+  frontBumper: { hear: 'خشخشة أو صوت هوا من قدّام بالسرعة', see: 'فراغ بين الصدّام والرفرف', dx: 'بعد أي ضربة خفيفة بيفحصوا الكليبسات والدعامات من تحت، وكمان الحسّاسات والرادار.', snd: { wind: 0.6, rattleS: 0.4 } },
+  rearBumper: { hear: 'خشخشة من ورا بالطرقات السيّئة', see: 'فراغ أو كليبس مكسور', dx: 'بيضغطوا على أطراف الصدّام: القطعة اللي بتتحرّك هي اللي عم تطقطق.', snd: { rattleS: 0.5 } },
+  grille: { see: 'شبك مكسور، والحجار ممكن تفوت عالرديتر', dx: 'شوف الرديتر والكوندنسر من ورا الشبك: إذا في ضربات، اتأكّد ما في تسريب.' },
+  fenders: { see: 'صدا عند حافة القوس أو انبعاج', dx: 'الصدا الصغير بيتعالج بكّير قبل ما يوسع. شيل البطانة وشوف من جوّا.' },
+  doors: { hear: 'صوت هوا أو صفير عند الباب بالسرعة', see: 'الباب ما بيسكّر منيح، أو في ماي جوّاه', dx: 'حط ورقة بين الكاوتشوك والباب وسكّره: إذا الورقة طلعت بسهولة، الكاوتشوك ما عم يسكّر.', snd: { wind: 1 } },
+  quarterPanels: { see: 'صدا أو انبعاج فوق العجلة الخلفية', dx: 'لأنه ملحوم بالهيكل، تصليحه بيحتاج ورشة هياكل. افحص الصدا من جوّا الشنطة كمان.' },
+  rockers: { see: 'صدا وفقاعات بالدهان تحت الأبواب', dx: 'بيدقّوا بخفّة حوالين الصدا: إذا الحديد طري أو مخزوق، الهيكل ضعف وبدّه لحام.' },
+  pillars: { see: 'فراغات الأبواب مش متساوية بعد حادث', dx: 'ورشة الهياكل بتقيس الأعمدة والفتحات وبتقارنها بقياسات المصنع.' },
+  windshield: { see: 'شرخ عم يكبر عالزجاج', hear: 'صفير هوا إذا الكاوتشوك مفكوك', dx: 'الشرخ الأصغر من قطعة نقدية غالباً بيتصلّح بحقن راتنج. الأكبر، أو اللي قدّام عين السواق، بيتغيّر الزجاج.', snd: { wind: 0.4 } },
+  rearWindow: { see: 'خط أو أكتر ما بيشيل الضباب', dx: 'بالملتيميتر عالخطوط بيلاقوا مكان الانقطاع، وبيتصلّح بحبر موصل خاص.' },
+  sideWindows: { hear: 'صوت موتور أو طقطقة بس الشبّاك ما بيتحرّك', dx: 'صوت بدون حركة: المنظّم (الحبل أو البكرات). ولا صوت: موتور، زر، أو فيوز.', snd: { motor: 0.8 } },
+  mirrors: { see: 'المراية عم ترجف بالسرعة، أو ما بتطوي', hear: 'زنّة موتور بس المراية واقفة', dx: 'إذا الزجاج عم يرجف وجسم المراية ثابت، القاعدة تحت الزجاج مكسورة.', snd: { motor: 0.4 } },
+  /* chassis */
+  chassis: { feel: 'السيارة بتسحب والترصيص ما بيضبط', see: 'فراغات الأبواب والكبوت مش متساوية', dx: 'ورشة الهياكل بتقيس نقاط ثابتة تحت السيارة وبتقارنها بقياسات المصنع.', fx: { pull: 0.6 } },
+  subframes: { hear: 'طقّة بالانطلاق والفرملة', feel: 'السيارة مش ثابتة باللفّات', dx: 'بيراقبوا الصبفريم بعتلة وهو مرفوع: الحركة الزايدة بينه وبين الهيكل يعني كاوتشوكاته انتهت.', snd: { jolt: 0.6, clunk: 0.4 } },
+};
+
+/* SYNTH:BEGIN */
+// Engine and fault sounds, generated sample by sample (no recordings). P holds the live parameters.
+function makeSynth(SR, P) {
+  let seed = 0x2545F491;
+  const rnd = () => { seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5; return (seed >>> 0) / 4294967296; };
+  const nz = () => rnd() * 2 - 1;
+  const TAU = Math.PI * 2;
+  // a decaying resonator: hit() rings it like a struck object, drive() lets noise through it like a filter
+  class Ring {
+    constructor(f, tau) { this.re = 0; this.im = 0; this.set(f, tau); }
+    set(f, tau) { const r = Math.exp(-1 / (tau * SR)), w = TAU * f / SR; this.cr = r * Math.cos(w); this.ci = r * Math.sin(w); this.n = Math.sqrt(1 - r * r); return this; }
+    hit(a) { this.re += a; }
+    drive(x) { this.re += x * this.n; }
+    tick() { const re = this.re * this.cr - this.im * this.ci; this.im = this.re * this.ci + this.im * this.cr; this.re = re; return this.im; }
+  }
+  const R = {
+    eLow: new Ring(74, 0.012), eMid: new Ring(190, 0.006), eHi: new Ring(1150, 0.0035), eBody: new Ring(52, 0.017),
+    kL: new Ring(250, 0.02), kM: new Ring(1750, 0.006), mL: new Ring(125, 0.032), mM: new Ring(820, 0.009), sl: new Ring(420, 0.012),
+    tA: new Ring(3600, 0.0024), tB: new Ring(2350, 0.0035), rr: new Ring(2600, 0.002), pg: new Ring(5200, 0.0016),
+    pop: new Ring(140, 0.025), popN: new Ring(700, 0.006), hum: new Ring(90, 0.05), g1: new Ring(1350, 0.0025), g2: new Ring(2950, 0.003),
+    scr: new Ring(2650, 0.003), wh: new Ring(950, 0.004), c1: new Ring(85, 0.05), c2: new Ring(430, 0.014), cv1: new Ring(2100, 0.003),
+    cv2: new Ring(720, 0.006), th: new Ring(50, 0.06), thN: new Ring(260, 0.01), bc1: new Ring(1500, 0.004), bc2: new Ring(520, 0.01),
+    pf: new Ring(820, 0.005), ur: new Ring(1900, 0.003), rs: new Ring(3400, 0.0012), ch1: new Ring(1100, 0.32), ch2: new Ring(1650, 0.24),
+    bl: new Ring(260, 0.01), fan: new Ring(330, 0.012), wnd: new Ring(1200, 0.012), st1: new Ring(2500, 0.002), st2: new Ring(600, 0.006),
+    road: new Ring(380, 0.006), sh1: new Ring(70, 0.05),
+  };
+  const RINGS = Object.values(R);
+  const S = { rpm: 0, load: 0, v: 0, brake: 0, steer: 0, eng: 0, crank: 0, vol: 0, boost: 0, horn: 0, t: 0, ph: 0, cyl: 0, cph: 0, half: false, wph: 0,
+    nEnv: 0, pfEnv: 0, popQ: -1, pn: 0, thE: 0, lp: 0, hp: 0, sq: 0, wn: 0, pw: 0, bs: 0, sp: 0, tw: 0, bz: 0, bzl: 0, bp: 0, bp2: 0, pd: 0, dp: 0, mp: 0, wp: 0,
+    stp: 0, pr: 0, h1: 0, h2: 0, duck: 1, chT: 0, clk: 0, creak: 0, cr: 0, rsB: 0, primeT: 0, f: {}, bump: 0, shift: 0, jolt: 0, crankN: 0, primeN: 0 };
+  const nd = Math.exp(-1 / (0.003 * SR)), nd2 = Math.exp(-1 / (0.02 * SR)), nd3 = Math.exp(-1 / (0.03 * SR));
+  const b = 1 - Math.exp(-1 / (0.04 * SR)), bSlow = 1 - Math.exp(-1 / (0.18 * SR)), bBoost = 1 - Math.exp(-1 / (0.5 * SR));
+  const WREV = 2.17;   // wheel turns per second at full (visual) speed, so thumps match what you see
+
+  function render(out) {
+    const n = out.length, a = 1 - Math.exp(-n / (0.08 * SR)), f = S.f, pf = P.f || {};
+    for (const k in pf) f[k] = (f[k] || 0) + (pf[k] - (f[k] || 0)) * a;
+    for (const k in f) if (!(k in pf)) { f[k] *= 1 - a; if (f[k] < 0.002) delete f[k]; }
+    if (P.bump !== S.bump) { S.bump = P.bump; R.sh1.hit(0.22 * Math.min(1, S.v * 3)); if (f.clunk) { R.c1.hit(0.7 * f.clunk); R.c2.hit(0.3 * f.clunk); } if (f.creak) S.creak = 0.3; if (f.rattleS) S.rsB = 0.35; }
+    if (P.shift !== S.shift) { S.shift = P.shift; if (f.shift) { R.c1.hit(0.6 * f.shift); R.c2.hit(0.35 * f.shift); } }
+    if (P.jolt !== S.jolt) { S.jolt = P.jolt; if (f.jolt) { R.c1.hit(0.75 * f.jolt); R.c2.hit(0.3 * f.jolt); } }
+    if (P.crankN !== S.crankN) { S.crankN = P.crankN; if (P.crankMode === 'single') { R.st1.hit(0.45); R.st2.hit(0.4); } }
+    if (P.primeN !== S.primeN) { S.primeN = P.primeN; S.primeT = 1.6; }
+    R.hum.set(70 + S.v * 110, 0.05);
+    const volT = P.mute ? 0 : (P.vol ?? 1), crankMode = P.crankMode;
+    let fl = 0; for (const k in f) if (k !== 'loud') fl = Math.max(fl, f[k]);
+    const duckT = 1 - 0.35 * Math.min(1, fl);
+    for (let i = 0; i < n; i++) {
+      S.rpm += ((P.rpm || 0) - S.rpm) * b; S.load += ((P.load || 0) - S.load) * b; S.v += ((P.v || 0) - S.v) * b;
+      S.brake += ((P.brake || 0) - S.brake) * b; S.steer += ((P.steer || 0) - S.steer) * b;
+      S.eng += ((P.eng ? 1 : 0) - S.eng) * bSlow; S.crank += ((P.crank ? 1 : 0) - S.crank) * b; S.vol += (volT - S.vol) * b;
+      S.boost += (S.load * S.eng - S.boost) * bBoost;
+      const rpm = S.rpm;
+      let y = 0;
+      // crank and wheel turns: the beat for knocks, ticks and thumps
+      S.cph += rpm / 60 / SR; let cw = false; if (S.cph >= 1) { S.cph -= 1; cw = true; S.half = !S.half; }
+      const camw = cw && S.half;
+      S.wph += S.v * WREV / SR; let ww = false; if (S.wph >= 1) { S.wph -= 1; ww = true; }
+      // ---- the engine itself: one pressure pulse per firing (inline-6 = 3 per crank turn)
+      const live = Math.max(S.eng, crankMode === 'click' || crankMode === 'single' ? 0 : S.crank);
+      if (rpm > 40 && live > 0.003) {
+        S.ph += rpm / 20 / SR;
+        if (S.ph >= 1) {
+          S.ph -= 1; S.cyl = (S.cyl + 1) % 6;
+          let amp = (S.eng > 0.5 ? 0.55 + 0.45 * S.load : 0.32) * (1 + (rnd() - 0.5) * (0.1 + 0.7 * (P.rough || 0)));
+          if (P.miss === S.cyl && rnd() < (P.missK || 0)) { amp *= 0.05; if (f.pop) S.popQ = Math.floor(SR * 0.03); }
+          R.eLow.hit(amp); R.eMid.hit(amp * 0.6); R.eBody.hit(amp * 0.35); S.nEnv = amp;
+          if (f.puff && S.cyl === 2) S.pfEnv = f.puff;
+        }
+        S.nEnv *= nd;
+        R.eHi.drive(nz() * S.nEnv * 3);
+        const loud = 1 + (f.loud || 0) * 0.9;
+        const e = R.eLow.tick() * 0.9 + R.eMid.tick() * 0.45 * loud + R.eBody.tick() * 0.45 + R.eHi.tick() * (0.22 + 0.4 * (f.loud || 0));
+        S.lp += (e - S.lp) * (0.06 + 0.12 * S.load + 0.08 * (f.loud || 0));
+        S.duck += (duckT - S.duck) * 0.0005;
+        y += S.lp * 0.9 * loud * live * S.duck;
+      }
+      // starter motor whine while cranking
+      if (S.crank > 0.003 && crankMode !== 'click' && crankMode !== 'single') {
+        S.stp += (1080 + 60 * Math.sin(S.t * 12)) / SR; if (S.stp > 1) S.stp -= 1;
+        y += (Math.sin(TAU * S.stp) * 0.5 + Math.sin(2 * TAU * S.stp) * 0.25) * 0.05 * S.crank + nz() * 0.01 * S.crank;
+      }
+      // dead battery: the solenoid clicks fast and nothing turns
+      if (S.crank > 0.5 && crankMode === 'click') { S.clk -= 1 / SR; if (S.clk <= 0) { S.clk = 1 / 11; R.st1.hit(0.4); R.st2.hit(0.2); } }
+      y += R.st1.tick() + R.st2.tick();
+      // fuel pump priming hum for a second after the key turns
+      if (S.primeT > 0) { S.primeT -= 1 / SR; S.pr += 260 / SR; if (S.pr > 1) S.pr -= 1; y += (Math.sin(TAU * S.pr) + 0.5 * Math.sin(2 * TAU * S.pr)) * 0.011 * Math.min(1, S.primeT * 4) + nz() * 0.003; }
+      // quiet turbo spool on a healthy engine
+      if (S.boost > 0.05) { S.tw += (1800 + 6000 * S.boost) / SR; if (S.tw > 1) S.tw -= 1; y += Math.sin(TAU * S.tw) * 0.004 * S.boost; }
+      // tyres on the road
+      if (S.v > 0.005) { R.road.drive(nz()); y += R.road.tick() * 0.05 * S.v + nz() * 0.005 * S.v; }
+      y += R.sh1.tick();
+
+      // ---- fault sounds
+      if (f.knock) { if (cw) { const k = f.knock * (0.3 + 0.7 * S.load) * S.eng; R.kL.hit(0.75 * k); R.kM.hit(0.25 * k); } y += R.kL.tick() + R.kM.tick(); }
+      if (f.mknock) { if (cw) { const k = f.mknock * (0.4 + 0.6 * S.load) * S.eng; R.mL.hit(0.9 * k); R.mM.hit(0.15 * k); } y += R.mL.tick() + R.mM.tick(); }
+      if (f.slap) { if (camw) R.sl.hit(0.5 * f.slap * S.eng * (1.2 - 0.6 * S.load)); y += R.sl.tick(); }
+      if (f.tick) { if (camw) { R.tA.hit(0.6 * f.tick * S.eng); R.tB.hit(0.35 * f.tick * S.eng); } y += R.tA.tick() + R.tB.tick(); }
+      if (f.rattle) { if (rnd() < f.rattle * (rpm / 60) * 3.5 / SR * (1.4 - S.load)) { R.rr.set(2100 + rnd() * 1600, 0.0018); R.rr.hit((0.14 + 0.16 * rnd()) * S.eng * f.rattle); } y += R.rr.tick(); }
+      if (f.ping) { if (S.load > 0.4 && rnd() < f.ping * S.load * 45 / SR) R.pg.hit(0.16 * f.ping * S.eng); y += R.pg.tick(); }
+      if (f.pop) {
+        if (S.popQ >= 0 && S.popQ-- === 0) { R.pop.hit(0.6 * f.pop); S.pn = 0.5 * f.pop; }
+        if (rnd() < f.pop * 0.5 / SR) { R.pop.hit(0.45 * f.pop * S.eng); S.pn = 0.3 * f.pop; }
+        S.pn *= nd2; R.popN.drive(nz() * S.pn * 2); y += R.pop.tick() + R.popN.tick() * 0.6;
+      }
+      if (f.squeal) { S.sq += (2750 + 130 * Math.sin(S.t * TAU * 6.3) + 60 * Math.sin(S.t * TAU * 1.7)) / SR; if (S.sq > 1) S.sq -= 1; y += (Math.sin(TAU * S.sq) + 0.35 * Math.sin(2 * TAU * S.sq) + 0.15 * Math.sin(3 * TAU * S.sq)) * f.squeal * (0.055 + 0.11 * S.load + (rpm < 900 ? 0.04 : 0)) * S.eng; }
+      if (f.whine) { S.wn += (140 + S.v * 700) / SR; if (S.wn > 1) S.wn -= 1; y += Math.sin(TAU * S.wn) * f.whine * 0.13 * Math.min(1, S.v * 2.5) * (0.6 + 0.4 * S.load + 0.2 * Math.sin(S.t * 18)); }
+      if (f.pwhine) { S.pw += rpm * 0.62 / SR; if (S.pw > 1) S.pw -= 1; y += (Math.sin(TAU * S.pw) + 0.3 * Math.sin(2 * TAU * S.pw)) * f.pwhine * 0.09 * S.eng; }
+      if (f.hum) { R.hum.drive(nz()); y += R.hum.tick() * f.hum * S.v * 0.6 * (0.65 + 0.35 * Math.sin(TAU * S.wph * 2)); }
+      if (f.grind) { if (S.brake > 0.05 && S.v > 0.02) { const k = f.grind * S.brake * Math.min(1, S.v * 3) * (0.6 + 0.4 * rnd()); R.g1.drive(nz() * k); R.g2.drive(nz() * k * 0.7); } y += (R.g1.tick() + R.g2.tick()) * 0.4; }
+      if (f.bsq && S.brake > 0.05 && S.v > 0.02) { S.bs += (5400 + 80 * Math.sin(S.t * 31)) / SR; if (S.bs > 1) S.bs -= 1; y += Math.sin(TAU * S.bs) * f.bsq * 0.1 * S.brake * Math.min(1, S.v * 4); }
+      if (f.scrape) { if (S.v > 0.01) R.scr.drive(nz() * Math.min(1, S.v * 2) * (0.55 + 0.45 * Math.sin(TAU * S.wph))); y += R.scr.tick() * f.scrape * 0.14; }
+      if (f.hiss) { const x = nz(); S.hp += (x - S.hp) * 0.3; y += (x - S.hp) * f.hiss * (0.022 + 0.03 * S.load) * (S.eng + 0.3); }
+      if (f.siren) { S.sp += (2600 + 5200 * S.boost + 260 * Math.sin(S.t * 8)) / SR; if (S.sp > 1) S.sp -= 1; y += Math.sin(TAU * S.sp) * f.siren * (0.04 + 0.12 * S.boost) * S.eng; }
+      if (f.whoosh) { R.wh.drive(nz()); y += R.wh.tick() * f.whoosh * (0.05 + 0.3 * S.boost) * S.eng; }
+      if (f.clunk || f.jolt || f.shift) { if (f.clunk && S.steer > 0.5 && rnd() < 0.8 / SR) { R.c1.hit(0.4 * f.clunk); R.c2.hit(0.2 * f.clunk); } y += R.c1.tick() + R.c2.tick(); }
+      if (f.creak && S.creak > 0) { S.creak -= 1 / SR; S.cr += (950 + 1600 * (0.3 - S.creak)) / SR; if (S.cr > 1) S.cr -= 1; y += Math.sin(TAU * S.cr) * 0.08 * f.creak * Math.sin(Math.PI * S.creak / 0.3); }
+      if (f.creak && S.steer > 0.5 && S.creak <= 0 && rnd() < 0.5 / SR) S.creak = 0.3;
+      if (f.cv) { if (S.steer > 0.25 && S.v > 0.03 && rnd() < S.v * 14 / SR * Math.min(1, S.steer * 2)) { R.cv1.hit(0.42 * f.cv); R.cv2.hit(0.18 * f.cv); } y += R.cv1.tick() + R.cv2.tick(); }
+      if (f.thump) { if (ww && S.v > 0.02) { R.th.hit(0.85 * f.thump * Math.min(1, S.v * 3)); S.thE = 0.25 * f.thump; } S.thE *= nd3; R.thN.drive(nz() * S.thE); y += R.th.tick() + R.thN.tick() * 0.5; }
+      if (f.bclick) { if (ww && S.v > 0.02) { R.bc1.hit(0.5 * f.bclick); R.bc2.hit(0.3 * f.bclick); } if (S.steer > 0.3 && S.v > 0.02 && rnd() < 3 / SR) R.bc1.hit(0.25 * f.bclick); y += R.bc1.tick() + R.bc2.tick(); }
+      if (f.puff) { S.pfEnv *= nd; R.pf.drive(nz() * S.pfEnv * 3); y += R.pf.tick() * 0.6; }
+      if (f.uratt) { if (rnd() < f.uratt * (8 + (rpm < 1000 ? 14 : 4)) / SR) { R.ur.set(1500 + rnd() * 1800, 0.003); R.ur.hit(0.13 * f.uratt * (S.eng + 0.2)); } y += R.ur.tick(); }
+      if (f.rattleS) { if (rnd() < f.rattleS * (3 + 10 * S.v + (S.rsB > 0 ? 60 : 0)) / SR) { R.rs.set(2800 + rnd() * 2400, 0.0012); R.rs.hit(0.11 * f.rattleS); } if (S.rsB > 0) S.rsB -= 1 / SR; y += R.rs.tick(); }
+      if (f.buzz) { S.bz += 118 / SR; if (S.bz > 1) S.bz -= 1; S.bzl += ((S.bz < 0.5 ? 1 : -1) - S.bzl) * 0.15; y += S.bzl * 0.07 * f.buzz * (0.7 + 0.3 * Math.sin(S.t * 20)); }
+      if (f.chime) { S.chT -= 1 / SR; if (S.chT <= 0) { S.chT = 1.2; R.ch1.hit(0.24 * f.chime); R.ch2.hit(0.15 * f.chime); } y += R.ch1.tick() + R.ch2.tick(); }
+      if (f.beep) { S.bp += 1950 / SR; if (S.bp > 1) S.bp -= 1; y += Math.sin(TAU * S.bp) * 0.08 * f.beep; }
+      if (f.fan) { R.fan.drive(nz()); y += R.fan.tick() * 0.15 * f.fan; }
+      if (f.wind) { R.wnd.drive(nz()); y += R.wnd.tick() * f.wind * S.v * S.v * 0.3; }
+      if (f.boil) { if (rnd() < f.boil * 14 / SR) { R.bl.set(180 + rnd() * 380, 0.012); R.bl.hit(0.12 * f.boil); } y += R.bl.tick(); }
+      if (f.drone) { S.dp += (20 + S.v * 40) / SR; if (S.dp > 1) S.dp -= 1; y += Math.sin(TAU * S.dp) * f.drone * S.v * 0.2; }
+      if (f.motor) { S.mp += 900 / SR; if (S.mp > 1) S.mp -= 1; y += (Math.sin(TAU * S.mp) + 0.4 * Math.sin(2 * TAU * S.mp)) * 0.04 * f.motor * (0.6 + 0.4 * Math.sin(S.t * 3)) + nz() * 0.006 * f.motor; }
+      if (f.wiper) { S.wp += 1550 / SR; if (S.wp > 1) S.wp -= 1; y += Math.sin(TAU * S.wp) * 0.1 * f.wiper * Math.abs(Math.sin(S.t * 2.6)) * (Math.sin(S.t * TAU * 22) > 0.2 ? 1 : 0.15); }
+      // horn: two tones; a broken horn just buzzes weakly
+      if (P.horn || S.horn > 0.001) {
+        S.horn += ((P.horn ? 1 : 0) - S.horn) * 0.004;
+        S.h1 += 415 / SR; S.h2 += 518 / SR; if (S.h1 > 1) S.h1 -= 1; if (S.h2 > 1) S.h2 -= 1;
+        const bad = P.hornBad || 0, tone = Math.tanh((S.h1 + S.h2 - 1) * 2.5);
+        y += S.horn * (tone * 0.2 * (1 - bad) + (S.h1 < 0.08 ? 0.02 : 0) * bad);
+      }
+      // parking sensor beeps (demo)
+      if (P.pdc) { S.pd += 1 / SR; S.bp2 += 2000 / SR; if (S.bp2 > 1) S.bp2 -= 1; if (S.pd % 0.32 < 0.11) y += Math.sin(TAU * S.bp2) * 0.04; }
+      S.t += 1 / SR;
+      out[i] = Math.tanh(y * S.vol * 0.75);
+    }
+    for (const r of RINGS) if (Math.abs(r.re) < 1e-9 && Math.abs(r.im) < 1e-9) { r.re = 0; r.im = 0; }
+  }
+  return { render };
+}
+/* SYNTH:END */
+
+/* ------------------------------------------------------------------ *
+ *  Road under the car (fades in while driving) and roadside posts
+ * ------------------------------------------------------------------ */
+const ROAD = (() => {
+  const [c, x] = cnv(512, 512);
+  x.fillStyle = '#50545A'; x.fillRect(0, 0, 512, 512);
+  for (let i = 0; i < 26000; i++) { const g = 66 + Math.random() * 40; x.fillStyle = `rgba(${g},${g},${g + 3},${0.25 + Math.random() * 0.25})`; x.fillRect(Math.random() * 512, Math.random() * 512, 1, 1); }
+  // canvas x runs along the road (6 m per tile), canvas y across it (7.2 m)
+  x.fillStyle = '#E6E9EC'; x.fillRect(0, 251, 256, 10); x.fillRect(0, 22, 512, 8); x.fillRect(0, 482, 512, 8);
+  const map = tex(c); map.wrapS = THREE.RepeatWrapping; map.repeat.set(10, 1);
+  const [ca, xa] = cnv(256, 64);
+  const g1 = xa.createLinearGradient(0, 0, 256, 0); g1.addColorStop(0, '#000'); g1.addColorStop(0.2, '#fff'); g1.addColorStop(0.8, '#fff'); g1.addColorStop(1, '#000');
+  xa.fillStyle = g1; xa.fillRect(0, 0, 256, 64);
+  const g2 = xa.createLinearGradient(0, 0, 0, 64); g2.addColorStop(0, 'rgba(0,0,0,1)'); g2.addColorStop(0.1, 'rgba(0,0,0,0)'); g2.addColorStop(0.9, 'rgba(0,0,0,0)'); g2.addColorStop(1, 'rgba(0,0,0,1)');
+  xa.fillStyle = g2; xa.fillRect(0, 0, 256, 64);
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(60, 7.2), new THREE.MeshStandardMaterial({ map, alphaMap: tex(ca, false), transparent: true, opacity: 0, depthWrite: false, roughness: 0.93, metalness: 0 }));
+  m.rotation.x = -Math.PI / 2; m.position.set(0, 0.0015, -1.8); m.renderOrder = -1; m.visible = false; scene.add(m);
+  const N = 9, posts = new THREE.InstancedMesh(new THREE.BoxGeometry(0.08, 0.8, 0.08), new THREE.MeshStandardMaterial({ color: '#E8EBEE', roughness: 0.6 }), N);
+  posts.visible = false; posts.frustumCulled = false; scene.add(posts);
+  return { m, map, posts, N, off: 0, k: 0 };
+})();
+function roadUpdate(dt) {
+  ROAD.k += ((SIM.on ? 1 : 0) - ROAD.k) * Math.min(1, dt * 3);
+  const vis = ROAD.k > 0.01; ROAD.m.visible = ROAD.posts.visible = vis;
+  gridMat.opacity = (gridMat.userData.base ?? 0.8) * (1 - ROAD.k);
+  if (!vis) return;
+  ROAD.off += (SIM.on ? SIM.v : 0) * dt;
+  ROAD.map.offset.x = ROAD.off / 6;
+  ROAD.m.material.opacity = ROAD.k;
+  for (let i = 0; i < ROAD.N; i++) {
+    _dum.position.set(mod(i * 6 - ROAD.off, ROAD.N * 6) - ROAD.N * 3, 0.4 * ROAD.k, -5.6); _dum.rotation.set(0, 0, 0); _dum.scale.set(1, Math.max(0.001, ROAD.k), 1); _dum.updateMatrix();
+    ROAD.posts.setMatrixAt(i, _dum.matrix);
+  }
+  ROAD.posts.instanceMatrix.needsUpdate = true;
+}
+
+/* ------------------------------------------------------------------ *
+ *  Fault effects: smoke and steam, drips and puddles, sparks
+ * ------------------------------------------------------------------ */
+const PUFF = (() => { const [c, x] = cnv(64, 64); const g = x.createRadialGradient(32, 32, 1, 32, 32, 31); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.4, 'rgba(255,255,255,0.55)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return tex(c); })();
+const SMOKE_C = { blue: ['#8C9AB5', 0.5], white: ['#F1F3F5', 0.55], black: ['#25272A', 0.55], gray: ['#9EA4AB', 0.32], steam: ['#FFFFFF', 0.42] };
+const FLUID_C = { oil: '#6B4A1E', coolant: '#2FC2A8', fuel: '#C8B85A', brake: '#C69A3C', atf: '#A3222A', grease: '#151515', diff: '#4A3214' };
+const SMK = [];
+for (let i = 0; i < 110; i++) { const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: PUFF, transparent: true, depthWrite: false, opacity: 0, fog: false })); m.visible = false; m.renderOrder = 57; scene.add(m); SMK.push({ m, life: 0, max: 1, v: new THREE.Vector3(), s0: 0.1, s1: 0.5, op: 0.5 }); }
+let smkI = 0;
+function puff(pos, vel, color, op, life, s0, s1) {
+  const it = SMK[smkI = (smkI + 1) % SMK.length];
+  it.m.position.copy(pos); it.v.copy(vel); it.m.material.color.set(color); Object.assign(it, { op, life: 0, max: life, s0, s1 });
+  it.m.visible = true; it.m.scale.setScalar(s0); it.m.material.opacity = 0;
+}
+const DRIPS = [], SPOTS = [];
+{
+  const dg = new THREE.SphereGeometry(1, 10, 8), sg = new THREE.CircleGeometry(1, 24); sg.rotateX(-Math.PI / 2);
+  for (let i = 0; i < 24; i++) { const m = new THREE.Mesh(dg, new THREE.MeshStandardMaterial({ color: '#333', roughness: 0.15, metalness: 0.1 })); m.visible = false; m.scale.set(0.009, 0.014, 0.009); scene.add(m); DRIPS.push({ m, vy: 0, c: '#333' }); }
+  for (let i = 0; i < 70; i++) { const m = new THREE.Mesh(sg, new THREE.MeshBasicMaterial({ color: '#333', transparent: true, opacity: 0, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, fog: false })); m.visible = false; m.renderOrder = 1; scene.add(m); SPOTS.push({ m, age: 0, r: 0.02, rm: 0.06 }); }
+}
+let dripI = 0, spotI = 0;
+function drip(pos, color) { const d = DRIPS[dripI = (dripI + 1) % DRIPS.length]; d.m.position.copy(pos); d.m.material.color.set(color); d.vy = 0; d.c = color; d.m.visible = true; }
+function spot(x, z, color) { const s = SPOTS[spotI = (spotI + 1) % SPOTS.length]; s.m.position.set(x, 0.004, z); s.m.material.color.set(color); s.age = 0; s.r = 0.015; s.rm = 0.06 + Math.random() * 0.04; s.m.visible = true; }
+const SPARK_N = 80, SPARK = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 6, 4), new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }), SPARK_N);
+SPARK.frustumCulled = false; SPARK.renderOrder = 63; SPARK.visible = false; SPARK.setColorAt(0, _col.set('#fff')); scene.add(SPARK);
+const SPK = Array.from({ length: SPARK_N }, () => ({ p: new THREE.Vector3(), v: new THREE.Vector3(), life: 1, max: 0 }));
+let spkI = 0;
+function spark(pos, vel) { const s = SPK[spkI = (spkI + 1) % SPARK_N]; s.p.copy(pos); s.v.copy(vel); s.life = 0; s.max = 0.25 + Math.random() * 0.35; }
+function fxUpdate(dt, road) {
+  for (const it of SMK) {
+    if (!it.m.visible) continue;
+    it.life += dt; const t = it.life / it.max;
+    if (t >= 1) { it.m.visible = false; continue; }
+    it.m.position.addScaledVector(it.v, dt); it.m.position.x -= road * dt * 0.85; it.v.multiplyScalar(1 - dt * 0.8);
+    it.m.scale.setScalar(it.s0 + (it.s1 - it.s0) * Math.sqrt(t)); it.m.material.opacity = it.op * Math.min(1, t * 5) * Math.pow(1 - t, 1.4);
+  }
+  for (const d of DRIPS) { if (!d.m.visible) continue; d.vy -= 9.8 * dt; d.m.position.y += d.vy * dt; if (d.m.position.y <= 0.006) { d.m.visible = false; spot(d.m.position.x, d.m.position.z, d.c); } }
+  for (const s of SPOTS) {
+    if (!s.m.visible) continue;
+    s.age += dt; s.r += (s.rm - s.r) * Math.min(1, dt * 2.5); s.m.position.x -= road * dt; s.m.scale.setScalar(s.r);
+    const fade = clamp((s.m.position.x + 9) / 4, 0, 1) * clamp((40 - s.age) / 6, 0, 1);
+    s.m.material.opacity = 0.85 * fade; if (fade <= 0) s.m.visible = false;
+  }
+  let any = false;
+  for (let i = 0; i < SPARK_N; i++) {
+    const s = SPK[i]; let k = 0;
+    if (s.life < s.max) {
+      s.life += dt; s.v.y -= 5 * dt; s.p.addScaledVector(s.v, dt); s.p.x -= road * dt * 0.6;
+      if (s.p.y < 0.01) { s.p.y = 0.01; s.v.y *= -0.35; }
+      k = Math.max(0, 1 - s.life / s.max); if (k > 0) any = true;
+    }
+    _dum.position.copy(s.p); _dum.rotation.set(0, 0, 0); _dum.scale.setScalar(0.009 * k + 1e-5); _dum.updateMatrix(); SPARK.setMatrixAt(i, _dum.matrix);
+    SPARK.setColorAt(i, _col.setHSL(0.06 + 0.05 * k, 1, 0.5 + 0.12 * k).multiplyScalar(1.5));
+  }
+  SPARK.visible = any; if (any) { SPARK.instanceMatrix.needsUpdate = true; SPARK.instanceColor.needsUpdate = true; }
+}
+
+/* ------------------------------------------------------------------ *
+ *  Engine teardown: the engine lifts out and comes apart piece by piece
+ * ------------------------------------------------------------------ */
+const TD_LIFT = 0.45;
+const TD_ORDER = ['ignitionCoils', 'sparkPlugs', 'valveCover', 'injectors', 'throttleBody', 'intakeManifold', 'turbo', 'exhaustManifold', 'serpentineBelt', 'alternator',
+  'acCompressor', 'waterPump', 'thermostat', 'coolantTempSensor', 'harmonicBalancer', 'oilFilter', 'oilPressureSensor', 'knockSensor', 'camSensor', 'crankSensor',
+  'flywheel', 'vanos', 'camshaft', 'timingChain', 'chainTensioner', 'headBolts', 'cylinderHead', 'valveSprings', 'valves', 'headGasket',
+  'oilPan', 'oilPump', 'pistons', 'pistonRings', 'conRods', 'crankBearings', 'crankshaft', 'cylinders', 'engineBlock'];
+// where each part ends up (metres, relative to where it sits); some ride along with a bigger part first
+const TD_OFF = {
+  ignitionCoils: [0, 0.82, 0], sparkPlugs: [0, 0.80, 0], valveCover: [0, 0.58, 0], injectors: [0, 0.30, -0.24], throttleBody: [0.10, 0.10, -0.42],
+  intakeManifold: [0, 0.10, -0.30], turbo: [0, 0.26, 0.56], exhaustManifold: [0, 0.26, 0.30], serpentineBelt: [0.42, 0, 0], alternator: [0.26, 0.14, -0.20],
+  acCompressor: [0.26, -0.10, -0.24], waterPump: [0.30, 0, 0.20], thermostat: [0.32, 0.12, 0.24], coolantTempSensor: [0.30, 0.26, 0.10], harmonicBalancer: [0.26, 0, 0],
+  oilFilter: [0, -0.10, -0.30], oilPressureSensor: [0.08, -0.14, -0.30], knockSensor: [0, -0.20, -0.22], camSensor: [0.22, 0.46, 0], crankSensor: [-0.36, 0.06, -0.10],
+  flywheel: [-0.36, -0.14, 0], vanos: [-0.18, 0.46, 0], camshaft: [0, 0.46, 0], timingChain: [-0.30, 0.10, 0], chainTensioner: [-0.40, 0.10, -0.06],
+  headBolts: [0, 0.62, 0], cylinderHead: [0, 0.24, 0], valveSprings: [0, 0.16, 0], valves: [0, -0.13, 0], headGasket: [0, 0.06, 0],
+  oilPan: [0, -0.48, 0], oilPump: [0.26, -0.30, 0], pistons: [0, 0.02, 0.34], pistonRings: [0, 0.07, 0], conRods: [0, -0.12, 0],
+  crankBearings: [0, -0.14, 0], crankshaft: [0, -0.30, 0], cylinders: [0, 0, -0.36], engineBlock: [0, 0, 0],
+};
+const TD_PARENT = { valveSprings: 'cylinderHead', valves: 'cylinderHead', pistonRings: 'pistons', conRods: 'pistons' };
+const TD_NOTE = {
+  ignitionCoils: 'أول شي بنفك فيش الكويلات وبنسحبها لفوق.', sparkPlugs: 'بمفتاح بواجي طويل بنفك البواجي من راس المحرك.', valveCover: 'بنفك براغي غطا الصبابات وبنرفعه، فبيبيّنوا الكامات.',
+  injectors: 'بعد ما نفرّغ ضغط البنزين، بنفك المسطرة ومعها البخاخات.', throttleBody: 'بنفك بوابة الهوا عن مجمّع السحب.', intakeManifold: 'بنفك مجمّع السحب عن جنب الراس.',
+  turbo: 'بنفك خطوط الزيت والماي عن التيربو وبنشيله.', exhaustManifold: 'بنفك صواميل منفولد العادم عن الراس.', serpentineBelt: 'بنرخي الشدّاد وبنشيل سير المحرك.',
+  alternator: 'بنفك الدينمو وكابلاته.', acCompressor: 'بنفك كمبروسر المكيف عن المحرك.', waterPump: 'بنفك طرمبة الماي من قدّام المحرك.', thermostat: 'بنفك علبة الثرموستات.',
+  coolantTempSensor: 'بنفك حسّاس حرارة الماي.', harmonicBalancer: 'بنفك برغي الكرنك الكبير وبنسحب بكرة الكرنك.', oilFilter: 'بنفك فلتر الزيت.', oilPressureSensor: 'بنفك حسّاس ضغط الزيت.',
+  knockSensor: 'بنفك حسّاسات الطرق عن جنب البلوك.', camSensor: 'بنفك حسّاسات الكامات.', crankSensor: 'بنفك حسّاس الكرنك من جنب الحدّافة.', flywheel: 'بنفك براغي الحدّافة عن ضهر الكرنك.',
+  vanos: 'بنفك وحدات الـVANOS عن آخر الكامات.', camshaft: 'بنفك كراسي الكامات وبنرفع عمودين الكامات.', timingChain: 'بنشيل جنزير التوقيت مع عجلاته.', chainTensioner: 'بنفك الشدّاد ومجاري الجنزير.',
+  headBolts: 'بنفك براغي الراس بالترتيب، من برّا لجوّا.', cylinderHead: 'بنرفع راس المحرك عن البلوك.', valveSprings: 'بأداة كبس خاصة بنضغط النوابض وبنطلّع الأقفال الصغيرة.',
+  valves: 'بنسحب الصبابات من تحت الراس.', headGasket: 'بنشيل جوان الراس القديم (وما بيرجع ينركب).', oilPan: 'بنقلب المحرك وبنفك الكرتير.', oilPump: 'بنفك طرمبة الزيت ومصفاتها.',
+  pistons: 'بنفك أغطية الأذرع وبنطلّع البساتم مع أذرعها من فوق.', pistonRings: 'بنطلّع الشنابر عن البساتم.', conRods: 'بنفك الأذرع عن البساتم (بنسحب المسمار).',
+  crankBearings: 'بنفك كراسي الكرنك ومعها السبيكة.', crankshaft: 'بنرفع عمود الكرنك من مكانه.', cylinders: 'هي السلندرات اللي كانت البساتم عم تتحرّك جوّاها.', engineBlock: 'وهيك ضل البلوك فاضي: كل قطعة صارت قدّامك.',
+};
+const TD_START = new Set(['engineBlock', 'cylinderHead', 'valveCover']);
+const TD = { on: false, closing: false, idle: true, step: -1, play: false, timer: 0, lift: 0, follow: true, rev: false, prevMode: 'xray', k: {}, tgt: {}, movers: {}, anchor: {}, set: new Set(TD_ORDER) };
+TD_ORDER.forEach(id => { TD.k[id] = 0; TD.tgt[id] = 0; });
+const shortAr = p => p.ar.replace(/\s*\(.*?\)\s*/g, ' ').trim();
+{
+  const under = o => { while (o && o.parent !== engineG) o = o.parent; return o; };
+  for (const id of TD_ORDER) { const set = new Set(); BY[id].meshes.forEach(m => { const r = under(m); if (r) set.add(r); }); TD.movers[id] = [...set]; }
+  FLASH.comb.forEach(m => TD.movers.pistons.push(m)); FLASH.spark.forEach(m => TD.movers.sparkPlugs.push(m)); FLASH.spray.forEach(m => TD.movers.injectors.push(m));
+  [...RIG.pistons, ...RIG.rods, ...RIG.rings, ...RIG.valves.map(v => v.g)].forEach(o => { o.userData.animPos = true; });
+  const seen = new Set();
+  for (const id of TD_ORDER) for (const m of TD.movers[id]) { if (seen.has(m)) console.warn('teardown: shared mover in', id); seen.add(m); m.userData.ebase = m.position.clone(); }
+}
+const _tdo = new THREE.Vector3(), _tda = new THREE.Vector3();
+// label anchors (top centre of each part, engine coordinates); measured once the moving parts have been placed
+function tdAnchors() {
+  if (TD.anchorsReady) return;
+  scene.updateMatrixWorld(true);
+  for (const id of TD_ORDER) {
+    const b = new THREE.Box3(); BY[id].meshes.forEach(m => b.union(new THREE.Box3().setFromObject(m)));
+    TD.anchor[id] = engineG.worldToLocal(new THREE.Vector3((b.min.x + b.max.x) / 2, b.max.y, (b.min.z + b.max.z) / 2));
+  }
+  TD.anchorsReady = true;
+}
+function tdOffset(id, out, m, kOverride) {
+  const kk = kOverride ?? TD.k[id], k = smooth(0, 1, kk), o = (m && m.userData.ex) || TD_OFF[id];
+  out.set(o[0] * k, o[1] * k + TD_LIFT * smooth(0, 1, kOverride !== undefined ? 1 : TD.lift), o[2] * k);
+  const par = TD_PARENT[id];
+  if (par) { const kp = smooth(0, 1, kOverride ?? TD.k[par]), q = TD_OFF[par]; out.x += q[0] * kp; out.y += q[1] * kp; out.z += q[2] * kp; }
+  return out;
+}
+function tdPlace() { for (const id of TD_ORDER) for (const m of TD.movers[id]) { tdOffset(id, _tdo, m); if (m.userData.animPos) m.position.add(_tdo); else m.position.copy(m.userData.ebase).add(_tdo); } }
+function tdApply(dt) {
+  if (TD.idle) return;
+  if (TD.on && !TD.closing) {
+    if (TD.rev) { TD.timer -= dt; if (TD.timer <= 0) { if (TD.step >= 0) { TD.tgt[TD_ORDER[TD.step]] = 0; TD.step--; TD.timer = 0.14; tdSync(); } else TD.rev = false; } }
+    else if (TD.play && TD.lift > 0.97) {
+      TD.timer -= dt;
+      if (TD.timer <= 0) { if (TD.step < TD_ORDER.length - 1) { tdGo(TD.step + 1); TD.timer = 1.7; } else { TD.play = false; tdOverview(); tdSync(); } }
+    }
+  }
+  for (const id of TD_ORDER) TD.k[id] += clamp(TD.tgt[id] - TD.k[id], -dt * 1.7, dt * 1.5);
+  TD.lift += clamp((TD.on && !TD.closing ? 1 : 0) - TD.lift, -dt * 1.4, dt * 1.1);
+  tdPlace();
+  if (TD.closing && TD.lift <= 0 && TD_ORDER.every(id => TD.k[id] <= 0)) tdFinish();
+}
+function tdTarget(id) { return engineG.localToWorld(tdOffset(id, _tda, null, 1).add(TD.anchor[id])); }
+function tdFocus(id) {
+  const t = tdTarget(id).clone(), dir = camera.position.clone().sub(controls.target).normalize();
+  flyTo(t, t.clone().add(dir.multiplyScalar(2.4 * Math.min(1.5, fitScale()))));
+}
+function tdOverview() {
+  const b = new THREE.Box3(); TD_ORDER.forEach(id => b.expandByPoint(tdTarget(id)));
+  b.expandByPoint(engineG.localToWorld(new THREE.Vector3(1.29, 0.17 + TD_LIFT - 0.48, 0)));
+  const c = b.getCenter(new THREE.Vector3()), r = b.getSize(new THREE.Vector3()).length() / 2;
+  flyTo(c, c.clone().add(new THREE.Vector3(0.62, 0.34, 1).normalize().multiplyScalar((r * 2.3 + 0.6) * Math.min(1.6, fitScale()))));
+}
+function tdGo(i) {
+  if (!TD.on || TD.closing) return;
+  i = clamp(i, -1, TD_ORDER.length - 1);
+  TD_ORDER.forEach((id, j) => { TD.tgt[id] = j <= i ? 1 : 0; });
+  TD.step = i;
+  select(i >= 0 ? BY[TD_ORDER[i]] : BY.engineBlock, { focus: false });
+  if (TD.follow && i >= 0) tdFocus(TD_ORDER[i]);
+  tdSync();
+}
+function tdStart(part) {
+  if (SIM.on) simStop();
+  if (!TD.on && TD.idle) tdAnchors();
+  if (!TD.on || TD.closing) {
+    TD.prevMode = TD.on ? TD.prevMode : state.mode; TD.on = true; TD.closing = false; TD.idle = false; TD.step = -1; TD.play = true; TD.follow = true; TD.rev = false; TD.timer = 0.3;
+    TD_ORDER.forEach(id => { TD.tgt[id] = 0; });
+  }
+  state.isolate = false; setMode('hidden');
+  select(part && TD.set.has(part.id) ? part : BY.engineBlock, { focus: false });
+  const t = engineG.localToWorld(new THREE.Vector3(1.29, 0.62 + TD_LIFT, 0)), dir = new THREE.Vector3(0.62, 0.34, 1).normalize();
+  flyTo(t, t.clone().add(dir.multiplyScalar(3.1 * Math.min(1.5, fitScale()))));
+  tdSync(); refreshLook();
+}
+function tdExit(now) {
+  if (!TD.on) return;
+  TD.play = false; TD.rev = false; TD.step = -1; TD_ORDER.forEach(id => { TD.tgt[id] = 0; });
+  TD.closing = true;
+  if (now) { TD_ORDER.forEach(id => { TD.k[id] = 0; }); TD.lift = 0; tdPlace(); tdFinish(); }
+  tdSync();
+}
+function tdFinish() {
+  TD.on = false; TD.closing = false; TD.idle = true; labelsEl.hidden = true;
+  setMode(TD.prevMode === 'hidden' ? 'xray' : TD.prevMode); refreshLook(); renderCard(); tdSync();
+}
+const tdEl = $('#td'), labelsEl = $('#labels'), LBL = {};
+tdEl.innerHTML = `
+  <div class="td-h"><b>فكّ المحرك قطعة قطعة</b><span class="num" id="tdNum"></span><span class="nm" id="tdName"></span></div>
+  <div class="td-bar" aria-hidden="true"><i id="tdFill"></i></div>
+  <div class="td-ctrl">
+    <button class="btn" id="tdPrev">→ رجّع قطعة</button>
+    <button class="btn" id="tdPlay" aria-pressed="true">وقّف</button>
+    <button class="btn" id="tdNext">فكّ التالية ←</button>
+    <button class="btn" id="tdAll">فكّ الكل</button>
+    <button class="btn" id="tdBack">ركّبه</button>
+    <button class="btn x" id="tdExit" aria-label="سكّر فكّ المحرك">✕ سكّر</button>
+  </div>`;
+function tdSync() {
+  const show = TD.on && !TD.closing;
+  tdEl.hidden = !show; document.querySelectorAll('.foot .hint, .foot .legend').forEach(e => { e.hidden = show; });
+  const tb = $('#tdBtn'); if (tb) tb.setAttribute('aria-pressed', String(show));
+  if (!show) return;
+  const n = TD_ORDER.length, i = TD.step, p = i >= 0 ? BY[TD_ORDER[i]] : null;
+  $('#tdNum').textContent = `${Math.max(0, i + 1)} / ${n}`;
+  $('#tdName').textContent = p ? shortAr(p) : (TD.lift < 0.97 ? 'عم نطلّع المحرك من السيارة…' : 'المحرك جاهز للفك');
+  $('#tdFill').style.width = ((i + 1) / n * 100) + '%';
+  $('#tdPrev').disabled = i < 0; $('#tdNext').disabled = i >= n - 1;
+  const pb = $('#tdPlay'); pb.setAttribute('aria-pressed', String(TD.play)); pb.textContent = TD.play ? 'وقّف' : 'كمّل لحاله';
+}
+$('#tdPrev').onclick = () => { TD.play = false; TD.rev = false; if (TD.step >= 0) tdGo(TD.step - 1); };
+$('#tdNext').onclick = () => { TD.play = false; TD.rev = false; TD.follow = true; tdGo(TD.step + 1); };
+$('#tdPlay').onclick = () => { TD.rev = false; TD.play = !TD.play; TD.follow = true; TD.timer = 0.2; if (TD.play && TD.step >= TD_ORDER.length - 1) tdGo(-1); tdSync(); };
+$('#tdAll').onclick = () => { TD.play = false; TD.rev = false; TD_ORDER.forEach(id => { TD.tgt[id] = 1; }); TD.step = TD_ORDER.length - 1; tdOverview(); tdSync(); };
+$('#tdBack').onclick = () => { TD.play = false; TD.rev = true; TD.timer = 0; tdSync(); };
+$('#tdExit').onclick = () => tdExit(false);
+function labelsUpdate() {
+  if (!TD.on || TD.closing) { if (!labelsEl.hidden) labelsEl.hidden = true; return; }
+  labelsEl.hidden = false;
+  const r = canvas.getBoundingClientRect(), placed = [];
+  for (const id of TD_ORDER) {
+    let el = LBL[id];
+    const show = TD.k[id] > 0.85 && state.sel?.id !== id;
+    if (!show) { if (el && el.style.display !== 'none') el.style.display = 'none'; continue; }
+    if (!el) {
+      el = LBL[id] = document.createElement('button'); el.className = 'tdl'; el.tabIndex = -1; el.textContent = shortAr(BY[id]);
+      el.addEventListener('click', () => { TD.play = false; select(BY[id], { focus: false }); tdSync(); });
+      labelsEl.appendChild(el);
+    }
+    _v.copy(TD.anchor[id]).add(tdOffset(id, _tdo)); engineG.localToWorld(_v); _v.project(camera);
+    const x = (_v.x + 1) / 2 * r.width, y = (1 - _v.y) / 2 * r.height;
+    let ok = _v.z < 1 && x > 30 && x < r.width - 30 && y > 40 && y < r.height - 10;
+    if (ok) for (const q of placed) if (Math.abs(q[0] - x) < 80 && Math.abs(q[1] - y) < 20) { ok = false; break; }
+    if (!ok) { el.style.display = 'none'; continue; }
+    placed.push([x, y]); el.style.display = ''; el.style.transform = `translate(${x.toFixed(1)}px, ${(y - 4).toFixed(1)}px) translate(-50%, -100%)`;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ *  Driving and fault simulation
+ * ------------------------------------------------------------------ */
+const R_TIRE = 0.338, VMAX = 4.6;
+const SIM_OWN = new Set(['engine', 'wheels', 'brake', 'pedals', 'starter', 'clutch', 'steer', 'diffTurn', 'bounce', 'bump', 'roll', 'shifter', 'gauges', 'shake']);
+const SIM = { on: false, part: null, f: null, bad: false, delay: 0, t: 0, k: 0, es: 'off', esT: 0, loopT: 0, lastLt: 0, v: 0, rpm: 0, thr: 0, brk: 0, steer: 0, yaw: 0, temp: 0.45,
+  heave: 0, hv: 0, pitchD: 0, pv: 0, pitch: 0, roll: 0, jx: 0, jy: 0, cy: { FL: 0, FR: 0, RL: 0, RR: 0 }, wob: { FL: 0, FR: 0, RL: 0, RR: 0 }, eShake: 0, sShake: 0,
+  light: 0, beams: [1, 1], kmh: 0, gear: 'D', gi: 0, miss: -1, missK: 0, lamps: new Set(), blink: new Set(), msg: '', acc: {}, shiftN: 0, joltN: 0, bumpN: 0, crankN: 0, primeN: 0,
+  hornOn: 0, hoodF: 0, balWob: 0, clusterOff: false, fanDead: false, bF: -1, bR: -1, fxExtra: {} };
+const faultOf = p => FAULTS[p.id] || { see: p.br };
+function simStart(part) {
+  audioStart();
+  if (TD.on) tdExit(true);
+  Object.assign(SIM, { on: true, t: 0, es: 'crank', esT: 0, loopT: 0, lastLt: 0, v: 0, rpm: 0, k: 0, temp: 0.45, heave: 0, hv: 0, pitchD: 0, pv: 0, yaw: 0, gi: 0, bF: -1, bR: -1 });
+  SIM.crankN++;
+  simSetPart(part || null, { quiet: !part });
+  if (!(part?.id === 'fuelPump')) SIM.primeN++;
+  if (state.mode === 'hidden') setMode('xray');
+  if (state.running) { state.running = false; syncRunBtn(); }
+  simEl.hidden = false; $('#driveBtn').setAttribute('aria-pressed', 'true');
+  simCam(); simHead(); renderCard();
+}
+function simSetPart(part, { bad = true, quiet = false } = {}) {
+  SIM.part = part || null; SIM.f = part ? faultOf(part) : null; SIM.bad = !!part && bad; SIM.delay = 1.4;
+  if (part && SIM.f.fx?.nostart && SIM.bad) SIM.k = 1;
+  if (part && !quiet && state.sel !== part) select(part, { focus: false, sim: true });
+  simHead();
+  if (!quiet) renderCard();
+}
+function simStop() {
+  if (!SIM.on) return;
+  SIM.on = false; SIM.part = null; SIM.f = null; simEl.hidden = true; $('#driveBtn').setAttribute('aria-pressed', 'false');
+  carRoot.rotation.y = 0; for (const k in SPIN) SPIN[k].rotation.x = 0; SHELL.byKey.hood.pivot.rotation.z = 0;
+  renderCard();
+}
+function simCam() {
+  const F = SIM.f?.fx || {}, p = SIM.part;
+  const ck = F.corner || F.flat || F.wobble || (F.lean && F.lean[0]) || (F.smoke && F.smoke[1].startsWith('wheel') ? F.smoke[1].slice(5) : null) || (p?.fw ? state.corner : null);
+  const fs = Math.min(1.4, fitScale());
+  if (ck) {
+    state.corner = ck;
+    const c = CORNERS.find(o => o.k === ck), t = CORNER[ck].getWorldPosition(new THREE.Vector3()); t.y = 0.42;
+    return flyTo(t, t.clone().add(new THREE.Vector3(c.x > 0 ? 0.9 : -0.9, 0.45, c.s).normalize().multiplyScalar(3.6 * fs)));
+  }
+  const rear = (F.smoke && F.smoke[1] === 'tail') || (F.leak && F.leak[1][0] < -0.3) || (F.sparks === 'pipe') || ['muffler', 'exhaustPipe', 'catalytic', 'differential', 'fuelTank', 'battery', 'taillights', 'trunk', 'rearBumper', 'rearWindow', 'quarterPanels'].includes(p?.id);
+  const t = new THREE.Vector3(rear ? -0.9 : 0.4, 0.4, -0.3);
+  flyTo(t, t.clone().add(new THREE.Vector3(rear ? -0.85 : 0.8, 0.38, 0.8).normalize().multiplyScalar(9.6 * fs)));
+}
+function simUpdate(dt) {
+  const F = SIM.part ? (SIM.f.fx || {}) : {};
+  SIM.t += dt; SIM.esT += dt; SIM.delay -= dt;
+  const want = SIM.part && SIM.bad ? 1 : 0;
+  if (F.nostart && want) SIM.k = 1; else SIM.k += ((SIM.delay > 0 ? 0 : want) - SIM.k) * Math.min(1, dt * 1.8);
+  const K = SIM.k, br = K > 0.5, ns = br ? F.nostart : null;
+  // engine: crank -> run, or crank -> rest -> crank when it will not start, or stall
+  if (SIM.es === 'crank') { if (SIM.esT > (ns ? 2.2 : 0.9)) { SIM.es = ns ? 'rest' : 'run'; SIM.esT = 0; } }
+  else if (SIM.es === 'rest') { if (!ns || SIM.esT > 1.8) { SIM.es = 'crank'; SIM.esT = 0; SIM.crankN++; } }
+  else if (SIM.es === 'run') { const lt = SIM.loopT % 12; if ((br && F.stall && lt > 4.2 && lt < 4.5) || (ns && lt > 11.8)) { SIM.es = 'stall'; SIM.esT = 0; } }
+  else if (SIM.es === 'stall') { if (SIM.esT > 3.4 && SIM.v < 0.05) { SIM.es = 'crank'; SIM.esT = 0; SIM.crankN++; } }
+  const running = SIM.es === 'run';
+  if (running || SIM.es === 'stall') SIM.loopT += dt;
+  const lt = SIM.loopT % 12, stuck = br && F.stuck;
+  // one loop: idle, pull away, cruise with a gentle left/right, a bump, brake to a stop, idle
+  let thr = 0, brk = 0, steer = 0;
+  if (running && !stuck) {
+    if (lt >= 1.3 && lt < 4.6) thr = 0.85;
+    else if (lt >= 4.6 && lt < 8.2) { thr = 0.3; steer = 0.2 * Math.sin((lt - 4.6) / 3.6 * Math.PI * 2); }
+    else if (lt >= 8.2 && lt < 10.3) brk = 0.8;
+  } else if (SIM.es === 'stall' && SIM.v > 0.05) brk = 0.35;
+  if (thr > 0 && SIM.thr === 0) SIM.joltN++;
+  const pw = 1 + ((F.power ?? 1) - 1) * K, be = 1 + ((F.brakeEff ?? 1) - 1) * K, slip = (F.slip || 0) * K;
+  const hot = SIM.temp > 0.9 ? 0.6 : 1, vmax = VMAX * (0.45 + 0.55 * pw * hot);
+  SIM.v = clamp(SIM.v + (thr * 2.3 * pw * hot * (1 - 0.5 * slip) - brk * 3.3 * be - 0.15 - 0.04 * SIM.v) * dt, 0, vmax);
+  const gp = SIM.v / VMAX * 3, gi = Math.min(2, Math.floor(gp)), frac = gp - gi;
+  if (running && thr > 0 && gi > SIM.gi) { SIM.shiftN++; SIM.joltN++; }
+  SIM.gi = gi;
+  let rpmT = 0;
+  if (running) rpmT = 760 + thr * (900 + 1500 * frac) + SIM.v / VMAX * 500 + slip * thr * 1900 + (F.rough ? F.rough * K * 140 * Math.sin(SIM.t * 9.1) * Math.sin(SIM.t * 3.7) : 0);
+  else if (SIM.es === 'crank') rpmT = ns === 'click' || ns === 'single' ? 0 : 250;
+  SIM.rpm += (rpmT - SIM.rpm) * Math.min(1, dt * (SIM.es === 'stall' ? 1.4 : 5));
+  SIM.thr = thr; SIM.brk = brk;
+  SIM.hornOn = SIM.part?.id === 'horn' && running && ((lt > 2.4 && lt < 3.0) || (lt > 6.0 && lt < 6.5)) ? 1 : 0;
+  // steering, pull to one side
+  const pull = (F.pull || 0) * K * Math.min(1, SIM.v / 1.5) + (F.pullBrake || 0) * K * brk;
+  SIM.steer = steer;
+  SIM.yaw += (-0.045 * pull - SIM.yaw) * Math.min(1, dt * 1.5);
+  // bumps (front wheels then rear) and the body bouncing on its springs
+  const prev = SIM.lastLt; SIM.lastLt = lt;
+  if (running && prev < 7.3 && lt >= 7.3) { SIM.bF = 0; SIM.hv += 0.1; SIM.pv += 0.085; SIM.bumpN++; }
+  if (running && prev < 7.62 && lt >= 7.62) { SIM.bR = 0; SIM.hv += 0.1; SIM.pv -= 0.085; SIM.bumpN++; }
+  const prof = t => t >= 0 && t < 0.22 ? 0.045 * Math.sin(Math.PI * t / 0.22) : 0;
+  if (SIM.bF >= 0) SIM.bF += dt; if (SIM.bR >= 0) SIM.bR += dt;
+  const zeta = 0.42 - 0.37 * (F.bounce || 0) * K, w = 8.5;
+  SIM.hv += (-w * w * SIM.heave - 2 * zeta * w * SIM.hv) * dt; SIM.heave += SIM.hv * dt;
+  SIM.pv += (-w * w * SIM.pitchD - 2 * zeta * w * SIM.pv) * dt; SIM.pitchD += SIM.pv * dt;
+  let leanR = 0, leanP = 0, leanY = 0;
+  for (const k in SIM.cy) SIM.cy[k] = 0;
+  SIM.cy.FL = SIM.cy.FR = prof(SIM.bF); SIM.cy.RL = SIM.cy.RR = prof(SIM.bR);
+  if (F.lean) { const c = CORNERS.find(o => o.k === F.lean[0]), d = 0.026 * F.lean[1] * K; leanR = c.s * d / 0.8; leanP = -d / c.x; leanY = -d * 0.5; }
+  if (F.flat) SIM.cy[F.flat] -= 0.028 * K;
+  SIM.heaveOut = SIM.heave + leanY;
+  SIM.pitch = SIM.pitchD - brk * 0.012 * (1 + (F.bounce || 0) * K) + thr * 0.005 + leanP;
+  SIM.roll = steer * (SIM.v / VMAX) * 0.1 * (1 + 1.6 * (F.roll || 0) * K) + leanR;
+  // shaking, wobbling wheels, misfires
+  const sh = F.shake || {}, onB = !sh.brake || brk > 0;
+  SIM.miss = br && F.miss ? F.miss[0] : -1; SIM.missK = F.miss ? F.miss[1] * K : 0;
+  SIM.eShake = running ? (sh.e || 0) * K + (SIM.miss >= 0 ? 0.6 * SIM.missK : 0) + (F.rough || 0) * K * 0.5 : SIM.es === 'crank' && !ns ? 0.6 : 0;
+  const bs = (sh.b || 0) * K * (onB ? 1 : 0) * (sh.speed ? SIM.v / VMAX : 1);
+  SIM.jx = bs * 0.0022 * Math.sin(SIM.t * 61); SIM.jy = bs * 0.0026 * Math.sin(SIM.t * 47 + 1);
+  SIM.sShake = (sh.s || 0) * K * (onB ? 1 : 0) * Math.min(1, SIM.v / 2);
+  for (const k in SIM.wob) SIM.wob[k] = F.wobble === k ? 0.04 * K : 0;
+  SIM.balWob = F.balWob ? 0.06 * K : 0;
+  SIM.hoodF = F.hoodFlutter && br ? 0.03 * (SIM.v / VMAX) * (0.5 + 0.5 * Math.sin(SIM.t * 23)) : 0;
+  // engine temperature
+  let tT = 0.45;
+  if (running || SIM.es === 'stall') tT = F.heatIdle ? 0.45 + 0.55 * K * (SIM.v < 1 ? 1 : 0.15) : 0.45 + 0.55 * (F.heat || 0) * K;
+  if (F.tempWild && br) tT = 0.2 + 0.65 * (0.5 + 0.5 * Math.sin(SIM.t * 1.3)) ** 3;
+  SIM.temp += (tT - SIM.temp) * Math.min(1, dt * (tT > SIM.temp ? 0.14 : 0.25));
+  SIM.fanDead = !!(F.fanDead && br);
+  // lights, gauges, warning lamps, message
+  const lf = br ? F.lights : null;
+  SIM.light = lf === 'dim' ? 0.35 + 0.15 * Math.sin(SIM.t * 7) : lf === 'off' ? 0 : 1;
+  SIM.beams = lf === 'oneOff' ? [1, 0] : [1, 1];
+  SIM.kmh = SIM.v / VMAX * 60; SIM.gear = stuck ? 'P' : 'D'; SIM.clusterOff = !!(F.clusterOff && br);
+  SIM.lamps.clear(); SIM.blink.clear();
+  if (SIM.es === 'crank' && SIM.esT < 0.9 && !ns) Object.keys(LAMPS).forEach(k => SIM.lamps.add(k));   // bulb check while the key turns
+  if (br) (SIM.f.lamps || []).forEach(k => SIM.lamps.add(k));
+  if (br && F.miss) SIM.blink.add('eng');
+  if (SIM.temp > 0.88) { SIM.lamps.add('temp'); SIM.blink.add('temp'); }
+  if (SIM.es === 'stall' || SIM.es === 'rest') { SIM.lamps.add('batt'); SIM.lamps.add('oil'); }
+  SIM.msg = SIM.es === 'stall' ? 'المحرك طفى!' : SIM.es === 'rest' || (SIM.es === 'crank' && ns) ? 'المحرك ما عم يشتغل' : SIM.temp > 0.88 ? 'المحرك سخن! وقّف بأمان' : br && SIM.f.msg ? SIM.f.msg : '';
+  SIM.fxExtra = SIM.part?.id === 'wipers' ? { wipers: 1 } : {};
+  simFx(dt);
+}
+const _w = new THREE.Vector3(), _vel = new THREE.Vector3();
+function smokeAt(at, col, op) {
+  const r = Math.random;
+  if (at === 'tail') { const s = r() < 0.5 ? -1 : 1; _w.set(-2.36, 0.27, s * 0.40); sprung.localToWorld(_w); _vel.set(-0.6 - r() * 0.4, 0.12 + r() * 0.2, (r() - 0.5) * 0.3); return puff(_w, _vel, col, op, 2.2, 0.06, 0.55); }
+  if (at === 'bay') { _w.set(1.1 + r() * 1.0, 0.9, (r() - 0.5) * 0.9); sprung.localToWorld(_w); _vel.set(0, 0.45 + r() * 0.3, 0); return puff(_w, _vel, col, op, 1.8, 0.08, 0.45); }
+  if (at === 'front') { _w.set(2.32, 0.55, (r() - 0.5) * 0.6); sprung.localToWorld(_w); _vel.set(0.3, 0.4, 0); return puff(_w, _vel, col, op, 1.8, 0.07, 0.45); }
+  if (at === 'under') { _w.set(0.2 + r() * 0.6, 0.15, (r() - 0.5) * 0.5); sprung.localToWorld(_w); _vel.set(0, 0.2, 0); return puff(_w, _vel, col, op, 1.6, 0.06, 0.4); }
+  if (at.startsWith('wheel')) { const c = CORNERS.find(o => o.k === at.slice(5)); _w.set(c.x, WY + 0.1, c.s * 0.80); carRoot.localToWorld(_w); _vel.set(0, 0.35, c.s * 0.1); puff(_w, _vel, col, op, 1.6, 0.05, 0.35); }
+}
+function sparkAt(s) {
+  const r = Math.random;
+  if (s === 'pipe') { _w.set(-0.6 + r() * 0.3, 0.02, 0.26); carRoot.localToWorld(_w); _vel.set(-1.5 - r() * 2, 0.6 + r() * 1.2, (r() - 0.5) * 1.2); return spark(_w, _vel); }
+  const k = s.slice(4), c = CORNERS.find(o => o.k === k), a = CAL_A + 0.45;
+  _w.set(0.17 * Math.cos(a), 0.17 * Math.sin(a), -c.s * 0.06); STEER[k].localToWorld(_w);
+  _vel.set(-1.2 - r(), 0.5 + r() * 1.5, (r() - 0.5) * 0.5 + c.s * 0.4); spark(_w, _vel);
+}
+function simFx(dt) {
+  const F = SIM.part ? (SIM.f.fx || {}) : {}, K = SIM.k, eng = SIM.rpm > 300, A = SIM.acc;
+  const emit = (key, rate, fn) => { A[key] = (A[key] || 0) + rate * dt; while (A[key] >= 1) { A[key] -= 1; fn(); } };
+  if (F.smoke && K > 0.05) {
+    const [c, at, rate = 1] = F.smoke, [col, op] = SMOKE_C[c], tail = at === 'tail';
+    if (!tail || eng) emit('smoke', rate * K * (tail ? 6 + 10 * SIM.thr : 6), () => smokeAt(at, col, op));
+  }
+  if (SIM.temp > 0.86) emit('steam', 9 * (SIM.temp - 0.86) / 0.14, () => smokeAt('bay', SMOKE_C.steam[0], SMOKE_C.steam[1]));
+  if (F.leak && K > 0.05) { const [fl, p, rate = 1] = F.leak; emit('leak', 2.2 * rate * K, () => { _w.set(p[0] + (Math.random() - 0.5) * 0.03, p[1], p[2] + (Math.random() - 0.5) * 0.03); sprung.localToWorld(_w); drip(_w, FLUID_C[fl]); }); }
+  if (F.sparks && K > 0.3 && SIM.v > 0.3 && (F.sparks === 'pipe' || SIM.brk > 0.1)) emit('spark', 110 * K, () => sparkAt(F.sparks));
+}
+const simEl = $('#sim');
+simEl.innerHTML = `
+  <div class="sim-head"><b id="sTitle"></b>
+    <div class="seg" role="group" aria-label="حالة القطعة" id="sSeg"><button data-sim="ok" aria-pressed="false">سليمة</button><button data-sim="bad" aria-pressed="true">خربانة</button></div>
+    <button class="btn" id="sStop">وقّف</button></div>
+  <div class="sim-top">
+    <div class="gauge"><b id="sKmh">0</b><small>km/h</small></div>
+    <div class="gauge"><b id="sRpm">0</b><small>rpm</small></div>
+    <div class="temp"><small>حرارة المحرك</small><span><i id="sTemp"></i></span></div>
+  </div>
+  <div class="lamps" id="sLamps">${Object.entries(LAMPS).map(([k, [c, t, svg]]) => `<span class="lamp ${c}" data-l="${k}" title="${t}" role="img" aria-label="${t}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${svg}</svg></span>`).join('')}</div>
+  <p class="sim-msg" id="sMsg" aria-live="polite"></p>
+  <p class="snd-note">الأصوات مولّدة بالكمبيوتر وتقريبية، مش تسجيل حقيقي. والحركة مبطّأة لتلحقها بعينك.</p>`;
+const lampEls = [...simEl.querySelectorAll('.lamp')], simMsgEl = $('#sMsg');
+simEl.querySelectorAll('[data-sim]').forEach(b => b.addEventListener('click', () => { if (!SIM.part) return; SIM.bad = b.dataset.sim === 'bad'; SIM.delay = 0; if (SIM.bad && SIM.f.fx?.nostart) SIM.k = 1; simHead(); }));
+$('#sStop').onclick = () => simStop();
+function simHead() {
+  $('#sTitle').textContent = SIM.part ? 'تجربة عطل: ' + shortAr(SIM.part) : 'سواقة عادية، كل شي سليم';
+  $('#sSeg').hidden = !SIM.part;
+  simEl.querySelectorAll('[data-sim]').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.sim === 'bad') === SIM.bad)));
+}
+let hudT = 0;
+function simHud(dt) {
+  if (!SIM.on) return;
+  hudT -= dt; if (hudT > 0) return; hudT = 0.12;
+  $('#sKmh').textContent = Math.round(SIM.kmh); $('#sRpm').textContent = Math.round(SIM.rpm / 10) * 10;
+  $('#sTemp').style.left = (clamp(SIM.temp, 0, 1) * 100).toFixed(1) + '%';
+  for (const el of lampEls) { const k = el.dataset.l; el.classList.toggle('on', SIM.lamps.has(k)); el.classList.toggle('blink', SIM.blink.has(k)); }
+  if (simMsgEl.textContent !== SIM.msg) simMsgEl.textContent = SIM.msg;
+}
+
+/* ------------------------------------------------------------------ *
+ *  Sound: a tiny synthesiser fed from the simulation every frame
+ * ------------------------------------------------------------------ */
+const AU = { ctx: null, on: true, idle: 0, p: { f: {}, vol: 1, rpm: 0, eng: 0, crank: 0, bump: 0, shift: 0, jolt: 0, crankN: 0, primeN: 0 } };
+try { if (localStorage.getItem('carSound') === 'off') AU.on = false; } catch (e) { /* storage blocked */ }
+function audioStart() {
+  if (!AU.on) return;
+  if (AU.ctx) { if (AU.ctx.state === 'suspended') AU.ctx.resume().catch(() => {}); return; }
+  const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+  try {
+    const ctx = new AC(), synth = makeSynth(ctx.sampleRate, AU.p), node = ctx.createScriptProcessor(4096, 1, 1), g = ctx.createGain();
+    node.onaudioprocess = e => synth.render(e.outputBuffer.getChannelData(0));
+    g.gain.value = 0.9; node.connect(g); g.connect(ctx.destination);
+    AU.ctx = ctx; AU.node = node;
+    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+  } catch (e) { AU.ctx = null; }
+}
+function audioFrame(dt, now) {
+  const P = AU.p, d = state.demo && state.playing && !TD.on && !SIM.part ? state.demo : null, f = {};
+  let eng = 0, crank = 0, rpm = 820, load = 0, v = 0, vol = 1;
+  P.horn = 0; P.hornBad = 0; P.pdc = 0; P.crankMode = 'crank';
+  if (SIM.on) {
+    eng = SIM.es === 'run' || (SIM.es === 'stall' && SIM.rpm > 150) ? 1 : 0; crank = SIM.es === 'crank' ? 1 : 0;
+    rpm = SIM.rpm; load = SIM.thr; v = SIM.v / VMAX;
+    if (SIM.part && SIM.f.snd) for (const k in SIM.f.snd) f[k] = SIM.f.snd[k] * SIM.k;
+    if (SIM.lamps.has('belt') || SIM.lamps.has('srs')) f.chime = Math.max(f.chime || 0, 0.6);
+    if (SIM.temp > 0.9) f.boil = Math.max(f.boil || 0, 0.5);
+    if (SIM.k > 0.5 && SIM.f?.fx?.nostart) P.crankMode = SIM.f.fx.nostart;
+    P.horn = SIM.hornOn; P.hornBad = SIM.part?.id === 'horn' ? SIM.k : 0;
+    if (SIM.rpm > 300 && !SIM.fanDead) f.fan = Math.max(f.fan || 0, 0.12);
+  } else if (state.running) eng = 1;
+  else if (d && d.fx.engine === 'fast') { eng = 1; vol = 0.5; }
+  if (d) {
+    if (d === DEMOS.horn) P.horn = mod(now / 1000, 1.4) < 0.55 ? 1 : 0;
+    if (d === DEMOS.pdc) P.pdc = 1;
+    if (d === DEMOS.abs) f.buzz = L.brake > 0.3 ? 0.9 : 0;
+    if (d.fx.fan) f.fan = 0.5;
+    if (d.fx.starter) { const ph = mod((now - state.t0) / 1000, 5); crank = ph < 1.4 ? 1 : 0; eng = ph > 1.2 && ph < 4.2 ? 1 : 0; vol = 0.7; }
+  }
+  Object.assign(P, { vol, eng, crank, rpm, load, v, f, brake: SIM.on ? SIM.brk : 0, steer: SIM.on ? Math.abs(SIM.steer) / 0.2 : 0, miss: SIM.on ? SIM.miss : -1, missK: SIM.on ? SIM.missK : 0,
+    rough: SIM.on && SIM.part ? (SIM.f.fx?.rough || 0) * SIM.k : 0, bump: SIM.bumpN, shift: SIM.shiftN, jolt: SIM.joltN, crankN: SIM.crankN, primeN: SIM.primeN, mute: !AU.on });
+  if (!AU.ctx) return;
+  const active = AU.on && (eng || crank || P.horn || P.pdc || Object.keys(f).length || SIM.on);
+  AU.idle = active ? 0 : AU.idle + dt;
+  if (active && AU.ctx.state === 'suspended') AU.ctx.resume().catch(() => {});
+  if (AU.idle > 2.5 && AU.ctx.state === 'running') AU.ctx.suspend().catch(() => {});
+}
+
 /* boot */
 lookReady = true;
+syncSndBtn();
 setColorMode(colorMode);
 resize();
 renderList();
@@ -3026,7 +4221,7 @@ if (!fromHash) { const [t, p] = viewPos('iso'); controls.target.copy(t); camera.
 loop();
 window.__carReady = true;
 const ld = $('#loader'); ld.style.opacity = '0'; setTimeout(() => ld.hidden = true, 450);
-window.__car = { scene, renderer, setColorMode, PARTS, BY, select, setMode, camera, controls, pickAt, state, SHELL, L, RIG, FLOWS };
+window.__car = { scene, renderer, setColorMode, PARTS, BY, select, setMode, camera, controls, pickAt, state, SHELL, L, RIG, FLOWS, TD, TD_ORDER, tdStart, tdExit, tdGo, SIM, simStart, simStop, simSetPart, FAULTS, AU, gtao, composer, makeSynth };
 window.__car.sim = sec => { let t = performance.now(); for (let i = 0; i < sec * 20; i++) { t += 50; animate(0.05, t); } if (tween) { controls.target.copy(tween.t1); camera.position.copy(tween.p1); tween = null; controls.update(); } };
 </script>
 
